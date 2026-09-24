@@ -1,6 +1,7 @@
 package com.neuronovaapps.rutinago
 
 import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.data.institutional.InstitutionalLinks
 import com.neuronovaapps.rutinago.domain.model.RoutineCategory
 import com.neuronovaapps.rutinago.domain.model.filterFor
 import com.neuronovaapps.rutinago.ui.navigation.AppDestination
@@ -35,5 +36,16 @@ class ExampleUnitTest {
         )
         assertTrue(mainDestinations.all(AppDestination::isMain))
         assertTrue(!AppDestination.EXECUTION.isMain)
+        assertTrue(!AppDestination.ABOUT.isMain)
+        assertTrue(AppDestination.ABOUT !in mainDestinations)
+    }
+
+    @Test
+    fun institutionalLinks_useVerifiedSchemesAndContact() {
+        assertTrue(InstitutionalLinks.NEURONOVA_APPS_WEBSITE.startsWith("https://"))
+        assertEquals(
+            "mailto:${InstitutionalLinks.CONTACT_EMAIL}",
+            InstitutionalLinks.CONTACT_EMAIL_URI,
+        )
     }
 }

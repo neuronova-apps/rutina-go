@@ -11,6 +11,7 @@ enum class AppDestination(
     CREATE("Crear", "Crear", "+", true),
     PROGRESS("Progreso", "Progreso", "▥", true),
     SETTINGS("Configuración", "Configuración", "⚙", true),
+    ABOUT("Acerca de RutinaGo"),
     NOW_NEXT("Ahora / Después"),
     ROUTINE_DETAIL("Detalle de rutina"),
     EXECUTION("Ejecución"),

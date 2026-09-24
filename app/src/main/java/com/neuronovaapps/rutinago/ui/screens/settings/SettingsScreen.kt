@@ -2,10 +2,12 @@ package com.neuronovaapps.rutinago.ui.screens.settings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -19,6 +21,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,6 +31,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
@@ -35,7 +42,6 @@ import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
-import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
@@ -47,6 +53,7 @@ fun SettingsScreen(
     onTextScaleModeChange: (TextScaleMode) -> Unit,
     highContrast: Boolean,
     onHighContrastChange: (Boolean) -> Unit,
+    onOpenAbout: () -> Unit,
 ) {
     var advancedMode by rememberSaveable { mutableStateOf(false) }
     var textToSpeech by rememberSaveable { mutableStateOf(false) }
@@ -187,17 +194,60 @@ fun SettingsScreen(
             body = "Esta fase no usa PIN ni contraseña de demostración como protección real.",
         )
 
-        SectionHeading("Acerca de RutinaGo")
-        InfoCallout(
-            title = "RutinaGo · NeuroNova Apps",
-            body = "Base Android local para organizar y anticipar actividades mediante secuencias visuales personalizables.",
-        )
-        Text(
-            "Privacidad: en esta fase no hay cuenta ni nube; solo se guardan preferencias locales. Los créditos de ARASAAC se incorporarán cuando se integren sus recursos.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        StatusPill("Fase 1 · datos demo")
+        SectionHeading("Información")
+        InformationLinkCard(onClick = onOpenAbout)
+    }
+}
+
+@Composable
+private fun InformationLinkCard(onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription =
+                    "Acerca de RutinaGo. Información, privacidad, créditos y desarrollador. Abrir."
+            },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "i",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.clearAndSetSemantics {},
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Acerca de RutinaGo", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Información, privacidad, créditos y desarrollador.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = "›",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clearAndSetSemantics {},
+            )
+        }
     }
 }
 

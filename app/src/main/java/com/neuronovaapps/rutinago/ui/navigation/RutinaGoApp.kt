@@ -35,6 +35,7 @@ import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.ui.screens.about.AboutScreen
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
 import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
 import com.neuronovaapps.rutinago.ui.screens.home.HomeScreen
@@ -214,7 +215,10 @@ fun RutinaGoApp(
                     onTextScaleModeChange = onTextScaleModeChange,
                     highContrast = highContrast,
                     onHighContrastChange = onHighContrastChange,
+                    onOpenAbout = { navigateTo(AppDestination.ABOUT) },
                 )
+
+                AppDestination.ABOUT -> AboutScreen()
 
                 AppDestination.NOW_NEXT -> NowNextScreen(
                     onStartRoutine = {
@@ -271,6 +275,7 @@ private fun AppHeader(
                         AppDestination.HOME -> "NeuroNova Apps"
                         AppDestination.PROGRESS -> "Perfil Alex · datos demo"
                         AppDestination.SETTINGS -> "Preferencias guardadas en este dispositivo"
+                        AppDestination.ABOUT -> "Información de la aplicación"
                         else -> "RutinaGo"
                     },
                     style = MaterialTheme.typography.bodySmall,

@@ -27,4 +27,20 @@ class WelcomeNavigationTest {
         composeRule.onNodeWithText("Alto contraste").performScrollTo().assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Comenzar").fetchSemanticsNodes().isEmpty())
     }
+
+    @Test
+    fun aboutScreenOpensFromSettingsAndReturnsToSettings() {
+        composeRule.onNodeWithText("Comenzar").performClick()
+        composeRule.onNodeWithText("Configuración").performClick()
+
+        composeRule.onNodeWithText("Acerca de RutinaGo")
+            .performScrollTo()
+            .performClick()
+
+        composeRule.onNodeWithText("Sobre RutinaGo").assertIsDisplayed()
+        composeRule.onNodeWithText("RUTINAGO").assertIsDisplayed()
+        composeRule.onNodeWithText("‹ Volver").performClick()
+
+        composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
+    }
 }
