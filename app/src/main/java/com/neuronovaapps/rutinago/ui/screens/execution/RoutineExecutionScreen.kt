@@ -47,14 +47,17 @@ import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 @Composable
 fun RoutineExecutionScreen(
     routine: Routine,
-    onClose: () -> Unit,
+    onExit: () -> Unit,
+    onCloseResult: () -> Unit,
     onViewProgress: () -> Unit,
 ) {
     var stepIndex by rememberSaveable(routine.id) { mutableIntStateOf(0) }
+    var completedSteps by rememberSaveable(routine.id) { mutableIntStateOf(0) }
     var paused by rememberSaveable(routine.id) { mutableStateOf(false) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
     var supportMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var outcomeName by rememberSaveable(routine.id) { mutableStateOf<String?>(null) }
+    var showExitConfirmation by rememberSaveable(routine.id) { mutableStateOf(false) }
     val outcome = outcomeName?.let(RoutineOutcome::valueOf)
 
     fun finish(result: RoutineOutcome) {
@@ -64,9 +67,9 @@ fun RoutineExecutionScreen(
 
     BackHandler {
         if (outcome == null) {
-            finish(if (stepIndex == 0) RoutineOutcome.CANCELLED else RoutineOutcome.PARTIAL)
+            showExitConfirmation = true
         } else {
-            onClose()
+            onCloseResult()
         }
     }
 
@@ -91,11 +94,11 @@ fun RoutineExecutionScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(
-                    onClick = {
-                        finish(if (stepIndex == 0) RoutineOutcome.CANCELLED else RoutineOutcome.PARTIAL)
-                    },
-                ) { Text("Salir") }
+                if (outcome == null) {
+                    TextButton(
+                        onClick = { showExitConfirmation = true },
+                    ) { Text("Salir") }
+                }
             }
 
             if (outcome == null) {
@@ -181,6 +184,7 @@ fun RoutineExecutionScreen(
                         Button(
                             onClick = {
                                 supportMessage = null
+                                completedSteps++
                                 if (stepIndex < routine.steps.lastIndex) {
                                     stepIndex++
                                 } else {
@@ -210,13 +214,9 @@ fun RoutineExecutionScreen(
             } else {
                 CompletionPanel(
                     outcome = outcome,
-                    completedSteps = when (outcome) {
-                        RoutineOutcome.COMPLETED -> routine.steps.size
-                        RoutineOutcome.PARTIAL -> stepIndex.coerceAtLeast(1)
-                        RoutineOutcome.CANCELLED -> 0
-                    },
+                    completedSteps = completedSteps,
                     totalSteps = routine.steps.size,
-                    onClose = onClose,
+                    onClose = onCloseResult,
                     onViewProgress = onViewProgress,
                     modifier = Modifier.weight(1f),
                 )
@@ -262,6 +262,24 @@ fun RoutineExecutionScreen(
             },
         )
     }
+
+    if (showExitConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showExitConfirmation = false },
+            title = { Text("¿Deseas salir de la rutina?") },
+            text = {
+                Text("Puedes abandonar esta rutina y volver a intentarla cuando quieras.")
+            },
+            confirmButton = {
+                TextButton(onClick = onExit) { Text("Salir de la rutina") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitConfirmation = false }) {
+                    Text("Continuar rutina")
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -282,7 +300,11 @@ private fun CompletionPanel(
     ) {
         StatusPill(outcome.label)
         Text(
-            "Rutina finalizada",
+            when (outcome) {
+                RoutineOutcome.COMPLETED -> "Rutina completada"
+                RoutineOutcome.PARTIAL -> "Rutina realizada parcialmente"
+                RoutineOutcome.CANCELLED -> "Rutina cancelada"
+            },
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -292,8 +314,8 @@ private fun CompletionPanel(
         Text(
             when (outcome) {
                 RoutineOutcome.COMPLETED -> "$totalSteps de $totalSteps pasos realizados."
-                RoutineOutcome.PARTIAL -> "$completedSteps de $totalSteps pasos realizados. Parcial no es un error."
-                RoutineOutcome.CANCELLED -> "La rutina terminó sin penalización."
+                RoutineOutcome.PARTIAL -> "Completaste $completedSteps de $totalSteps pasos."
+                RoutineOutcome.CANCELLED -> "Puedes volver a intentarla cuando quieras."
             },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

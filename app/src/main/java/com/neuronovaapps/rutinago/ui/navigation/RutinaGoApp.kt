@@ -68,6 +68,7 @@ fun RutinaGoApp(
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var selectedRoutineId by rememberSaveable { mutableStateOf(DemoContent.routines.first().id) }
     var suggestedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
+    var executionReturnName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     val destination = AppDestination.valueOf(destinationName)
     val allRoutines = DemoContent.routines + DemoContent.templates
     val selectedRoutine = allRoutines.firstOrNull { it.id == selectedRoutineId }
@@ -86,6 +87,20 @@ fun RutinaGoApp(
         destinationName = target.name
         previousMainName = target.name
         if (target != AppDestination.CREATE) suggestedTemplateId = null
+    }
+
+    fun startExecution(routine: Routine) {
+        selectRoutine(routine)
+        executionReturnName = destination.name
+        destinationName = AppDestination.EXECUTION.name
+    }
+
+    fun returnFromExecution() {
+        val safeDestination = AppDestination.entries.firstOrNull { it.name == executionReturnName }
+            ?.takeUnless { it == AppDestination.EXECUTION }
+            ?: AppDestination.HOME
+        destinationName = safeDestination.name
+        if (safeDestination.isMain) previousMainName = safeDestination.name
     }
 
     if (showWelcome) {
@@ -109,7 +124,8 @@ fun RutinaGoApp(
     if (destination == AppDestination.EXECUTION) {
         RoutineExecutionScreen(
             routine = selectedRoutine,
-            onClose = { navigateMain(AppDestination.HOME) },
+            onExit = ::returnFromExecution,
+            onCloseResult = ::returnFromExecution,
             onViewProgress = { navigateMain(AppDestination.PROGRESS) },
         )
         return
@@ -194,8 +210,7 @@ fun RutinaGoApp(
                         navigateTo(AppDestination.ROUTINE_DETAIL)
                     },
                     onStartRoutine = { routine ->
-                        selectRoutine(routine)
-                        navigateTo(AppDestination.EXECUTION)
+                        startExecution(routine)
                     },
                     onCreateRoutine = { navigateMain(AppDestination.CREATE) },
                 )
@@ -207,8 +222,7 @@ fun RutinaGoApp(
                         navigateTo(AppDestination.ROUTINE_DETAIL)
                     },
                     onStartRoutine = { routine ->
-                        selectRoutine(routine)
-                        navigateTo(AppDestination.EXECUTION)
+                        startExecution(routine)
                     },
                     onUseTemplate = { routine ->
                         selectRoutine(routine)
@@ -255,14 +269,13 @@ fun RutinaGoApp(
 
                 AppDestination.NOW_NEXT -> NowNextScreen(
                     onStartRoutine = {
-                        selectRoutine(DemoContent.routines.first())
-                        navigateTo(AppDestination.EXECUTION)
+                        startExecution(DemoContent.routines.first())
                     },
                 )
 
                 AppDestination.ROUTINE_DETAIL -> RoutineDetailScreen(
                     routine = selectedRoutine,
-                    onStart = { navigateTo(AppDestination.EXECUTION) },
+                    onStart = { startExecution(selectedRoutine) },
                     onUseTemplate = {
                         suggestedTemplateId = selectedRoutine.id
                         navigateMain(AppDestination.CREATE)
