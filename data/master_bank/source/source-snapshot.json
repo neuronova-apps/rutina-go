@@ -1,0 +1,41 @@
+{
+  "snapshotVersion": "1.0.0",
+  "exportedAt": "2026-09-24T16:54:24Z",
+  "source": {
+    "spreadsheetId": "1is0zFNvvA69Rb_C0V0qYG4a-AtEh0oxdSiJTFEFlaYo",
+    "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/1is0zFNvvA69Rb_C0V0qYG4a-AtEh0oxdSiJTFEFlaYo/edit",
+    "sheetCount": 17
+  },
+  "sheets": [
+    {
+      "title": "Banco_actividades",
+      "sheetId": 1097218425,
+      "file": "banco_actividades.csv",
+      "dataRowCount": 203
+    },
+    {
+      "title": "Banco_rutinas",
+      "sheetId": 1664810288,
+      "file": "banco_rutinas.csv",
+      "dataRowCount": 52
+    },
+    {
+      "title": "Banco_logros_retos",
+      "sheetId": 1162591216,
+      "file": "banco_logros_retos.csv",
+      "dataRowCount": 60
+    },
+    {
+      "title": "Banco_mensajes_refuerzo",
+      "sheetId": 1394843334,
+      "file": "banco_mensajes_refuerzo.csv",
+      "dataRowCount": 54
+    },
+    {
+      "title": "Catalogos",
+      "sheetId": 1728542767,
+      "file": "catalogos.csv",
+      "dataRowCount": 17
+    }
+  ]
+}

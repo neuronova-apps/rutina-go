@@ -1,0 +1,199 @@
+{
+  "artifactEnvelope": {
+    "required": [
+      "catalogVersion",
+      "contractVersion",
+      "items"
+    ],
+    "types": {
+      "catalogVersion": "semantic-version",
+      "contractVersion": "semantic-version",
+      "items": "array"
+    }
+  },
+  "artifacts": {
+    "achievements.json": {
+      "idPattern": "^LOG-[0-9]{3}$",
+      "itemType": "gamification",
+      "typeValue": "Logro"
+    },
+    "activities.json": {
+      "idPattern": "^ACT-[0-9]{3}$",
+      "itemType": "activity"
+    },
+    "categories.json": {
+      "itemType": "category"
+    },
+    "challenges.json": {
+      "idPattern": "^RET-[0-9]{3}$",
+      "itemType": "gamification",
+      "typeValue": "Reto"
+    },
+    "reinforcement_messages.json": {
+      "idPattern": "^MSG-[0-9]{3}$",
+      "itemType": "reinforcementMessage"
+    },
+    "routine_steps.json": {
+      "itemType": "routineStep"
+    },
+    "routines.json": {
+      "idPattern": "^RUT-[0-9]{3}$",
+      "itemType": "routine"
+    },
+    "visual_references.json": {
+      "itemType": "visualReference"
+    }
+  },
+  "catalogVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "enums": {
+    "ageGroup": [
+      "General",
+      "Escolar+",
+      "Adolescente"
+    ],
+    "gamificationLevel": [
+      "Ligera",
+      "Intermedia",
+      "Completa"
+    ],
+    "messageGamificationLevel": [
+      "No aplica",
+      "Ligera/Intermedia",
+      "Intermedia",
+      "Completa"
+    ],
+    "referenceType": [
+      "ACT",
+      "RUT"
+    ],
+    "reviewStatus": [
+      "PENDING_SELECTION",
+      "SELECTED",
+      "REVIEWED",
+      "APPROVED"
+    ],
+    "sequenceType": [
+      "SIMPLE",
+      "COMPLETE",
+      "OPTIONAL"
+    ],
+    "visualSource": [
+      "PENDING",
+      "ARASAAC",
+      "OWN_PHOTO"
+    ]
+  },
+  "itemTypes": {
+    "activity": {
+      "required": [
+        "id",
+        "category",
+        "name",
+        "simpleInstruction",
+        "arasaacSearchTerm",
+        "ageGroup",
+        "autonomyLevel",
+        "supervision",
+        "simpleMode",
+        "advancedMode",
+        "visualResource",
+        "status",
+        "observations",
+        "usageContexts"
+      ]
+    },
+    "category": {
+      "required": [
+        "name",
+        "order"
+      ]
+    },
+    "gamification": {
+      "required": [
+        "id",
+        "type",
+        "name",
+        "category",
+        "gamificationLevel",
+        "ageGroup",
+        "referenceType",
+        "references",
+        "unlockCondition",
+        "targetQuantity",
+        "windowDays",
+        "repeatable",
+        "visualReward",
+        "penalizesIfIncomplete",
+        "defaultActivation",
+        "status",
+        "observations"
+      ]
+    },
+    "reinforcementMessage": {
+      "required": [
+        "id",
+        "eventType",
+        "category",
+        "tone",
+        "ageGroup",
+        "gamificationRequired",
+        "gamificationLevel",
+        "message",
+        "usageChannel",
+        "length",
+        "allowsRepetition",
+        "eventOrigin",
+        "safetyRule",
+        "status",
+        "observations",
+        "recommendedFrequency",
+        "ttsActivation"
+      ]
+    },
+    "routine": {
+      "required": [
+        "id",
+        "name",
+        "primaryArea",
+        "context",
+        "ageGroup",
+        "functionalObjective",
+        "suggestedMoment",
+        "declaredSimpleStepCount",
+        "declaredCompleteStepCount",
+        "personalizable",
+        "keySupervision",
+        "status",
+        "observations"
+      ]
+    },
+    "routineStep": {
+      "required": [
+        "routineId",
+        "sequenceType",
+        "position",
+        "activityId"
+      ]
+    },
+    "visualReference": {
+      "required": [
+        "activityId",
+        "visualSource",
+        "arasaacId",
+        "variant",
+        "localFile",
+        "alternativeText",
+        "reviewStatus",
+        "attribution",
+        "license"
+      ]
+    }
+  },
+  "policies": {
+    "arasaac": "PENDING requires null arasaacId, variant, localFile, attribution and license. ARASAAC requires a positive integer arasaacId plus localFile, attribution and license.",
+    "references": "All ACT and RUT references must resolve inside the same catalog version.",
+    "routineSteps": "Positions are one-based and contiguous within routineId plus sequenceType.",
+    "sourceOfTruth": "The authorized Google Sheet snapshot remains the editorial source; generated JSON is the repository delivery format."
+  }
+}

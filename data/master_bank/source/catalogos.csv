@@ -1,0 +1,18 @@
+Campo,Valores sugeridos,,Categorias
+Grupo_edad,General | Escolar+ | Adolescente,,Inicio del día
+Nivel_autonomia,Con apoyo / autónomo | Apoyo parcial / autónomo,,Higiene personal
+Supervision,Según necesidad | Supervisión recomendada | Privacidad y apoyo según necesidad,,Vestido y presentación
+Modo_simple,Sí | No,,Alimentación
+Modo_avanzado,Sí | No,,Baño e intimidad
+Recurso_visual,Pictograma ARASAAC o foto propia,,Preparación para estudiar
+Estado,Base v1 | Revisado | Validado con pictograma,,Estudio y tareas
+Contextos_uso,Una o varias categorías separadas por |,,Hogar y responsabilidades
+,,,Ocio y tiempo libre
+Taxonomía Grupo_edad,"Etiqueta de perfil mínimo recomendado para la versión básica; no es diagnóstico, nivel de capacidad ni restricción absoluta.",,Actividad física y movimiento
+General,Contenido básico aplicable por defecto a cualquier perfil etario. La necesidad de apoyo se determina por Nivel_autonomia y Supervision.,,Salidas y comunidad
+Escolar+,Contenido cuya versión básica supone contexto o demandas habituales desde edad escolar. También es válido para adolescentes.,,Salud y bienestar
+Adolescente,Contenido cuya versión básica está específicamente orientada a autonomía o contextos adolescentes.,,Autorregulación y emociones
+Regla de rutinas,Grupo_edad de una RUT se valida contra Secuencia_simple_ACT. La Secuencia_completa_ACT es una plantilla máxima editable y puede contener ACT de perfil superior; esos pasos deben filtrarse o retirarse al personalizar para un perfil menor.,,Interacción social
+Regla de opcionales,Opcionales_ACT puede incluir perfiles superiores porque no son pasos obligatorios; solo deben ofrecerse cuando el perfil/contexto sea compatible.,,Rutina de tarde y noche
+Regla de gamificación y mensajes,"LOG/RET puede agrupar referencias de distintos perfiles si la condición puede cumplirse con referencias compatibles con su Grupo_edad. En MSG, Grupo_edad selecciona el perfil comunicativo, no una capacidad.",,Cambios y situaciones especiales
+,,,Autonomía adolescente

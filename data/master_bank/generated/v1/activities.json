@@ -1,0 +1,3673 @@
+{
+  "catalogVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "items": [
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "despertarse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-001",
+      "name": "Despertarse",
+      "observations": "ARASAAC: correspondencia directa verificada para \"despertarse\".",
+      "simpleInstruction": "Abre los ojos y empieza el día.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "alarma",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-002",
+      "name": "Apagar la alarma",
+      "observations": null,
+      "simpleInstruction": "Apaga la alarma.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "sentarse cama",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-003",
+      "name": "Sentarse en la cama",
+      "observations": null,
+      "simpleInstruction": "Siéntate en la cama.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "levantarse cama",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-004",
+      "name": "Levantarse de la cama",
+      "observations": null,
+      "simpleInstruction": "Levántate de la cama.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "abrir cortinas",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-005",
+      "name": "Abrir las cortinas",
+      "observations": null,
+      "simpleInstruction": "Abre las cortinas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "hacer la cama",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-006",
+      "name": "Tender la cama",
+      "observations": "ARASAAC: correspondencia visual directa verificada para \"hacer la cama\".",
+      "simpleInstruction": "Tiende la cama.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar pijama",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-007",
+      "name": "Guardar el pijama",
+      "observations": null,
+      "simpleInstruction": "Guarda el pijama.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ir baño",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-008",
+      "name": "Ir al baño",
+      "observations": null,
+      "simpleInstruction": "Ve al baño.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "agenda",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-009",
+      "name": "Revisar la agenda del día",
+      "observations": null,
+      "simpleInstruction": "Mira lo que harás hoy.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "elegir ropa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Inicio del día",
+      "id": "ACT-010",
+      "name": "Elegir la ropa",
+      "observations": null,
+      "simpleInstruction": "Elige la ropa que usarás.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Inicio del día"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "lavar las manos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-011",
+      "name": "Lavarse las manos",
+      "observations": "ARASAAC: correspondencia directa verificada para \"lavar las manos\"; existen también secuencias específicas de lavado de manos.",
+      "simpleInstruction": "Lávate las manos.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal",
+        "Alimentación",
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "mojar manos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-012",
+      "name": "Mojarse las manos",
+      "observations": null,
+      "simpleInstruction": "Moja tus manos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "jabón manos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-013",
+      "name": "Usar jabón",
+      "observations": null,
+      "simpleInstruction": "Pon jabón en tus manos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "frotar manos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-014",
+      "name": "Frotarse las manos",
+      "observations": null,
+      "simpleInstruction": "Frota tus manos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "enjuagar manos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-015",
+      "name": "Enjuagarse las manos",
+      "observations": null,
+      "simpleInstruction": "Enjuaga tus manos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "secar manos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-016",
+      "name": "Secarse las manos",
+      "observations": null,
+      "simpleInstruction": "Sécate las manos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cepillar los dientes",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-017",
+      "name": "Cepillarse los dientes",
+      "observations": "ARASAAC: correspondencia directa verificada para \"cepillar los dientes\".",
+      "simpleInstruction": "Cepíllate los dientes.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal",
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "pasta dientes",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-018",
+      "name": "Poner pasta dental",
+      "observations": null,
+      "simpleInstruction": "Pon pasta dental en el cepillo.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "enjuagar boca",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-019",
+      "name": "Enjuagarse la boca",
+      "observations": null,
+      "simpleInstruction": "Enjuágate la boca.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "lavar cara",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-020",
+      "name": "Lavarse la cara",
+      "observations": null,
+      "simpleInstruction": "Lávate la cara.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "secar cara",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-021",
+      "name": "Secarse la cara",
+      "observations": null,
+      "simpleInstruction": "Sécate la cara.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "peinarse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-022",
+      "name": "Peinarse",
+      "observations": "ARASAAC: correspondencia visual suficiente verificada para \"peinarse\".",
+      "simpleInstruction": "Péinate.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "desodorante",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-023",
+      "name": "Usar desodorante",
+      "observations": null,
+      "simpleInstruction": "Usa desodorante.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ducha",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-024",
+      "name": "Ducharse",
+      "observations": "ARASAAC: correspondencia directa verificada para \"ducha\".",
+      "simpleInstruction": "Date una ducha.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal",
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "lavarse pelo",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-025",
+      "name": "Lavarse el cabello",
+      "observations": "ARASAAC: correspondencia visual directa verificada para \"lavarse pelo\".",
+      "simpleInstruction": "Lava tu cabello.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "secar cuerpo",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-026",
+      "name": "Secarse el cuerpo",
+      "observations": null,
+      "simpleInstruction": "Sécate el cuerpo.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "cortar uñas",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-027",
+      "name": "Cortarse las uñas con ayuda",
+      "observations": null,
+      "simpleInstruction": "Corta tus uñas con ayuda si la necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "sonarse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Higiene personal",
+      "id": "ACT-028",
+      "name": "Sonarse la nariz",
+      "observations": "ARASAAC: correspondencia visual suficiente verificada para \"sonarse\".",
+      "simpleInstruction": "Suénate la nariz.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Higiene personal"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ropa interior",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-029",
+      "name": "Ponerse la ropa interior",
+      "observations": null,
+      "simpleInstruction": "Ponte la ropa interior.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "poner camiseta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-030",
+      "name": "Ponerse la camiseta",
+      "observations": "ARASAAC: acción \"poner camiseta\" verificada en vocabulario de acciones de ropa.",
+      "simpleInstruction": "Ponte la camiseta.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse pantalón",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-031",
+      "name": "Ponerse el pantalón",
+      "observations": null,
+      "simpleInstruction": "Ponte el pantalón.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse vestido",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-032",
+      "name": "Ponerse el vestido",
+      "observations": null,
+      "simpleInstruction": "Ponte el vestido.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse calcetines",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-033",
+      "name": "Ponerse las medias",
+      "observations": null,
+      "simpleInstruction": "Ponte las medias.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse zapatos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-034",
+      "name": "Ponerse los zapatos",
+      "observations": null,
+      "simpleInstruction": "Ponte los zapatos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad",
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "atar cordones",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-035",
+      "name": "Atarse los pasadores",
+      "observations": "ARASAAC: acción \"atar cordones\" verificada; equivalente al uso local \"atar pasadores\".",
+      "simpleInstruction": "Ata los pasadores.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "subir la cremallera",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-036",
+      "name": "Cerrar el cierre",
+      "observations": "ARASAAC: acción \"subir la cremallera\" verificada; equivalente funcional a cerrar el cierre.",
+      "simpleInstruction": "Sube el cierre.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "abrochar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-037",
+      "name": "Abotonarse",
+      "observations": "ARASAAC: acción \"abrochar\" verificada como correspondencia visual para abotonarse.",
+      "simpleInstruction": "Abotona tu ropa.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse chaqueta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-038",
+      "name": "Ponerse una casaca",
+      "observations": null,
+      "simpleInstruction": "Ponte la casaca.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse gorra",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-039",
+      "name": "Ponerse gorra o sombrero",
+      "observations": null,
+      "simpleInstruction": "Ponte la gorra o el sombrero.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "mirarse espejo",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Vestido y presentación",
+      "id": "ACT-040",
+      "name": "Revisar que la ropa esté bien puesta",
+      "observations": null,
+      "simpleInstruction": "Mira si tu ropa está bien puesta.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Vestido y presentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "sentarse mesa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-041",
+      "name": "Sentarse a la mesa",
+      "observations": null,
+      "simpleInstruction": "Siéntate a la mesa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "servir agua",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-043",
+      "name": "Servir agua",
+      "observations": null,
+      "simpleInstruction": "Sirve agua.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "beber",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-044",
+      "name": "Beber agua",
+      "observations": "ARASAAC: pictograma \"beber\" verificado; el concepto incluye beber agua.",
+      "simpleInstruction": "Bebe agua.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación",
+        "Salud y bienestar",
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "desayunar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-045",
+      "name": "Desayunar",
+      "observations": "ARASAAC: correspondencia directa verificada para \"desayunar\".",
+      "simpleInstruction": "Desayuna.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "almorzar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-046",
+      "name": "Almorzar",
+      "observations": "ARASAAC: correspondencia directa verificada para \"almorzar\".",
+      "simpleInstruction": "Almuerza.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cenar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-047",
+      "name": "Cenar",
+      "observations": "ARASAAC: correspondencia directa verificada para \"cenar\".",
+      "simpleInstruction": "Cena.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación",
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "merendar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-048",
+      "name": "Comer una merienda",
+      "observations": "ARASAAC: correspondencia directa verificada para \"merendar\".",
+      "simpleInstruction": "Come tu merienda.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación",
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "usar la cuchara",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-049",
+      "name": "Usar cuchara",
+      "observations": "ARASAAC: correspondencia directa verificada para \"usar la cuchara\".",
+      "simpleInstruction": "Usa la cuchara.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "usar el tenedor",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-050",
+      "name": "Usar tenedor",
+      "observations": "ARASAAC: correspondencia directa verificada para \"usar el tenedor\".",
+      "simpleInstruction": "Usa el tenedor.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "servilleta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-051",
+      "name": "Usar servilleta",
+      "observations": null,
+      "simpleInstruction": "Usa la servilleta.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "masticar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-052",
+      "name": "Masticar despacio",
+      "observations": null,
+      "simpleInstruction": "Mastica despacio.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "esperar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-053",
+      "name": "Esperar antes de levantarse",
+      "observations": null,
+      "simpleInstruction": "Espera antes de levantarte.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "llevar plato",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-054",
+      "name": "Llevar el plato",
+      "observations": null,
+      "simpleInstruction": "Lleva tu plato.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar comida",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-055",
+      "name": "Guardar los alimentos",
+      "observations": null,
+      "simpleInstruction": "Guarda los alimentos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "limpiar mesa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Alimentación",
+      "id": "ACT-056",
+      "name": "Limpiar la mesa",
+      "observations": null,
+      "simpleInstruction": "Limpia la mesa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Alimentación"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "entrar baño",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-057",
+      "name": "Entrar al baño",
+      "observations": null,
+      "simpleInstruction": "Entra al baño.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cerrar puerta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-058",
+      "name": "Cerrar la puerta",
+      "observations": null,
+      "simpleInstruction": "Cierra la puerta.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "bajar el pantalón",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-059",
+      "name": "Bajarse la ropa",
+      "observations": "ARASAAC: paso de baño \"bajar el pantalón\" verificado en secuencia visual.",
+      "simpleInstruction": "Baja tu ropa.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "inodoro",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-060",
+      "name": "Usar el inodoro",
+      "observations": "ARASAAC: pictograma de \"inodoro\" verificado como representación visual suficiente para la actividad \"Usar el inodoro\".",
+      "simpleInstruction": "Usa el inodoro.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "limpiarse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-061",
+      "name": "Limpiarse",
+      "observations": "ARASAAC: paso de baño \"limpiarse\" verificado en secuencia visual.",
+      "simpleInstruction": "Límpiate.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "subir el pantalón",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-062",
+      "name": "Subirse la ropa",
+      "observations": "ARASAAC: paso de baño \"subir el pantalón\" verificado en secuencia visual.",
+      "simpleInstruction": "Sube tu ropa.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "tirar de la cadena",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-063",
+      "name": "Jalar la cadena",
+      "observations": "ARASAAC: paso de baño \"tirar de la cadena\" verificado en secuencia visual.",
+      "simpleInstruction": "Jala la cadena.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "pedir ayuda",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-065",
+      "name": "Pedir ayuda si la necesita",
+      "observations": null,
+      "simpleInstruction": "Pide ayuda si la necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Privacidad y apoyo según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "preparar mochila",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-066",
+      "name": "Preparar la mochila",
+      "observations": "ARASAAC: \"preparar la mochila\" aparece de forma explícita en materiales de rutinas de casa; correspondencia visual suficiente.",
+      "simpleInstruction": "Prepara tu mochila.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar",
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar cuadernos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-067",
+      "name": "Guardar los cuadernos",
+      "observations": null,
+      "simpleInstruction": "Guarda los cuadernos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar material escolar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-068",
+      "name": "Guardar los útiles",
+      "observations": null,
+      "simpleInstruction": "Guarda tus útiles.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "horario escolar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-069",
+      "name": "Revisar el horario escolar",
+      "observations": null,
+      "simpleInstruction": "Revisa tu horario.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "lonchera",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-070",
+      "name": "Llevar la lonchera",
+      "observations": null,
+      "simpleInstruction": "Lleva tu lonchera.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "botella agua",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-071",
+      "name": "Llevar una botella de agua",
+      "observations": null,
+      "simpleInstruction": "Lleva tu botella de agua.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "salir casa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-072",
+      "name": "Salir de casa",
+      "observations": null,
+      "simpleInstruction": "Sal de casa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "esperar autobús",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-073",
+      "name": "Esperar el transporte",
+      "observations": null,
+      "simpleInstruction": "Espera el transporte.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "entrar clase",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-074",
+      "name": "Entrar al aula",
+      "observations": null,
+      "simpleInstruction": "Entra al aula.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar mochila",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-075",
+      "name": "Guardar la mochila",
+      "observations": null,
+      "simpleInstruction": "Guarda la mochila.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar",
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "material escolar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-076",
+      "name": "Sacar el material",
+      "observations": null,
+      "simpleInstruction": "Saca el material que necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "sentarse clase",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Preparación para estudiar",
+      "id": "ACT-077",
+      "name": "Sentarse en el lugar",
+      "observations": null,
+      "simpleInstruction": "Siéntate en tu lugar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Preparación para estudiar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "tarea",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-078",
+      "name": "Revisar las tareas",
+      "observations": null,
+      "simpleInstruction": "Revisa qué tarea tienes.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "elegir tarea",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-079",
+      "name": "Elegir una tarea",
+      "observations": null,
+      "simpleInstruction": "Elige una tarea para empezar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "escritorio",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-080",
+      "name": "Preparar el espacio de estudio",
+      "observations": null,
+      "simpleInstruction": "Prepara tu espacio de estudio.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "guardar teléfono",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-081",
+      "name": "Guardar el celular",
+      "observations": null,
+      "simpleInstruction": "Guarda el celular mientras estudias.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "leer",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-082",
+      "name": "Leer una instrucción",
+      "observations": "ARASAAC: correspondencia directa verificada para \"leer\"; el contenido concreto de la instrucción se presenta como texto o pictograma adicional.",
+      "simpleInstruction": "Lee la instrucción.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "hacer deberes",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-083",
+      "name": "Resolver una actividad",
+      "observations": null,
+      "simpleInstruction": "Resuelve una actividad.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "pedir ayuda",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-084",
+      "name": "Pedir ayuda",
+      "observations": "ARASAAC: \"pedir ayuda\" está documentado como comunicación funcional y habilidad social.",
+      "simpleInstruction": "Pide ayuda si la necesitas.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones",
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "descansar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-085",
+      "name": "Tomar un descanso breve",
+      "observations": null,
+      "simpleInstruction": "Toma un descanso breve.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "continuar tarea",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-086",
+      "name": "Retomar la tarea",
+      "observations": null,
+      "simpleInstruction": "Continúa con la tarea.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "revisar tarea",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-087",
+      "name": "Revisar el trabajo",
+      "observations": null,
+      "simpleInstruction": "Revisa tu trabajo.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar tarea",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-088",
+      "name": "Guardar la tarea terminada",
+      "observations": null,
+      "simpleInstruction": "Guarda la tarea terminada.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "ordenar escritorio",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Estudio y tareas",
+      "id": "ACT-089",
+      "name": "Ordenar el espacio de estudio",
+      "observations": null,
+      "simpleInstruction": "Ordena tu espacio.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Estudio y tareas"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "guardar juguetes",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-090",
+      "name": "Guardar los juguetes",
+      "observations": "ARASAAC: \"guardar juguetes\" aparece explícitamente en agendas visuales de tareas del hogar.",
+      "simpleInstruction": "Guarda los juguetes.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "ordenar habitación",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-091",
+      "name": "Ordenar la habitación",
+      "observations": null,
+      "simpleInstruction": "Ordena tu habitación.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "guardar ropa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-092",
+      "name": "Guardar la ropa",
+      "observations": null,
+      "simpleInstruction": "Guarda la ropa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ropa sucia cesta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-093",
+      "name": "Poner la ropa sucia en el cesto",
+      "observations": null,
+      "simpleInstruction": "Pon la ropa sucia en el cesto.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "doblar ropa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-094",
+      "name": "Doblar ropa",
+      "observations": null,
+      "simpleInstruction": "Dobla la ropa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "poner la mesa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-095",
+      "name": "Poner la mesa",
+      "observations": "ARASAAC: \"poner la mesa\" aparece explícitamente en materiales de rutinas y agendas visuales del hogar.",
+      "simpleInstruction": "Pon la mesa.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "recoger mesa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-096",
+      "name": "Recoger la mesa",
+      "observations": null,
+      "simpleInstruction": "Recoge la mesa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "barrer",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-097",
+      "name": "Barrer",
+      "observations": "ARASAAC: correspondencia visual directa documentada para \"barrer\" en agendas de tareas domésticas.",
+      "simpleInstruction": "Barre el piso.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "limpiar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-098",
+      "name": "Limpiar una superficie",
+      "observations": null,
+      "simpleInstruction": "Limpia la superficie.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "sacar basura",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-099",
+      "name": "Sacar la basura con supervisión",
+      "observations": null,
+      "simpleInstruction": "Saca la basura con supervisión si la necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "regar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-100",
+      "name": "Regar una planta",
+      "observations": "ARASAAC: \"regar\" aparece explícitamente en agendas visuales de responsabilidades del hogar.",
+      "simpleInstruction": "Riega la planta.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "alimentar mascota",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-101",
+      "name": "Dar de comer a la mascota",
+      "observations": null,
+      "simpleInstruction": "Da de comer a la mascota.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "guardar objetos",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Hogar y responsabilidades",
+      "id": "ACT-102",
+      "name": "Guardar objetos en su lugar",
+      "observations": null,
+      "simpleInstruction": "Guarda cada objeto en su lugar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Hogar y responsabilidades"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "elegir actividad",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-103",
+      "name": "Elegir una actividad de ocio",
+      "observations": null,
+      "simpleInstruction": "Elige una actividad para disfrutar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "jugar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-104",
+      "name": "Jugar",
+      "observations": "ARASAAC: correspondencia directa documentada para \"jugar\" en rutinas y tableros de ocio.",
+      "simpleInstruction": "Juega.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "dibujar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-105",
+      "name": "Dibujar",
+      "observations": "ARASAAC: correspondencia directa verificada para \"dibujar\" en vocabulario de acciones y ocio.",
+      "simpleInstruction": "Dibuja.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "colorear",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-106",
+      "name": "Colorear",
+      "observations": null,
+      "simpleInstruction": "Colorea.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "leer",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-107",
+      "name": "Leer por placer",
+      "observations": "ARASAAC: \"leer\" aparece de forma explícita en materiales de ocio y rutinas; el carácter \"por placer\" lo aporta el contexto.",
+      "simpleInstruction": "Lee algo que te guste.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "escuchar música",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-108",
+      "name": "Escuchar música",
+      "observations": "ARASAAC: existe pictograma específico y actual para \"escuchar música\".",
+      "simpleInstruction": "Escucha música.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ver televisión",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-109",
+      "name": "Ver televisión",
+      "observations": null,
+      "simpleInstruction": "Mira televisión.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "tablet",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-110",
+      "name": "Usar la tablet",
+      "observations": null,
+      "simpleInstruction": "Usa la tablet.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "teléfono móvil",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-111",
+      "name": "Usar el celular",
+      "observations": null,
+      "simpleInstruction": "Usa el celular.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "videojuego",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-112",
+      "name": "Jugar un videojuego",
+      "observations": null,
+      "simpleInstruction": "Juega un videojuego.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "manualidades",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-113",
+      "name": "Hacer una manualidad",
+      "observations": null,
+      "simpleInstruction": "Haz una manualidad.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "parque",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-114",
+      "name": "Salir al parque",
+      "observations": null,
+      "simpleInstruction": "Ve al parque.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "guardar materiales",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Ocio y tiempo libre",
+      "id": "ACT-115",
+      "name": "Guardar el material de ocio",
+      "observations": null,
+      "simpleInstruction": "Guarda lo que usaste.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Ocio y tiempo libre"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "ropa deporte",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-116",
+      "name": "Ponerse ropa deportiva",
+      "observations": null,
+      "simpleInstruction": "Ponte ropa deportiva.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "botella agua",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-117",
+      "name": "Preparar agua",
+      "observations": null,
+      "simpleInstruction": "Prepara agua para beber.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "calentamiento",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-118",
+      "name": "Hacer calentamiento",
+      "observations": "ARASAAC: existe una secuencia específica de calentamiento para Educación Física; validación mediante secuencia visual.",
+      "simpleInstruction": "Haz un calentamiento.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "caminar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-119",
+      "name": "Caminar",
+      "observations": "ARASAAC: correspondencia directa documentada para \"caminar\".",
+      "simpleInstruction": "Camina.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "correr",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-120",
+      "name": "Correr",
+      "observations": "ARASAAC: correspondencia directa documentada para \"correr\".",
+      "simpleInstruction": "Corre.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "pasear en bicicleta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-121",
+      "name": "Montar bicicleta con supervisión",
+      "observations": "ARASAAC: pictograma/acción documentada para \"pasear en bicicleta\"; la supervisión se mantiene como regla de la actividad.",
+      "simpleInstruction": "Monta bicicleta con supervisión cuando corresponda.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "estiramiento",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-122",
+      "name": "Hacer estiramientos",
+      "observations": null,
+      "simpleInstruction": "Haz estiramientos.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "hacer deporte",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Actividad física y movimiento",
+      "id": "ACT-123",
+      "name": "Practicar un deporte",
+      "observations": null,
+      "simpleInstruction": "Practica tu deporte.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "prepararse salir",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-127",
+      "name": "Prepararse para salir",
+      "observations": null,
+      "simpleInstruction": "Prepárate para salir.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "lista",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-128",
+      "name": "Revisar lo que debe llevar",
+      "observations": null,
+      "simpleInstruction": "Revisa lo que necesitas llevar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "cerrar puerta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-129",
+      "name": "Cerrar la puerta de casa con un adulto",
+      "observations": null,
+      "simpleInstruction": "Cierra la puerta con un adulto cuando corresponda.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "acera",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-130",
+      "name": "Caminar por la vereda",
+      "observations": null,
+      "simpleInstruction": "Camina por la vereda.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "esperar cruzar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-131",
+      "name": "Esperar para cruzar",
+      "observations": null,
+      "simpleInstruction": "Espera antes de cruzar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "paso de cebra",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-132",
+      "name": "Cruzar por el paso peatonal",
+      "observations": "ARASAAC: el \"Paso de Cebra/Paso peatonal\" está representado de forma explícita; se usa como apoyo visual suficiente para indicar dónde cruzar.",
+      "simpleInstruction": "Cruza por el paso peatonal.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "subir autobús",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-133",
+      "name": "Subir al transporte",
+      "observations": null,
+      "simpleInstruction": "Sube al transporte.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "sentarse autobús",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-134",
+      "name": "Sentarse en el transporte",
+      "observations": null,
+      "simpleInstruction": "Siéntate en el transporte.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "bajar autobús",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-135",
+      "name": "Bajar del transporte",
+      "observations": null,
+      "simpleInstruction": "Baja del transporte.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "esperar turno",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-136",
+      "name": "Esperar turno",
+      "observations": "ARASAAC: la espera de turno está documentada mediante paneles específicos para anticipar y visualizar turnos.",
+      "simpleInstruction": "Espera tu turno.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "comprar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-137",
+      "name": "Hacer una compra con apoyo",
+      "observations": "ARASAAC: \"comprar\" aparece explícitamente en materiales de rutinas y secuencias de compra; el apoyo se mantiene como condición externa.",
+      "simpleInstruction": "Haz la compra con apoyo si lo necesitas.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "volver casa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salidas y comunidad",
+      "id": "ACT-138",
+      "name": "Volver a casa",
+      "observations": null,
+      "simpleInstruction": "Vuelve a casa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salidas y comunidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "emociones",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-139",
+      "name": "Decir cómo se siente",
+      "observations": "ARASAAC: la expresión de cómo se siente se valida mediante panel/selector de emociones con pictogramas; no requiere un único símbolo.",
+      "simpleInstruction": "Di cómo te sientes.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "dolor",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-140",
+      "name": "Señalar dónde duele",
+      "observations": "ARASAAC: existen apoyos visuales específicos para expresar dolor y señalar dónde duele.",
+      "simpleInstruction": "Señala dónde te duele.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "descansar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-141",
+      "name": "Descansar",
+      "observations": null,
+      "simpleInstruction": "Descansa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar",
+        "Actividad física y movimiento"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "termómetro",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-142",
+      "name": "Tomar la temperatura con un adulto",
+      "observations": null,
+      "simpleInstruction": "Toma la temperatura con un adulto.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "medicamento",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-143",
+      "name": "Tomar medicación indicada con supervisión",
+      "observations": null,
+      "simpleInstruction": "Toma tu medicación solo con la supervisión indicada.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "médico",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-144",
+      "name": "Ir a una cita de salud",
+      "observations": null,
+      "simpleInstruction": "Ve a tu cita de salud.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "sala espera",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-145",
+      "name": "Esperar en la sala",
+      "observations": null,
+      "simpleInstruction": "Espera en la sala.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "seguir instrucciones",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-146",
+      "name": "Seguir una indicación del profesional",
+      "observations": null,
+      "simpleInstruction": "Sigue la indicación que te dieron.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "pausa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-147",
+      "name": "Pedir una pausa",
+      "observations": "ARASAAC: vocabulario CAA verificado con \"Pausa\" y \"Quiero descansar\" para solicitar una pausa.",
+      "simpleInstruction": "Pide una pausa si la necesitas.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "respirar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Salud y bienestar",
+      "id": "ACT-148",
+      "name": "Respirar despacio",
+      "observations": "ARASAAC: correspondencia visual suficiente para \"respirar\"; el ritmo lento puede reforzarse con animación o temporizador.",
+      "simpleInstruction": "Respira despacio.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Salud y bienestar"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "emociones",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-149",
+      "name": "Identificar una emoción",
+      "observations": "ARASAAC: identificación de emociones validada mediante repertorio y materiales específicos de emociones y estados.",
+      "simpleInstruction": "Identifica cómo te sientes.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "calmarse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-150",
+      "name": "Elegir una estrategia para calmarse",
+      "observations": "ARASAAC: materiales de regulación incluyen elección de estrategias y tarjetas como \"tranquilizarme\"; validación por conjunto visual.",
+      "simpleInstruction": "Elige una forma de calmarte.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "respirar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-151",
+      "name": "Respirar profundamente",
+      "observations": "ARASAAC: correspondencia visual suficiente para la acción \"respirar\"; la profundidad se apoya mediante guía visual.",
+      "simpleInstruction": "Respira profundamente.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "contar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-152",
+      "name": "Contar lentamente",
+      "observations": "ARASAAC: \"contar\" representa la acción, pero \"lentamente\" requiere ritmo o apoyo temporal. Mantener Revisado y combinar con temporizador/ritmo visual.",
+      "simpleInstruction": "Cuenta lentamente.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "lugar tranquilo",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-153",
+      "name": "Ir a un lugar tranquilo",
+      "observations": "ARASAAC: se recomienda combinar pictograma de tranquilidad/descanso con fotografía o pictograma del lugar concreto. No existe una representación universal única.",
+      "simpleInstruction": "Ve a un lugar tranquilo.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "auriculares",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-154",
+      "name": "Usar auriculares si están indicados",
+      "observations": "ARASAAC: \"auriculares/cascos\" está documentado como apoyo visual para anticipar y gestionar situaciones de sonido.",
+      "simpleInstruction": "Usa auriculares si los necesitas.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "descansar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-155",
+      "name": "Pedir un descanso",
+      "observations": "ARASAAC: vocabulario CAA verificado con \"Quiero descansar\" para comunicar la necesidad de descanso.",
+      "simpleInstruction": "Pide un descanso.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "esperar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-156",
+      "name": "Esperar",
+      "observations": "ARASAAC: \"espera/esperar\" está ampliamente documentado en tableros y paneles de anticipación de turnos.",
+      "simpleInstruction": "Espera.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "volver actividad",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-157",
+      "name": "Volver a la actividad",
+      "observations": "ARASAAC: requiere secuencia contextual (pausa/terminado/volver a actividad) o pictograma de la actividad concreta; no se valida un único símbolo universal.",
+      "simpleInstruction": "Vuelve a la actividad cuando estés preparado.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "no quiero",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-158",
+      "name": "Expresar que no quiere algo",
+      "observations": "ARASAAC: tablero específico \"Quiero / No quiero\" y tarjetas \"NO QUIERO\" validan la expresión funcional de rechazo.",
+      "simpleInstruction": "Di que no quieres algo de forma adecuada.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "elegir",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Autorregulación y emociones",
+      "id": "ACT-159",
+      "name": "Elegir entre dos opciones",
+      "observations": "ARASAAC: elección entre alternativas validada mediante vocabulario esencial \"Quiero elegir\" y materiales de elección visual.",
+      "simpleInstruction": "Elige una de las dos opciones.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autorregulación y emociones"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "saludar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-160",
+      "name": "Saludar",
+      "observations": "ARASAAC: \"saludar\" aparece explícitamente en materiales de habilidades sociales y normas.",
+      "simpleInstruction": "Saluda.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "despedirse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-161",
+      "name": "Despedirse",
+      "observations": "ARASAAC: \"despedirse\" aparece explícitamente en secuencias y materiales de habilidades sociales.",
+      "simpleInstruction": "Despídete.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "por favor",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-162",
+      "name": "Pedir por favor",
+      "observations": "ARASAAC: \"por favor\" está documentado como vocabulario funcional y norma social con pictograma.",
+      "simpleInstruction": "Pide por favor.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "gracias",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-163",
+      "name": "Dar las gracias",
+      "observations": "ARASAAC: \"gracias/dar las gracias\" está documentado explícitamente en materiales de habilidades sociales.",
+      "simpleInstruction": "Da las gracias.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "respetar turno de palabra",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-164",
+      "name": "Esperar turno para hablar",
+      "observations": "ARASAAC: \"esperar/respetar turno de palabra\" está explícitamente representado en materiales de habilidades sociales.",
+      "simpleInstruction": "Espera tu turno para hablar.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "escuchar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-165",
+      "name": "Escuchar a otra persona",
+      "observations": "ARASAAC: \"escuchar\" está documentado explícitamente como habilidad social y norma de conversación.",
+      "simpleInstruction": "Escucha a la otra persona.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "compartir",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-166",
+      "name": "Compartir un material",
+      "observations": "ARASAAC: \"compartir\" aparece explícitamente en materiales de habilidades sociales y economía de fichas.",
+      "simpleInstruction": "Comparte el material.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "pedir prestado",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-167",
+      "name": "Pedir prestado",
+      "observations": "ARASAAC: para \"pedir prestado\" se recomienda combinar petición + pictograma/foto del objeto. Mantener Revisado por dependencia del contexto.",
+      "simpleInstruction": "Pide prestado.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "devolver objeto",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-168",
+      "name": "Devolver un objeto",
+      "observations": "ARASAAC: \"devolver\" debe acompañarse del objeto concreto para ser inequívoco. Mantener Revisado y construir la combinación devolver + objeto.",
+      "simpleInstruction": "Devuelve el objeto.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "pedir permiso",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-169",
+      "name": "Pedir permiso",
+      "observations": "ARASAAC: pedir permiso está documentado explícitamente en normas, comunicación funcional e historias sociales.",
+      "simpleInstruction": "Pide permiso.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "espacio personal",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-170",
+      "name": "Pedir espacio",
+      "observations": "ARASAAC: \"pedir espacio\" se representa mejor mediante frase funcional (p. ej., quiero estar solo/necesito espacio) y contexto. Mantener Revisado.",
+      "simpleInstruction": "Pide espacio si lo necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "aceptar no",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Interacción social",
+      "id": "ACT-171",
+      "name": "Aceptar que otra persona diga no",
+      "observations": "ARASAAC: existe guion social específico \"Aceptar un NO por respuesta\" con apoyos visuales; validación mediante secuencia, no mediante un único símbolo.",
+      "simpleInstruction": "Acepta cuando otra persona dice no.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Interacción social"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "llegar casa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-172",
+      "name": "Llegar a casa",
+      "observations": null,
+      "simpleInstruction": "Llega a casa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cambiar ropa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-173",
+      "name": "Cambiarse de ropa",
+      "observations": null,
+      "simpleInstruction": "Cámbiate de ropa.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "hacer deberes",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-175",
+      "name": "Hacer la tarea",
+      "observations": "ARASAAC: correspondencia visual directa verificada para \"hacer deberes\".",
+      "simpleInstruction": "Haz tu tarea.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "preparar ropa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-176",
+      "name": "Preparar la ropa del día siguiente",
+      "observations": null,
+      "simpleInstruction": "Prepara la ropa de mañana.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ponerse el pijama",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-179",
+      "name": "Ponerse el pijama",
+      "observations": "ARASAAC: acción \"ponerse el pijama\" verificada dentro de una rutina visual de dormir.",
+      "simpleInstruction": "Ponte el pijama.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "dormitorio",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-180",
+      "name": "Ir al dormitorio",
+      "observations": null,
+      "simpleInstruction": "Ve al dormitorio.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cuento",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-181",
+      "name": "Elegir un cuento o lectura",
+      "observations": null,
+      "simpleInstruction": "Elige un cuento o lectura.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "apagar pantalla",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-182",
+      "name": "Apagar pantallas",
+      "observations": null,
+      "simpleInstruction": "Apaga las pantallas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "apagar la luz",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-183",
+      "name": "Apagar la luz",
+      "observations": "ARASAAC: correspondencia directa verificada para \"apagar la luz\".",
+      "simpleInstruction": "Apaga la luz.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "acostarse",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-184",
+      "name": "Acostarse",
+      "observations": "ARASAAC: correspondencia directa verificada para \"acostarse\".",
+      "simpleInstruction": "Acuéstate.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "dormir",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Rutina de tarde y noche",
+      "id": "ACT-185",
+      "name": "Dormir",
+      "observations": "ARASAAC: correspondencia directa verificada para \"dormir\".",
+      "simpleInstruction": "Duerme.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Rutina de tarde y noche"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cambio agenda",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-186",
+      "name": "Mirar un cambio en la agenda",
+      "observations": "ARASAAC: un cambio de agenda se representa mejor comparando la agenda prevista con la nueva actividad o usando señal visual de cambio. Mantener Revisado por dependencia contextual.",
+      "simpleInstruction": "Mira el cambio en tu agenda.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cambio actividad",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-187",
+      "name": "Aceptar una actividad diferente",
+      "observations": "ARASAAC: requiere mostrar la actividad prevista y la alternativa que la sustituye. Mantener Revisado; la comprensión depende de la secuencia concreta.",
+      "simpleInstruction": "Haz la actividad diferente que está programada.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "esperar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-188",
+      "name": "Esperar por un retraso",
+      "observations": "ARASAAC: la acción central \"esperar\" está validada; el retraso se contextualiza mediante agenda, reloj o temporizador.",
+      "simpleInstruction": "Espera mientras dura el retraso.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "cancelar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-189",
+      "name": "Cancelar una actividad",
+      "observations": "ARASAAC: una actividad que no se realizará puede indicarse de forma explícita mediante tachado del pictograma; validación como regla visual de cancelación.",
+      "simpleInstruction": "Esta actividad no se hará hoy.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "elegir",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-190",
+      "name": "Elegir una alternativa",
+      "observations": "ARASAAC: la elección entre alternativas está validada mediante tableros y vocabulario de elección; las opciones concretas se muestran junto al pictograma.",
+      "simpleInstruction": "Elige otra actividad.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "visita casa",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-191",
+      "name": "Prepararse para una visita",
+      "observations": "ARASAAC: prepararse para una visita requiere anticipación con persona, lugar y secuencia prevista; mantener Revisado y permitir fotografía del visitante cuando sea útil.",
+      "simpleInstruction": "Prepárate para recibir una visita.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "viaje",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-192",
+      "name": "Prepararse para un viaje",
+      "observations": "ARASAAC: \"viaje\" representa el acontecimiento, pero \"prepararse\" requiere una secuencia previa. Mantener Revisado como actividad compuesta.",
+      "simpleInstruction": "Prepárate para el viaje.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "hacer maleta",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-193",
+      "name": "Hacer una maleta con apoyo",
+      "observations": "ARASAAC: hacer una maleta se beneficia de una secuencia con maleta + objetos concretos; mantener Revisado por personalización del contenido.",
+      "simpleInstruction": "Prepara la maleta con apoyo si lo necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "esperar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-194",
+      "name": "Esperar en un lugar nuevo",
+      "observations": "ARASAAC: \"esperar\" está validado, pero el lugar nuevo debe representarse con pictograma específico o fotografía. Mantener Revisado para conservar esa dependencia contextual.",
+      "simpleInstruction": "Espera en el lugar nuevo.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Escolar+",
+      "arasaacSearchTerm": "preguntar",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-195",
+      "name": "Pedir información",
+      "observations": "ARASAAC: \"preguntar\" es una base funcional, pero pedir información requiere persona/tema concreto. Mantener Revisado y combinar pregunta + destino/persona/objeto.",
+      "simpleInstruction": "Pregunta lo que necesitas saber.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "actividad espera",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Cambios y situaciones especiales",
+      "id": "ACT-196",
+      "name": "Usar una actividad de transición",
+      "observations": "ARASAAC: una actividad de transición no tiene un único pictograma universal; debe configurarse como espera + actividad breve concreta. Mantener Revisado.",
+      "simpleInstruction": "Haz una actividad breve mientras esperas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Cambios y situaciones especiales"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "calendario",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-197",
+      "name": "Revisar el calendario",
+      "observations": null,
+      "simpleInstruction": "Revisa tu calendario.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "documentos",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-198",
+      "name": "Preparar documentos personales",
+      "observations": null,
+      "simpleInstruction": "Prepara los documentos que necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "cargar teléfono",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-199",
+      "name": "Cargar el celular",
+      "observations": null,
+      "simpleInstruction": "Carga el celular.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "billete transporte",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-200",
+      "name": "Revisar el saldo o pasaje",
+      "observations": null,
+      "simpleInstruction": "Revisa si tienes saldo o pasaje.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "dinero",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-201",
+      "name": "Preparar dinero para una compra",
+      "observations": null,
+      "simpleInstruction": "Prepara el dinero que necesitas.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "lista de la compra",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-202",
+      "name": "Hacer una lista de compras",
+      "observations": "ARASAAC: existen materiales específicos de \"Lista de la compra\" y secuencias para realizar compras.",
+      "simpleInstruction": "Haz una lista de compras.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "comprar",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-203",
+      "name": "Comprar un producto",
+      "observations": "ARASAAC: \"comprar\" está documentado explícitamente en rutinas y secuencias de compra.",
+      "simpleInstruction": "Compra el producto de la lista.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "pagar con dinero",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-204",
+      "name": "Pagar una compra con apoyo si es necesario",
+      "observations": "ARASAAC: la secuencia de compra incluye explícitamente \"Pagar con dinero\"; el apoyo de otra persona no modifica la acción visual.",
+      "simpleInstruction": "Paga la compra con apoyo si lo necesitas.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "ticket compra",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-205",
+      "name": "Guardar el comprobante",
+      "observations": null,
+      "simpleInstruction": "Guarda el comprobante.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "cocinar",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-206",
+      "name": "Preparar una comida sencilla con supervisión",
+      "observations": "ARASAAC: \"cocinar\" y numerosas recetas secuenciadas están documentadas para trabajar autonomía personal; la supervisión sigue siendo una condición de seguridad.",
+      "simpleInstruction": "Prepara una comida sencilla con la supervisión necesaria.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Supervisión recomendada",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "limpiar platos",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-207",
+      "name": "Lavar utensilios",
+      "observations": "ARASAAC: \"limpiar platos\" aparece explícitamente en una agenda visual de tareas domésticas y se usa como representación de lavar/limpiar utensilios de mesa.",
+      "simpleInstruction": "Lava los utensilios.",
+      "simpleMode": true,
+      "status": "Validado con pictograma",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "cita calendario",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-208",
+      "name": "Organizar una cita o actividad",
+      "observations": null,
+      "simpleInstruction": "Anota la cita o actividad.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "enviar mensaje",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-209",
+      "name": "Enviar un mensaje acordado",
+      "observations": null,
+      "simpleInstruction": "Envía el mensaje acordado.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "Adolescente",
+      "arasaacSearchTerm": "reloj",
+      "autonomyLevel": "Apoyo parcial / autónomo",
+      "category": "Autonomía adolescente",
+      "id": "ACT-210",
+      "name": "Revisar la hora de salida",
+      "observations": null,
+      "simpleInstruction": "Revisa a qué hora debes salir.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Autonomía adolescente"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    },
+    {
+      "advancedMode": true,
+      "ageGroup": "General",
+      "arasaacSearchTerm": "ordenar baño",
+      "autonomyLevel": "Con apoyo / autónomo",
+      "category": "Baño e intimidad",
+      "id": "ACT-211",
+      "name": "Dejar el baño ordenado",
+      "observations": null,
+      "simpleInstruction": "Deja el baño ordenado al terminar.",
+      "simpleMode": true,
+      "status": "Revisado",
+      "supervision": "Según necesidad",
+      "usageContexts": [
+        "Baño e intimidad"
+      ],
+      "visualResource": "Pictograma ARASAAC o foto propia"
+    }
+  ]
+}

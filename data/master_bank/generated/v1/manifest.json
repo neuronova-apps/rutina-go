@@ -1,0 +1,74 @@
+{
+  "artifacts": {
+    "achievements.json": {
+      "itemCount": 40,
+      "sha256": "77dd1e3a3738c89cffc9f391cd2d7f6c5e42dae71e8e3d267c052dd96b442797"
+    },
+    "activities.json": {
+      "itemCount": 203,
+      "sha256": "77e8f51da1c3c872ac345721dfe1431bc980d07dcbe126b0bd6b7060bb2554e1"
+    },
+    "categories.json": {
+      "itemCount": 17,
+      "sha256": "a20e4dd971d3ea5d0d9824a7c0518dd71ce876dbc52abc81389c4813c8d4c4d6"
+    },
+    "challenges.json": {
+      "itemCount": 20,
+      "sha256": "a7411fc6a9afdbf360801800cf1accd98c3262ebe1df1c2a6f8c4f736e185203"
+    },
+    "reinforcement_messages.json": {
+      "itemCount": 54,
+      "sha256": "fb34966e5c657679026397818b04ff4e9ce2cad5b0f3a8ddbc9c854728ae802c"
+    },
+    "routine_steps.json": {
+      "itemCount": 490,
+      "sha256": "c3f53d545167c1a19be30e334c9993c30b707a412e59dd1ecefecdb1d1c01bf4"
+    },
+    "routines.json": {
+      "itemCount": 52,
+      "sha256": "b622e0fc43b2fb8d5a1b8ea1f6ea0e3857ce38898953473ccf7967684c9c92c7"
+    },
+    "visual_references.json": {
+      "itemCount": 203,
+      "sha256": "7ea57b9cb25be76a1a4e212f57dde6ec7c0a37615531b0af5671b8f76f5a333b"
+    }
+  },
+  "catalogVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "counts": {
+    "achievements": 40,
+    "activities": 203,
+    "categories": 17,
+    "challenges": 20,
+    "masterRecords": 369,
+    "reinforcementMessages": 54,
+    "routineSteps": 490,
+    "routines": 52,
+    "visualReferences": 203
+  },
+  "generatedAt": "2026-09-24T16:54:24Z",
+  "source": {
+    "inputFiles": {
+      "banco_actividades.csv": {
+        "sha256": "17dbb9b2714591d5bee767bf9b4341e3633a34690350a119561d28e26ac366d3"
+      },
+      "banco_logros_retos.csv": {
+        "sha256": "eadb216b2e3827306c9ceb886c55b95645fc698383332eff83bdf905be3ace14"
+      },
+      "banco_mensajes_refuerzo.csv": {
+        "sha256": "c2247cc8cb1c10ed5bc84fd4902095c1fcd2be1a03d81f99022e0d6c5c7bdbca"
+      },
+      "banco_rutinas.csv": {
+        "sha256": "a421a61f35c33cb59a03501c946a6255120b906cd7eea8625af89a7286f12209"
+      },
+      "catalogos.csv": {
+        "sha256": "5fdd0fa098624cf03a360a2b3bb35a711f4a8237b25fa3740e30d0056c0a43ee"
+      }
+    },
+    "sheetCount": 17,
+    "snapshotExportedAt": "2026-09-24T16:54:24Z",
+    "snapshotVersion": "1.0.0",
+    "spreadsheetId": "1is0zFNvvA69Rb_C0V0qYG4a-AtEh0oxdSiJTFEFlaYo",
+    "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/1is0zFNvvA69Rb_C0V0qYG4a-AtEh0oxdSiJTFEFlaYo/edit"
+  }
+}

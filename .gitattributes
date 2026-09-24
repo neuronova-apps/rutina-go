@@ -1,0 +1,2 @@
+/data/master_bank/**/*.csv text eol=lf
+/data/master_bank/**/*.json text eol=lf
