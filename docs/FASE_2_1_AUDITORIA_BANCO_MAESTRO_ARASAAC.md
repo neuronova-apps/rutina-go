@@ -206,7 +206,9 @@ Texto de atribución propuesto para la app y las exportaciones que contengan pic
 
 > Pictogramas: Sergio Palao para ARASAAC (https://arasaac.org). Propiedad: Gobierno de Aragón. Licencia: CC BY-NC-SA.
 
-Decisión bloqueante: antes de publicar una versión monetizada, con publicidad, compras o uso comercial, debe confirmarse por escrito la compatibilidad del modelo de distribución con la cláusula NC o solicitar autorización específica. Esta auditoría técnica no sustituye asesoría jurídica.
+**Decisión del proyecto registrada en la Fase 2.1.1:** RutinaGo se distribuirá de forma completamente gratuita y sin fines de lucro, sin publicidad, compras integradas, suscripciones ni funciones premium. No se desarrollará como producto comercial de NeuroNova Apps. Esta decisión corresponde exclusivamente a RutinaGo y cierra el riesgo hipotético asociado a una posible monetización.
+
+La decisión no elimina las obligaciones de licencia: se debe reconocer la autoría, identificar la fuente, respetar la restricción no comercial, cumplir las condiciones de compartir igual cuando correspondan y revisar las condiciones oficiales antes de distribuir pictogramas. No se ha solicitado ni recibido una autorización comercial individual de ARASAAC. Esta auditoría técnica no sustituye asesoría jurídica.
 
 ## 8. Arquitectura de imágenes y uso offline
 
@@ -346,7 +348,7 @@ Ambos modos deben consultar las mismas tablas y repositorios.
 | Prioridad | Riesgo | Mitigación |
 | --- | --- | --- |
 | Alta | 76 validaciones sin ID ARASAAC reproducible | Crear mapeo `ACT -> arasaacId/variante` revisado por persona |
-| Alta | Licencia NC incompatible con una posible explotación comercial | Decisión legal/comercial antes de distribuir pictogramas |
+| Alta | Omitir atribución, fuente, restricción NC o compartir igual al distribuir recursos ARASAAC | Modelo no comercial documentado, atribución visible y revisión previa a cada distribución |
 | Alta | Confiar solo en caché evictable rompe el uso offline | Almacenamiento interno administrado + verificador de disponibilidad |
 | Alta | Sobrescribir personalizaciones al actualizar catálogo | Tablas separadas y actualización por versión/ID |
 | Media | Resultado textual semánticamente incorrecto | Selección humana con contexto y previsualización |
@@ -358,13 +360,14 @@ Ambos modos deben consultar las mismas tablas y repositorios.
 
 ## 14. Decisiones pendientes
 
-1. Modelo de distribución de RutinaGo y compatibilidad legal con CC BY-NC-SA.
-2. Quién realiza y aprueba la curación de los 127 registros pendientes y la captura de IDs para los 76 ya “validados”.
-3. Resolución local estándar (recomendación inicial: 500 px; 300 px puede bastar tras medición real de densidad/tamaño).
-4. Si la selección visual es global por actividad, por perfil o ambas; se recomienda valor global con override por perfil.
-5. Política de copias de seguridad y eliminación de fotografías.
-6. Formato del artefacto de importación y proceso para regenerarlo desde Sheets.
-7. Campos avanzados exactos de programación y finalización antes de fijar el esquema Room.
+**Decisión cerrada en la Fase 2.1.1:** el modelo de distribución de RutinaGo es gratuito y sin fines de lucro, sin publicidad, compras integradas, suscripciones ni funciones premium. Las demás aplicaciones de NeuroNova Apps quedan fuera de esta decisión.
+
+1. Quién realiza y aprueba la curación de los 127 registros pendientes y la captura de IDs para los 76 ya “validados”.
+2. Resolución local estándar (recomendación inicial: 500 px; 300 px puede bastar tras medición real de densidad/tamaño).
+3. Si la selección visual es global por actividad, por perfil o ambas; se recomienda valor global con override por perfil.
+4. Política de copias de seguridad y eliminación de fotografías.
+5. Formato del artefacto de importación y proceso para regenerarlo desde Sheets.
+6. Campos avanzados exactos de programación y finalización antes de fijar el esquema Room.
 
 ## 15. Orden recomendado de implementación
 

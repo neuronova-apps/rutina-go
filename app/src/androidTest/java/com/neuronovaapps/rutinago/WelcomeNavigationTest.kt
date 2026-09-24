@@ -40,7 +40,25 @@ class WelcomeNavigationTest {
 
         composeRule.onNodeWithText("Sobre RutinaGo").assertIsDisplayed()
         composeRule.onNodeWithText("RUTINAGO").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "RutinaGo es una aplicación gratuita y sin fines de lucro, desarrollada para " +
+                "acompañar a las personas y familias que necesitan apoyos visuales para " +
+                "organizar sus actividades cotidianas.",
+        ).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Política de privacidad")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("Pictogramas ARASAAC")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "Pictogramas: Sergio Palao para ARASAAC. Propiedad: Gobierno de Aragón. " +
+                "Licencia: Creative Commons BY-NC-SA.",
+        ).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Condiciones de uso de ARASAAC")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("Sitio oficial de ARASAAC")
             .performScrollTo()
             .assertIsDisplayed()
         composeRule.onNodeWithText("‹ Volver").performClick()

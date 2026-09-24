@@ -47,6 +47,11 @@ class ExampleUnitTest {
             "https://neuronova-apps.github.io/privacy/rutinago/",
             InstitutionalLinks.RUTINAGO_PRIVACY_POLICY,
         )
+        assertEquals("https://arasaac.org/", InstitutionalLinks.ARASAAC_WEBSITE)
+        assertEquals(
+            "https://aulaabierta.arasaac.org/condiciones-de-uso",
+            InstitutionalLinks.ARASAAC_TERMS_OF_USE,
+        )
         assertEquals(
             "mailto:${InstitutionalLinks.CONTACT_EMAIL}",
             InstitutionalLinks.CONTACT_EMAIL_URI,

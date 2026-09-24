@@ -51,9 +51,9 @@ fun AboutScreen(modifier: Modifier = Modifier) {
 
         AboutSection("Sobre RutinaGo") {
             AboutBody(
-                "RutinaGo es una aplicación de rutinas visuales desarrollada por " +
-                    "NeuroNova Apps para facilitar la organización de actividades cotidianas " +
-                    "mediante secuencias claras y apoyos visuales.",
+                "RutinaGo es una aplicación gratuita y sin fines de lucro, desarrollada para " +
+                    "acompañar a las personas y familias que necesitan apoyos visuales para " +
+                    "organizar sus actividades cotidianas.",
             )
             AboutBody(
                 "Está orientada a personas con TEA y otras necesidades de apoyo, así como a " +
@@ -86,9 +86,9 @@ fun AboutScreen(modifier: Modifier = Modifier) {
 
         AboutSection("Privacidad") {
             AboutBody(
-                "En esta fase, las preferencias de apariencia se guardan localmente en el " +
-                    "dispositivo. Las rutinas, perfiles y el progreso visibles son contenido de " +
-                    "demostración y todavía no cuentan con persistencia definitiva.",
+                "En esta fase, los perfiles y las preferencias de apariencia se guardan " +
+                    "localmente en el dispositivo. Las rutinas y el progreso visibles son " +
+                    "contenido de demostración y todavía no cuentan con persistencia definitiva.",
             )
             AboutBody(
                 "RutinaGo no incluye actualmente una cuenta ni sincronización en la nube. La " +
@@ -144,9 +144,23 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold,
             )
             AboutBody(
-                "Atribución pendiente: se incorporará junto con las condiciones de licencia " +
-                    "correspondientes si se integran pictogramas de ARASAAC. Esta base no incluye " +
-                    "un banco completo de pictogramas.",
+                "RutinaGo contempla la incorporación de pictogramas de ARASAAC como apoyo " +
+                    "visual. Los recursos utilizados se identificarán con su correspondiente " +
+                    "atribución y licencia. Esta versión aún no integra el catálogo definitivo.",
+            )
+            AboutBody(
+                "Pictogramas: Sergio Palao para ARASAAC. Propiedad: Gobierno de Aragón. " +
+                    "Licencia: Creative Commons BY-NC-SA.",
+            )
+            ExternalLink(
+                label = "Condiciones de uso de ARASAAC",
+                uri = InstitutionalLinks.ARASAAC_TERMS_OF_USE,
+                accessibilityDescription =
+                    "Condiciones de uso de ARASAAC. Abre un enlace externo en el navegador.",
+            )
+            ExternalLink(
+                label = "Sitio oficial de ARASAAC",
+                uri = InstitutionalLinks.ARASAAC_WEBSITE,
             )
         }
     }
