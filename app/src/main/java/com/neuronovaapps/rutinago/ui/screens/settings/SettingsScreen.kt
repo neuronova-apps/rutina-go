@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +25,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
@@ -31,8 +36,8 @@ import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 
 @Composable
 fun SettingsScreen(
-    darkTheme: Boolean,
-    onDarkThemeChange: (Boolean) -> Unit,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
     textScale: Float,
     onTextScaleChange: (Float) -> Unit,
 ) {
@@ -43,6 +48,21 @@ fun SettingsScreen(
     var configuratorProtection by rememberSaveable { mutableStateOf(false) }
 
     ScreenColumn {
+        SectionHeading("Apariencia")
+        Text("Tema de la aplicación", style = MaterialTheme.typography.titleMedium)
+        Column(
+            modifier = Modifier.selectableGroup(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ThemeMode.entries.forEach { mode ->
+                ThemeModeOption(
+                    mode = mode,
+                    selected = themeMode == mode,
+                    onSelect = { onThemeModeChange(mode) },
+                )
+            }
+        }
+
         SectionHeading("Modo de uso")
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
@@ -114,12 +134,6 @@ fun SettingsScreen(
             }
         }
         SettingToggle(
-            title = "Tema oscuro",
-            description = "Mantiene la misma jerarquía y contraste.",
-            checked = darkTheme,
-            onCheckedChange = onDarkThemeChange,
-        )
-        SettingToggle(
             title = "Texto a voz",
             description = "Apoyo opcional para instrucciones breves.",
             checked = textToSpeech,
@@ -163,6 +177,63 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         StatusPill("Fase 1 · datos demo")
+    }
+}
+
+@Composable
+private fun ThemeModeOption(
+    mode: ThemeMode,
+    selected: Boolean,
+    onSelect: () -> Unit,
+) {
+    val (label, description) = when (mode) {
+        ThemeMode.DAY -> "Día" to "Usa siempre la paleta clara."
+        ThemeMode.NIGHT -> "Noche" to "Usa siempre la paleta oscura."
+        ThemeMode.SYSTEM -> "Sistema" to "Sigue la apariencia del dispositivo."
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+        ),
+        border = BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectable(
+                    selected = selected,
+                    onClick = onSelect,
+                    role = Role.RadioButton,
+                )
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            RadioButton(selected = selected, onClick = null)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (selected) {
+                Text(
+                    "Seleccionado",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
     }
 }
 

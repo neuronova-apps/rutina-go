@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
 import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
@@ -36,14 +37,16 @@ import com.neuronovaapps.rutinago.ui.screens.progress.ProgressScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutineDetailScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
+import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
 
 @Composable
 fun RutinaGoApp(
-    darkTheme: Boolean,
-    onDarkThemeChange: (Boolean) -> Unit,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
     textScale: Float,
     onTextScaleChange: (Float) -> Unit,
 ) {
+    var showWelcome by rememberSaveable { mutableStateOf(true) }
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var selectedRoutineId by rememberSaveable { mutableStateOf(DemoContent.routines.first().id) }
@@ -66,6 +69,17 @@ fun RutinaGoApp(
         destinationName = target.name
         previousMainName = target.name
         if (target != AppDestination.CREATE) suggestedTemplateId = null
+    }
+
+    if (showWelcome) {
+        WelcomeScreen(
+            onStart = {
+                destinationName = AppDestination.HOME.name
+                previousMainName = AppDestination.HOME.name
+                showWelcome = false
+            },
+        )
+        return
     }
 
     if (destination == AppDestination.EXECUTION) {
@@ -159,8 +173,8 @@ fun RutinaGoApp(
                 AppDestination.PROGRESS -> ProgressScreen()
 
                 AppDestination.SETTINGS -> SettingsScreen(
-                    darkTheme = darkTheme,
-                    onDarkThemeChange = onDarkThemeChange,
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
                     textScale = textScale,
                     onTextScaleChange = onTextScaleChange,
                 )
@@ -215,7 +229,7 @@ private fun AppHeader(
                     when (destination) {
                         AppDestination.HOME -> "NeuroNova Apps"
                         AppDestination.PROGRESS -> "Perfil Alex · datos demo"
-                        AppDestination.SETTINGS -> "Preferencias locales de esta sesión"
+                        AppDestination.SETTINGS -> "Preferencias guardadas en este dispositivo"
                         else -> "RutinaGo"
                     },
                     style = MaterialTheme.typography.bodySmall,
