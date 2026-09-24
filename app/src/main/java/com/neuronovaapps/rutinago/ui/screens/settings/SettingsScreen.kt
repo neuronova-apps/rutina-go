@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
+import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
@@ -38,8 +40,10 @@ import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 fun SettingsScreen(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
-    textScale: Float,
-    onTextScaleChange: (Float) -> Unit,
+    textScaleMode: TextScaleMode,
+    onTextScaleModeChange: (TextScaleMode) -> Unit,
+    highContrast: Boolean,
+    onHighContrastChange: (Boolean) -> Unit,
 ) {
     var advancedMode by rememberSaveable { mutableStateOf(false) }
     var textToSpeech by rememberSaveable { mutableStateOf(false) }
@@ -123,16 +127,30 @@ fun SettingsScreen(
         Text("Tamaño del texto", style = MaterialTheme.typography.titleMedium)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(
-                listOf(1f to "Normal", 1.12f to "Grande", 1.24f to "Muy grande"),
-                key = { it.second },
-            ) { option ->
+                TextScaleMode.entries,
+                key = TextScaleMode::storageValue,
+            ) { mode ->
                 FilterChip(
-                    selected = textScale == option.first,
-                    onClick = { onTextScaleChange(option.first) },
-                    label = { Text(option.second) },
+                    selected = textScaleMode == mode,
+                    onClick = { onTextScaleModeChange(mode) },
+                    label = {
+                        Text(
+                            when (mode) {
+                                TextScaleMode.NORMAL -> "Normal"
+                                TextScaleMode.LARGE -> "Grande"
+                                TextScaleMode.VERY_LARGE -> "Muy grande"
+                            },
+                        )
+                    },
                 )
             }
         }
+        SettingToggle(
+            title = "Alto contraste",
+            description = "Refuerza textos, bordes, tarjetas y acciones importantes.",
+            checked = highContrast,
+            onCheckedChange = onHighContrastChange,
+        )
         SettingToggle(
             title = "Texto a voz",
             description = "Apoyo opcional para instrucciones breves.",
@@ -172,7 +190,7 @@ fun SettingsScreen(
             body = "Base Android local para organizar y anticipar actividades mediante secuencias visuales personalizables.",
         )
         Text(
-            "Privacidad: en esta fase no hay cuenta, nube ni persistencia definitiva. Los créditos de ARASAAC se incorporarán cuando se integren sus recursos.",
+            "Privacidad: en esta fase no hay cuenta ni nube; solo se guardan preferencias locales. Los créditos de ARASAAC se incorporarán cuando se integren sus recursos.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -283,7 +301,14 @@ private fun SettingToggle(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = checked,
+                    role = Role.Switch,
+                    onValueChange = onCheckedChange,
+                )
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -295,7 +320,7 @@ private fun SettingToggle(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Switch(checked = checked, onCheckedChange = onCheckedChange)
+            Switch(checked = checked, onCheckedChange = null)
         }
     }
 }

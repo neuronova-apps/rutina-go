@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -22,6 +23,8 @@ class WelcomeNavigationTest {
         composeRule.onNodeWithText("Rutinas").assertIsDisplayed()
         composeRule.onNodeWithText("Configuración").performClick()
         composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
+        composeRule.onNodeWithText("Muy grande").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Alto contraste").performScrollTo().assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Comenzar").fetchSemanticsNodes().isEmpty())
     }
 }

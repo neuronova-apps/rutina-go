@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
+import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
 import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
@@ -43,8 +45,10 @@ import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
 fun RutinaGoApp(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
-    textScale: Float,
-    onTextScaleChange: (Float) -> Unit,
+    textScaleMode: TextScaleMode,
+    onTextScaleModeChange: (TextScaleMode) -> Unit,
+    highContrast: Boolean,
+    onHighContrastChange: (Boolean) -> Unit,
 ) {
     var showWelcome by rememberSaveable { mutableStateOf(true) }
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
@@ -104,7 +108,9 @@ fun RutinaGoApp(
         },
         bottomBar = {
             if (destination.isMain) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ) {
                     mainDestinations.forEach { item ->
                         NavigationBarItem(
                             selected = destination == item,
@@ -124,6 +130,13 @@ fun RutinaGoApp(
                                 )
                             },
                             alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
                         )
                     }
                 }
@@ -175,8 +188,10 @@ fun RutinaGoApp(
                 AppDestination.SETTINGS -> SettingsScreen(
                     themeMode = themeMode,
                     onThemeModeChange = onThemeModeChange,
-                    textScale = textScale,
-                    onTextScaleChange = onTextScaleChange,
+                    textScaleMode = textScaleMode,
+                    onTextScaleModeChange = onTextScaleModeChange,
+                    highContrast = highContrast,
+                    onHighContrastChange = onHighContrastChange,
                 )
 
                 AppDestination.NOW_NEXT -> NowNextScreen(

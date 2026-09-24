@@ -3,6 +3,7 @@ package com.neuronovaapps.rutinago.ui.screens.welcome
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,69 +38,98 @@ fun WelcomeScreen(onStart: () -> Unit) {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val useFlexibleSpacing = maxHeight >= 640.dp
+            val contentModifier = if (useFlexibleSpacing) {
+                Modifier.fillMaxSize()
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            }
+            WelcomeContent(
+                modifier = contentModifier,
+                useFlexibleSpacing = useFlexibleSpacing,
+                onStart = onStart,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WelcomeContent(
+    modifier: Modifier,
+    useFlexibleSpacing: Boolean,
+    onStart: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (useFlexibleSpacing) {
+            Spacer(Modifier.weight(0.35f))
+        } else {
+            Spacer(Modifier.height(24.dp))
+        }
+        RutinaGoProvisionalMark()
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "RUTINAGO",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Black,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.semantics { heading() },
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = "Organiza tu día con rutinas visuales",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Spacer(Modifier.height(44.dp))
-            RutinaGoProvisionalMark()
-            Spacer(Modifier.height(24.dp))
-            Text(
-                text = "RUTINAGO",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.semantics { heading() },
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = "Organiza tu día con rutinas visuales",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                listOf("Rutinas", "Autonomía", "Organización").forEach { label ->
-                    Surface(
-                        modifier = Modifier.weight(1f),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                    ) {
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
-                        )
-                    }
+            listOf("Rutinas", "Autonomía", "Organización").forEach { label ->
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
+                    )
                 }
             }
-            Spacer(Modifier.height(72.dp))
-            Button(
-                onClick = onStart,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Comenzar")
-            }
-            Spacer(Modifier.height(28.dp))
-            Text(
-                text = "NeuroNova Apps",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(12.dp))
         }
+        if (useFlexibleSpacing) {
+            Spacer(Modifier.weight(1f))
+        } else {
+            Spacer(Modifier.height(40.dp))
+        }
+        Button(
+            onClick = onStart,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Comenzar")
+        }
+        Spacer(Modifier.height(28.dp))
+        Text(
+            text = "NeuroNova Apps",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
     }
 }
 
