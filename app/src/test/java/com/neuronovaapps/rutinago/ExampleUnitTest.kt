@@ -1,17 +1,39 @@
 package com.neuronovaapps.rutinago
 
+import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.domain.model.RoutineCategory
+import com.neuronovaapps.rutinago.domain.model.filterFor
+import com.neuronovaapps.rutinago.ui.navigation.AppDestination
+import com.neuronovaapps.rutinago.ui.navigation.mainDestinations
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
-import org.junit.Assert.*
-
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun routineSearch_matchesRoutineAndStepTitles() {
+        val byRoutine = DemoContent.routines.filterFor("mochila", RoutineCategory.ALL)
+        val byStep = DemoContent.routines.filterFor("lavarse", RoutineCategory.ALL)
+
+        assertEquals(listOf("Preparar la mochila"), byRoutine.map { it.title })
+        assertEquals(listOf("Prepararse para el día"), byStep.map { it.title })
+    }
+
+    @Test
+    fun routineFilter_combinesCategoryAndQuery() {
+        val results = DemoContent.routines.filterFor("preparar", RoutineCategory.AFTERNOON)
+
+        assertEquals(1, results.size)
+        assertTrue(results.single().category == RoutineCategory.AFTERNOON)
+    }
+
+    @Test
+    fun mainNavigation_containsTheFiveRequiredSections() {
+        assertEquals(
+            listOf("Hoy", "Rutinas", "Crear", "Progreso", "Configuración"),
+            mainDestinations.map { it.label },
+        )
+        assertTrue(mainDestinations.all(AppDestination::isMain))
+        assertTrue(!AppDestination.EXECUTION.isMain)
     }
 }

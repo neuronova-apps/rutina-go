@@ -1,0 +1,243 @@
+package com.neuronovaapps.rutinago.ui.navigation
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
+import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
+import com.neuronovaapps.rutinago.ui.screens.home.HomeScreen
+import com.neuronovaapps.rutinago.ui.screens.home.NowNextScreen
+import com.neuronovaapps.rutinago.ui.screens.progress.ProgressScreen
+import com.neuronovaapps.rutinago.ui.screens.routines.RoutineDetailScreen
+import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
+import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
+
+@Composable
+fun RutinaGoApp(
+    darkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit,
+    textScale: Float,
+    onTextScaleChange: (Float) -> Unit,
+) {
+    var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
+    var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
+    var selectedRoutineId by rememberSaveable { mutableStateOf(DemoContent.routines.first().id) }
+    var suggestedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
+    val destination = AppDestination.valueOf(destinationName)
+    val allRoutines = DemoContent.routines + DemoContent.templates
+    val selectedRoutine = allRoutines.firstOrNull { it.id == selectedRoutineId }
+        ?: DemoContent.routines.first()
+
+    fun selectRoutine(routine: Routine) {
+        selectedRoutineId = routine.id
+    }
+
+    fun navigateTo(target: AppDestination) {
+        if (destination.isMain) previousMainName = destination.name
+        destinationName = target.name
+    }
+
+    fun navigateMain(target: AppDestination) {
+        destinationName = target.name
+        previousMainName = target.name
+        if (target != AppDestination.CREATE) suggestedTemplateId = null
+    }
+
+    if (destination == AppDestination.EXECUTION) {
+        RoutineExecutionScreen(
+            routine = selectedRoutine,
+            onClose = { navigateMain(AppDestination.HOME) },
+            onViewProgress = { navigateMain(AppDestination.PROGRESS) },
+        )
+        return
+    }
+
+    BackHandler(enabled = !destination.isMain) {
+        destinationName = previousMainName
+    }
+
+    Scaffold(
+        topBar = {
+            AppHeader(
+                destination = destination,
+                onBack = { destinationName = previousMainName },
+            )
+        },
+        bottomBar = {
+            if (destination.isMain) {
+                NavigationBar {
+                    mainDestinations.forEach { item ->
+                        NavigationBarItem(
+                            selected = destination == item,
+                            onClick = { navigateMain(item) },
+                            icon = {
+                                Text(
+                                    item.symbol,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.clearAndSetSemantics {},
+                                )
+                            },
+                            label = {
+                                Text(
+                                    item.label,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
+                            alwaysShowLabel = true,
+                        )
+                    }
+                }
+            }
+        },
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.padding(innerPadding),
+            color = MaterialTheme.colorScheme.background,
+        ) {
+            when (destination) {
+                AppDestination.HOME -> HomeScreen(
+                    onViewNowNext = { navigateTo(AppDestination.NOW_NEXT) },
+                    onOpenRoutine = { routine ->
+                        selectRoutine(routine)
+                        navigateTo(AppDestination.ROUTINE_DETAIL)
+                    },
+                    onStartRoutine = { routine ->
+                        selectRoutine(routine)
+                        navigateTo(AppDestination.EXECUTION)
+                    },
+                    onCreateRoutine = { navigateMain(AppDestination.CREATE) },
+                )
+
+                AppDestination.ROUTINES -> RoutinesScreen(
+                    onOpenRoutine = { routine ->
+                        selectRoutine(routine)
+                        navigateTo(AppDestination.ROUTINE_DETAIL)
+                    },
+                    onStartRoutine = { routine ->
+                        selectRoutine(routine)
+                        navigateTo(AppDestination.EXECUTION)
+                    },
+                    onUseTemplate = { routine ->
+                        selectRoutine(routine)
+                        suggestedTemplateId = routine.id
+                        navigateMain(AppDestination.CREATE)
+                    },
+                )
+
+                AppDestination.CREATE -> CreateScreen(
+                    suggestedTemplateTitle = allRoutines
+                        .firstOrNull { it.id == suggestedTemplateId }
+                        ?.title,
+                )
+
+                AppDestination.PROGRESS -> ProgressScreen()
+
+                AppDestination.SETTINGS -> SettingsScreen(
+                    darkTheme = darkTheme,
+                    onDarkThemeChange = onDarkThemeChange,
+                    textScale = textScale,
+                    onTextScaleChange = onTextScaleChange,
+                )
+
+                AppDestination.NOW_NEXT -> NowNextScreen(
+                    onStartRoutine = {
+                        selectRoutine(DemoContent.routines.first())
+                        navigateTo(AppDestination.EXECUTION)
+                    },
+                )
+
+                AppDestination.ROUTINE_DETAIL -> RoutineDetailScreen(
+                    routine = selectedRoutine,
+                    onStart = { navigateTo(AppDestination.EXECUTION) },
+                    onUseTemplate = {
+                        suggestedTemplateId = selectedRoutine.id
+                        navigateMain(AppDestination.CREATE)
+                    },
+                )
+
+                AppDestination.EXECUTION -> Unit
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppHeader(
+    destination: AppDestination,
+    onBack: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(0.dp, MaterialTheme.colorScheme.outline),
+        shadowElevation = 1.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .statusBarsPadding()
+                .heightIn(min = 64.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (!destination.isMain) {
+                TextButton(onClick = onBack) { Text("‹ Volver") }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(destination.title, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    when (destination) {
+                        AppDestination.HOME -> "NeuroNova Apps"
+                        AppDestination.PROGRESS -> "Perfil Alex · datos demo"
+                        AppDestination.SETTINGS -> "Preferencias locales de esta sesión"
+                        else -> "RutinaGo"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (destination == AppDestination.HOME || destination == AppDestination.PROGRESS) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("Perfil", style = MaterialTheme.typography.labelSmall)
+                        Text("Alex", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+        }
+    }
+}

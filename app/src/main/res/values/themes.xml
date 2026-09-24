@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.RutinaGo" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.RutinaGo" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorAccent">@color/rutinago_petroleum</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:navigationBarColor">@color/rutinago_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/rutinago_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 </resources>

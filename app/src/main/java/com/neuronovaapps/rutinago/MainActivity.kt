@@ -4,13 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.neuronovaapps.rutinago.ui.navigation.RutinaGoApp
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,30 +18,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RutinaGoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            val systemDarkTheme = isSystemInDarkTheme()
+            var darkTheme by rememberSaveable { mutableStateOf(systemDarkTheme) }
+            var textScale by rememberSaveable { mutableFloatStateOf(1f) }
+
+            RutinaGoTheme(darkTheme = darkTheme, textScale = textScale) {
+                RutinaGoApp(
+                    darkTheme = darkTheme,
+                    onDarkThemeChange = { darkTheme = it },
+                    textScale = textScale,
+                    onTextScaleChange = { textScale = it },
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RutinaGoTheme {
-        Greeting("Android")
     }
 }
