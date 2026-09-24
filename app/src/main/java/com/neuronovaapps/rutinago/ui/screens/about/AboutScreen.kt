@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
+import androidx.core.net.toUri
 import com.neuronovaapps.rutinago.data.institutional.InstitutionalLinks
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
@@ -92,7 +92,14 @@ fun AboutScreen(modifier: Modifier = Modifier) {
             )
             AboutBody(
                 "RutinaGo no incluye actualmente una cuenta ni sincronización en la nube. La " +
-                    "política de privacidad específica de RutinaGo está pendiente de publicación.",
+                    "política oficial explica el tratamiento de datos aplicable y los cambios " +
+                    "que puedan acompañar futuras funciones.",
+            )
+            ExternalLink(
+                label = "Política de privacidad",
+                uri = InstitutionalLinks.RUTINAGO_PRIVACY_POLICY,
+                accessibilityDescription =
+                    "Política de privacidad. Abre la política de privacidad en el navegador.",
             )
         }
 
@@ -297,7 +304,11 @@ private fun StatusLabel(text: String) {
 }
 
 @Composable
-private fun ExternalLink(label: String, uri: String) {
+private fun ExternalLink(
+    label: String,
+    uri: String,
+    accessibilityDescription: String = "$label. Abre un enlace externo",
+) {
     val context = LocalContext.current
     Surface(
         onClick = { openExternalUri(context, uri) },
@@ -305,7 +316,7 @@ private fun ExternalLink(label: String, uri: String) {
             .fillMaxWidth()
             .heightIn(min = 52.dp)
             .semantics {
-                contentDescription = "$label. Abre un enlace externo"
+                contentDescription = accessibilityDescription
                 role = Role.Button
             },
         shape = MaterialTheme.shapes.medium,
@@ -334,7 +345,7 @@ private fun ExternalLink(label: String, uri: String) {
 }
 
 private fun openExternalUri(context: Context, uri: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
+    val intent = Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
         addCategory(Intent.CATEGORY_BROWSABLE)
     }
     try {

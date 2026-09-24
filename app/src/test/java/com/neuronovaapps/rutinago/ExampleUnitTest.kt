@@ -44,6 +44,10 @@ class ExampleUnitTest {
     fun institutionalLinks_useVerifiedSchemesAndContact() {
         assertTrue(InstitutionalLinks.NEURONOVA_APPS_WEBSITE.startsWith("https://"))
         assertEquals(
+            "https://neuronova-apps.github.io/privacy/rutinago/",
+            InstitutionalLinks.RUTINAGO_PRIVACY_POLICY,
+        )
+        assertEquals(
             "mailto:${InstitutionalLinks.CONTACT_EMAIL}",
             InstitutionalLinks.CONTACT_EMAIL_URI,
         )

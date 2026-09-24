@@ -39,6 +39,9 @@ class WelcomeNavigationTest {
 
         composeRule.onNodeWithText("Sobre RutinaGo").assertIsDisplayed()
         composeRule.onNodeWithText("RUTINAGO").assertIsDisplayed()
+        composeRule.onNodeWithText("Política de privacidad")
+            .performScrollTo()
+            .assertIsDisplayed()
         composeRule.onNodeWithText("‹ Volver").performClick()
 
         composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
