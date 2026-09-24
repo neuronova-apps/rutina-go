@@ -2,8 +2,11 @@ package com.neuronovaapps.rutinago.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -26,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
@@ -40,6 +44,7 @@ import com.neuronovaapps.rutinago.ui.screens.routines.RoutineDetailScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
 import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
+import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
 @Composable
 fun RutinaGoApp(
@@ -50,6 +55,7 @@ fun RutinaGoApp(
     highContrast: Boolean,
     onHighContrastChange: (Boolean) -> Unit,
 ) {
+    val highContrast = LocalHighContrast.current
     var showWelcome by rememberSaveable { mutableStateOf(true) }
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
@@ -109,6 +115,11 @@ fun RutinaGoApp(
         bottomBar = {
             if (destination.isMain) {
                 NavigationBar(
+                    modifier = if (highContrast) {
+                        Modifier.border(1.dp, MaterialTheme.colorScheme.outline)
+                    } else {
+                        Modifier
+                    },
                     containerColor = MaterialTheme.colorScheme.surface,
                 ) {
                     mainDestinations.forEach { item ->
@@ -125,15 +136,23 @@ fun RutinaGoApp(
                             label = {
                                 Text(
                                     item.label,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 2,
+                                    textAlign = TextAlign.Center,
                                 )
                             },
                             alwaysShowLabel = true,
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedIconColor = if (highContrast) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                },
                                 selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                indicatorColor = if (highContrast) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                },
                                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             ),
@@ -144,7 +163,10 @@ fun RutinaGoApp(
         },
     ) { innerPadding ->
         Surface(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             color = MaterialTheme.colorScheme.background,
         ) {
             when (destination) {
@@ -221,10 +243,14 @@ private fun AppHeader(
     destination: AppDestination,
     onBack: () -> Unit,
 ) {
+    val highContrast = LocalHighContrast.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(0.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(
+            if (highContrast) 1.dp else 0.dp,
+            MaterialTheme.colorScheme.outline,
+        ),
         shadowElevation = 1.dp,
     ) {
         Row(

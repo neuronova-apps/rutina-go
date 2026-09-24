@@ -10,7 +10,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.domain.model.RoutineOutcome
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
+import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.components.StatusPill
@@ -139,7 +139,7 @@ private fun AchievementCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (hasAction) {
-                OutlinedButton(onClick = {}) { Text("Activar reto") }
+                RutinaGoOutlinedButton(onClick = {}) { Text("Activar reto") }
             }
         }
     }

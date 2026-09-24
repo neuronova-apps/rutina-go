@@ -72,14 +72,46 @@ class UserPreferencesTest {
         assertNotEquals(light.outline, highContrastLight.outline)
         assertNotEquals(dark.background, highContrastDark.background)
         assertNotEquals(dark.outline, highContrastDark.outline)
+        assertEquals(highContrastLight, highContrastDark)
+        assertEquals(Color(0xFF000000), highContrastLight.background)
+        assertEquals(Color(0xFF000000), highContrastLight.surface)
+        assertEquals(Color(0xFFFFFFFF), highContrastLight.onBackground)
+        assertEquals(Color(0xFFFFFFFF), highContrastLight.outline)
+        assertEquals(Color(0xFFFFD600), highContrastLight.primary)
+        assertEquals(Color(0xFF000000), highContrastLight.onPrimary)
         assertHighContrastPairs(highContrastLight)
         assertHighContrastPairs(highContrastDark)
     }
 
+    @Test
+    fun highContrastDoesNotReplaceTheSelectedTheme() {
+        val nightPreferences = UserPreferences(themeMode = ThemeMode.NIGHT)
+        val enabled = nightPreferences.copy(highContrast = true)
+        val disabledAgain = enabled.copy(highContrast = false)
+
+        assertEquals(ThemeMode.NIGHT, enabled.themeMode)
+        assertEquals(ThemeMode.NIGHT, disabledAgain.themeMode)
+        assertFalse(disabledAgain.highContrast)
+    }
+
+    @Test
+    fun highContrastButtonsAndSelectedStates_keepBlackTextOnYellowAboveSevenToOne() {
+        val scheme = rutinaGoColorScheme(darkTheme = false, highContrast = true)
+
+        assertTrue(contrastRatio(scheme.onPrimary, scheme.primary) >= 7.0)
+        assertTrue(contrastRatio(scheme.onSecondaryContainer, scheme.secondaryContainer) >= 7.0)
+        assertEquals(Color(0xFF000000), scheme.onPrimary)
+        assertEquals(Color(0xFFFFD600), scheme.primary)
+    }
+
     private fun assertHighContrastPairs(scheme: ColorScheme) {
         assertTrue(contrastRatio(scheme.onBackground, scheme.background) >= 7.0)
+        assertTrue(contrastRatio(scheme.onSurface, scheme.surface) >= 7.0)
         assertTrue(contrastRatio(scheme.onSurfaceVariant, scheme.surfaceVariant) >= 7.0)
         assertTrue(contrastRatio(scheme.onPrimary, scheme.primary) >= 7.0)
+        assertTrue(contrastRatio(scheme.onPrimaryContainer, scheme.primaryContainer) >= 7.0)
+        assertTrue(contrastRatio(scheme.onSecondaryContainer, scheme.secondaryContainer) >= 7.0)
+        assertTrue(contrastRatio(scheme.outline, scheme.background) >= 3.0)
     }
 
     private fun contrastRatio(foreground: Color, background: Color): Double {

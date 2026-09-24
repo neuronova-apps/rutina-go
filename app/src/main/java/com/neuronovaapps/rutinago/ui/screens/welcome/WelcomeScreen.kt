@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
 @Composable
 fun WelcomeScreen(onStart: () -> Unit) {
@@ -62,6 +63,7 @@ private fun WelcomeContent(
     useFlexibleSpacing: Boolean,
     onStart: () -> Unit,
 ) {
+    val highContrast = LocalHighContrast.current
     Column(
         modifier = modifier
             .statusBarsPadding()
@@ -80,7 +82,11 @@ private fun WelcomeContent(
             text = "RUTINAGO",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.primary,
+            color = if (highContrast) {
+                MaterialTheme.colorScheme.onBackground
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
             modifier = Modifier.semantics { heading() },
         )
         Spacer(Modifier.height(10.dp))

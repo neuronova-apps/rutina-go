@@ -10,7 +10,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +24,7 @@ import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.RoutineCard
+import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.components.StatusPill
@@ -176,7 +176,7 @@ fun NowNextScreen(
         Button(onClick = onStartRoutine, modifier = Modifier.fillMaxWidth()) {
             Text("Iniciar rutina")
         }
-        OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+        RutinaGoOutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
             Text("Escuchar: ${steps[0].title}. Después, ${steps[1].title}.")
         }
     }

@@ -15,9 +15,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,10 +32,12 @@ import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
+import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
 @Composable
 fun SettingsScreen(
@@ -97,7 +100,7 @@ fun SettingsScreen(
         SectionHeading("Perfiles")
         ProfileRow("Alex", "Activo · General", active = true)
         ProfileRow("Sam", "Escolar+", active = false)
-        OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+        RutinaGoOutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
             Text("Gestionar perfiles")
         }
 
@@ -204,6 +207,7 @@ private fun ThemeModeOption(
     selected: Boolean,
     onSelect: () -> Unit,
 ) {
+    val highContrast = LocalHighContrast.current
     val (label, description) = when (mode) {
         ThemeMode.DAY -> "Día" to "Usa siempre la paleta clara."
         ThemeMode.NIGHT -> "Noche" to "Usa siempre la paleta oscura."
@@ -212,10 +216,19 @@ private fun ThemeModeOption(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
+            containerColor = if (selected && highContrast) {
+                MaterialTheme.colorScheme.primary
+            } else if (selected) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
                 MaterialTheme.colorScheme.surface
+            },
+            contentColor = if (selected && highContrast) {
+                MaterialTheme.colorScheme.onPrimary
+            } else if (selected) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurface
             },
         ),
         border = BorderStroke(
@@ -235,20 +248,43 @@ private fun ThemeModeOption(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            RadioButton(selected = selected, onClick = null)
+            RadioButton(
+                selected = selected,
+                onClick = null,
+                colors = if (highContrast) {
+                    RadioButtonDefaults.colors(
+                        selectedColor = MaterialTheme.colorScheme.onPrimary,
+                        unselectedColor = MaterialTheme.colorScheme.outline,
+                    )
+                } else {
+                    RadioButtonDefaults.colors()
+                },
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(label, style = MaterialTheme.typography.titleMedium)
                 Text(
                     description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (selected) {
+                        if (highContrast) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
             if (selected) {
                 Text(
                     "Seleccionado",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (highContrast) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    },
                 )
             }
         }
@@ -257,13 +293,23 @@ private fun ThemeModeOption(
 
 @Composable
 private fun ProfileRow(name: String, detail: String, active: Boolean) {
+    val highContrast = LocalHighContrast.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (active) {
+            containerColor = if (active && highContrast) {
+                MaterialTheme.colorScheme.primary
+            } else if (active) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
                 MaterialTheme.colorScheme.surface
+            },
+            contentColor = if (active && highContrast) {
+                MaterialTheme.colorScheme.onPrimary
+            } else if (active) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurface
             },
         ),
         border = BorderStroke(
@@ -280,10 +326,30 @@ private fun ProfileRow(name: String, detail: String, active: Boolean) {
                 Text(
                     detail,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (active) {
+                        if (highContrast) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
-            Text("Editar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(
+                "Editar",
+                style = MaterialTheme.typography.labelLarge,
+                color = if (active) {
+                    if (highContrast) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    }
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
+            )
         }
     }
 }
@@ -295,6 +361,7 @@ private fun SettingToggle(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+    val highContrast = LocalHighContrast.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -320,7 +387,22 @@ private fun SettingToggle(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Switch(checked = checked, onCheckedChange = null)
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                colors = if (highContrast) {
+                    SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        checkedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                    )
+                } else {
+                    SwitchDefaults.colors()
+                },
+            )
         }
     }
 }

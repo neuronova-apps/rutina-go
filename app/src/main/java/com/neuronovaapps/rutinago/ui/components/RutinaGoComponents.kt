@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
 @Composable
 fun ScreenColumn(
@@ -44,6 +47,34 @@ fun ScreenColumn(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
+        content = content,
+    )
+}
+
+@Composable
+fun RutinaGoOutlinedButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    val highContrast = LocalHighContrast.current
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = if (highContrast) {
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            )
+        } else {
+            ButtonDefaults.outlinedButtonColors()
+        },
+        border = BorderStroke(
+            if (highContrast) 2.dp else 1.dp,
+            MaterialTheme.colorScheme.outline,
+        ),
         content = content,
     )
 }
@@ -169,7 +200,7 @@ fun RoutineCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
             } else {
-                OutlinedButton(onClick = onStart) { Text("Iniciar") }
+                RutinaGoOutlinedButton(onClick = onStart) { Text("Iniciar") }
             }
         }
     }

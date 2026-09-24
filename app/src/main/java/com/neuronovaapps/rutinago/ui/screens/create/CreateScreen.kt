@@ -14,7 +14,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -33,8 +32,10 @@ import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.domain.model.ActivityStep
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
+import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
 private enum class CreateOrigin(val label: String, val description: String) {
     TEMPLATE("Usar una plantilla", "Empieza con una estructura demostrativa editable."),
@@ -128,7 +129,7 @@ fun CreateScreen(suggestedTemplateTitle: String? = null) {
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (step > 1) {
-                OutlinedButton(
+                RutinaGoOutlinedButton(
                     onClick = { step-- },
                     modifier = Modifier.weight(1f),
                 ) { Text("Anterior") }
@@ -163,31 +164,51 @@ private fun OriginStep(
     selected: CreateOrigin?,
     onSelected: (CreateOrigin) -> Unit,
 ) {
+    val highContrast = LocalHighContrast.current
     CreateOrigin.entries.forEach { option ->
+        val isSelected = selected == option
         Card(
             onClick = { onSelected(option) },
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = if (selected == option) {
+                containerColor = if (isSelected && highContrast) {
+                    MaterialTheme.colorScheme.primary
+                } else if (isSelected) {
                     MaterialTheme.colorScheme.primaryContainer
                 } else {
                     MaterialTheme.colorScheme.surface
                 },
+                contentColor = if (isSelected && highContrast) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
             ),
             border = BorderStroke(
-                if (selected == option) 2.dp else 1.dp,
-                if (selected == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                if (isSelected) 2.dp else 1.dp,
+                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
             ),
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                Text(option.label, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (isSelected) "✓ ${option.label}" else option.label,
+                    style = MaterialTheme.typography.titleMedium,
+                )
                 Text(
                     option.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isSelected && highContrast) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
         }
@@ -225,7 +246,7 @@ private fun ActivitySelectionStep(
             }
         }
     }
-    OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+    RutinaGoOutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
         Text("Añadir paso personalizado")
     }
 }

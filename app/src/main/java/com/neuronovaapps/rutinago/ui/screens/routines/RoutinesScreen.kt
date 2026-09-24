@@ -13,7 +13,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +33,7 @@ import com.neuronovaapps.rutinago.domain.model.filterFor
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RoutineCard
+import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.components.StatusPill
@@ -163,7 +163,7 @@ fun RoutineDetailScreen(
         Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
             Text("Iniciar rutina")
         }
-        OutlinedButton(onClick = onUseTemplate, modifier = Modifier.fillMaxWidth()) {
+        RutinaGoOutlinedButton(onClick = onUseTemplate, modifier = Modifier.fillMaxWidth()) {
             Text(if (routine.isTemplate) "Usar esta plantilla" else "Crear una copia personal")
         }
     }

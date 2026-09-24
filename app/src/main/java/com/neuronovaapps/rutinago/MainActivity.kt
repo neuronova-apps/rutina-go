@@ -30,11 +30,12 @@ class MainActivity : ComponentActivity() {
                 initial = UserPreferences(),
             )
             val darkTheme = preferences.themeMode.usesDarkTheme(systemDarkTheme)
+            val useDarkSystemBars = darkTheme || preferences.highContrast
             val coroutineScope = rememberCoroutineScope()
 
             SideEffect {
                 enableEdgeToEdge(
-                    statusBarStyle = if (darkTheme) {
+                    statusBarStyle = if (useDarkSystemBars) {
                         SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
                     } else {
                         SystemBarStyle.light(
@@ -42,7 +43,7 @@ class MainActivity : ComponentActivity() {
                             android.graphics.Color.TRANSPARENT,
                         )
                     },
-                    navigationBarStyle = if (darkTheme) {
+                    navigationBarStyle = if (useDarkSystemBars) {
                         SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
                     } else {
                         SystemBarStyle.light(

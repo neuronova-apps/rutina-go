@@ -8,7 +8,9 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
@@ -61,55 +63,35 @@ private val LightColorScheme = lightColorScheme(
     error = LightError,
 )
 
-private val HighContrastDarkColorScheme = darkColorScheme(
-    primary = HighContrastDarkPrimary,
-    onPrimary = HighContrastDarkOnPrimary,
-    primaryContainer = HighContrastDarkPrimaryContainer,
-    onPrimaryContainer = HighContrastDarkOnPrimaryContainer,
-    secondary = HighContrastDarkPrimary,
-    onSecondary = HighContrastDarkOnPrimary,
-    secondaryContainer = HighContrastDarkPrimaryContainer,
-    onSecondaryContainer = HighContrastDarkOnPrimaryContainer,
-    background = HighContrastDarkBackground,
-    onBackground = HighContrastDarkInk,
-    surface = HighContrastDarkSurface,
-    onSurface = HighContrastDarkInk,
-    surfaceVariant = HighContrastDarkSurfaceVariant,
-    onSurfaceVariant = HighContrastDarkMuted,
-    surfaceContainerLowest = HighContrastDarkBackground,
-    surfaceContainerLow = HighContrastDarkSurface,
-    surfaceContainer = HighContrastDarkSurface,
-    surfaceContainerHigh = HighContrastDarkSurfaceVariant,
-    surfaceContainerHighest = HighContrastDarkSurfaceVariant,
-    outline = HighContrastDarkOutline,
-    outlineVariant = HighContrastDarkOutline,
+private val HighContrastColorScheme = darkColorScheme(
+    primary = HighContrastAccent,
+    onPrimary = HighContrastOnAccent,
+    primaryContainer = HighContrastSurfaceVariant,
+    onPrimaryContainer = HighContrastInk,
+    secondary = HighContrastAccent,
+    onSecondary = HighContrastOnAccent,
+    secondaryContainer = HighContrastAccent,
+    onSecondaryContainer = HighContrastOnAccent,
+    background = HighContrastBackground,
+    onBackground = HighContrastInk,
+    surface = HighContrastSurface,
+    onSurface = HighContrastInk,
+    surfaceVariant = HighContrastSurfaceVariant,
+    onSurfaceVariant = HighContrastInk,
+    surfaceContainerLowest = HighContrastBackground,
+    surfaceContainerLow = HighContrastSurface,
+    surfaceContainer = HighContrastSurface,
+    surfaceContainerHigh = HighContrastSurfaceVariant,
+    surfaceContainerHighest = HighContrastSurfaceVariant,
+    outline = HighContrastOutline,
+    outlineVariant = HighContrastOutline,
     error = DarkError,
+    onError = HighContrastOnAccent,
+    errorContainer = DarkError,
+    onErrorContainer = HighContrastOnAccent,
 )
 
-private val HighContrastLightColorScheme = lightColorScheme(
-    primary = HighContrastLightPrimary,
-    onPrimary = HighContrastLightOnPrimary,
-    primaryContainer = HighContrastLightPrimaryContainer,
-    onPrimaryContainer = HighContrastLightOnPrimaryContainer,
-    secondary = HighContrastLightPrimary,
-    onSecondary = HighContrastLightOnPrimary,
-    secondaryContainer = HighContrastLightPrimaryContainer,
-    onSecondaryContainer = HighContrastLightOnPrimaryContainer,
-    background = HighContrastLightBackground,
-    onBackground = HighContrastLightInk,
-    surface = HighContrastLightSurface,
-    onSurface = HighContrastLightInk,
-    surfaceVariant = HighContrastLightSurfaceVariant,
-    onSurfaceVariant = HighContrastLightMuted,
-    surfaceContainerLowest = HighContrastLightSurface,
-    surfaceContainerLow = HighContrastLightBackground,
-    surfaceContainer = HighContrastLightSurface,
-    surfaceContainerHigh = HighContrastLightSurfaceVariant,
-    surfaceContainerHighest = HighContrastLightSurfaceVariant,
-    outline = HighContrastLightOutline,
-    outlineVariant = HighContrastLightOutline,
-    error = LightError,
-)
+internal val LocalHighContrast = staticCompositionLocalOf { false }
 
 private val RutinaGoShapes = Shapes(
     small = RoundedCornerShape(10.dp),
@@ -131,16 +113,19 @@ fun RutinaGoTheme(
         colorScheme = colorScheme,
         typography = typography,
         shapes = RutinaGoShapes,
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(
+            LocalHighContrast provides highContrast,
+            content = content,
+        )
+    }
 }
 
 internal fun rutinaGoColorScheme(
     darkTheme: Boolean,
     highContrast: Boolean,
 ): ColorScheme = when {
-    darkTheme && highContrast -> HighContrastDarkColorScheme
+    highContrast -> HighContrastColorScheme
     darkTheme -> DarkColorScheme
-    highContrast -> HighContrastLightColorScheme
     else -> LightColorScheme
 }

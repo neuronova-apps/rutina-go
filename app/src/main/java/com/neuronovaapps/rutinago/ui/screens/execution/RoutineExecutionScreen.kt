@@ -8,16 +8,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.domain.model.RoutineOutcome
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
+import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 
@@ -100,11 +103,14 @@ fun RoutineExecutionScreen(
                 LinearProgressIndicator(
                     progress = { (stepIndex + 1f) / routine.steps.size },
                     modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 )
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
                         .padding(vertical = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -168,7 +174,7 @@ fun RoutineExecutionScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text("Continuar") }
                     } else {
-                        OutlinedButton(
+                        RutinaGoOutlinedButton(
                             onClick = { showHelp = true },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text("Necesito ayuda") }
@@ -223,23 +229,26 @@ fun RoutineExecutionScreen(
             onDismissRequest = { showHelp = false },
             title = { Text("¿Qué necesitas?") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     Text("Pedir ayuda no cambia tu progreso ni añade penalizaciones.")
-                    OutlinedButton(
+                    RutinaGoOutlinedButton(
                         onClick = {
                             supportMessage = "Una persona de apoyo puede acompañarte en este paso."
                             showHelp = false
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text("Pedir ayuda") }
-                    OutlinedButton(
+                    RutinaGoOutlinedButton(
                         onClick = {
                             supportMessage = "Puedes leer de nuevo la instrucción y avanzar a tu ritmo."
                             showHelp = false
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text("Repetir instrucción") }
-                    OutlinedButton(
+                    RutinaGoOutlinedButton(
                         onClick = {
                             paused = true
                             showHelp = false
@@ -265,7 +274,9 @@ private fun CompletionPanel(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -289,11 +300,11 @@ private fun CompletionPanel(
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp),
         )
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(24.dp))
         Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
             Text("Cerrar y volver")
         }
-        OutlinedButton(
+        RutinaGoOutlinedButton(
             onClick = onViewProgress,
             modifier = Modifier
                 .fillMaxWidth()
