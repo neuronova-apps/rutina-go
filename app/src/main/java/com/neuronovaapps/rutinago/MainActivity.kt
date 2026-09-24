@@ -26,9 +26,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val systemDarkTheme = isSystemInDarkTheme()
-            val preferences by userPreferencesRepository.preferences.collectAsState(
-                initial = UserPreferences(),
-            )
+            val storedPreferences by userPreferencesRepository.preferences.collectAsState(initial = null)
+            val preferences = storedPreferences ?: UserPreferences()
             val darkTheme = preferences.themeMode.usesDarkTheme(systemDarkTheme)
             val useDarkSystemBars = darkTheme || preferences.highContrast
             val coroutineScope = rememberCoroutineScope()
@@ -59,18 +58,28 @@ class MainActivity : ComponentActivity() {
                 textScale = preferences.textScaleMode.scaleFactor,
                 highContrast = preferences.highContrast,
             ) {
-                RutinaGoApp(
-                    themeMode = preferences.themeMode,
+                if (storedPreferences != null) RutinaGoApp(
+                    preferences = preferences,
                     onThemeModeChange = { mode ->
                         coroutineScope.launch { userPreferencesRepository.setThemeMode(mode) }
                     },
-                    textScaleMode = preferences.textScaleMode,
                     onTextScaleModeChange = { mode ->
                         coroutineScope.launch { userPreferencesRepository.setTextScaleMode(mode) }
                     },
-                    highContrast = preferences.highContrast,
                     onHighContrastChange = { enabled ->
                         coroutineScope.launch { userPreferencesRepository.setHighContrast(enabled) }
+                    },
+                    onAppModeChange = { mode ->
+                        coroutineScope.launch { userPreferencesRepository.setAppMode(mode) }
+                    },
+                    onCreateProfile = { name ->
+                        coroutineScope.launch { userPreferencesRepository.createProfile(name) }
+                    },
+                    onRenameProfile = { id, name ->
+                        coroutineScope.launch { userPreferencesRepository.renameProfile(id, name) }
+                    },
+                    onSelectProfile = { id ->
+                        coroutineScope.launch { userPreferencesRepository.selectProfile(id) }
                     },
                 )
             }

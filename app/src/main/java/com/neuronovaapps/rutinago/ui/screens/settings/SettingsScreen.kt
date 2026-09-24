@@ -24,10 +24,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -36,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
@@ -53,14 +50,12 @@ fun SettingsScreen(
     onTextScaleModeChange: (TextScaleMode) -> Unit,
     highContrast: Boolean,
     onHighContrastChange: (Boolean) -> Unit,
+    appMode: AppMode,
+    onAppModeChange: (AppMode) -> Unit,
+    activeProfileName: String,
+    onManageProfiles: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
-    var advancedMode by rememberSaveable { mutableStateOf(false) }
-    var textToSpeech by rememberSaveable { mutableStateOf(false) }
-    var visualSupports by rememberSaveable { mutableStateOf(true) }
-    var gamification by rememberSaveable { mutableStateOf(false) }
-    var configuratorProtection by rememberSaveable { mutableStateOf(false) }
-
     ScreenColumn {
         SectionHeading("Apariencia")
         Text("Tema de la aplicación", style = MaterialTheme.typography.titleMedium)
@@ -81,33 +76,32 @@ fun SettingsScreen(
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
                 FilterChip(
-                    selected = !advancedMode,
-                    onClick = { advancedMode = false },
+                    selected = appMode == AppMode.SIMPLE,
+                    onClick = { onAppModeChange(AppMode.SIMPLE) },
                     label = { Text("Modo simple") },
                 )
             }
             item {
                 FilterChip(
-                    selected = advancedMode,
-                    onClick = { advancedMode = true },
+                    selected = appMode == AppMode.ADVANCED,
+                    onClick = { onAppModeChange(AppMode.ADVANCED) },
                     label = { Text("Modo avanzado") },
                 )
             }
         }
         Text(
-            if (advancedMode) {
-                "Muestra opciones de organización y apoyo adicionales."
+            if (appMode == AppMode.ADVANCED) {
+                "Añade búsqueda, organización de pasos, programación y opciones complementarias."
             } else {
-                "Mantiene visibles solo las opciones cotidianas principales."
+                "Prioriza acciones cotidianas, instrucciones breves y apoyos visuales."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         SectionHeading("Perfiles")
-        ProfileRow("Alex", "Activo · General", active = true)
-        ProfileRow("Sam", "Escolar+", active = false)
-        RutinaGoOutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+        ProfileRow(activeProfileName, "Perfil activo", active = true)
+        RutinaGoOutlinedButton(onClick = onManageProfiles, modifier = Modifier.fillMaxWidth()) {
             Text("Gestionar perfiles")
         }
 
@@ -161,38 +155,17 @@ fun SettingsScreen(
             checked = highContrast,
             onCheckedChange = onHighContrastChange,
         )
-        SettingToggle(
-            title = "Texto a voz",
-            description = "Apoyo opcional para instrucciones breves.",
-            checked = textToSpeech,
-            onCheckedChange = { textToSpeech = it },
-        )
-        SettingToggle(
-            title = "Apoyos visuales",
-            description = "Prepara pictogramas y fotografías personalizadas.",
-            checked = visualSupports,
-            onCheckedChange = { visualSupports = it },
-        )
-
-        SectionHeading("Gamificación opcional")
-        SettingToggle(
-            title = if (gamification) "Logros discretos" else "Desactivada",
-            description = "Sin rankings, presión ni penalizaciones.",
-            checked = gamification,
-            onCheckedChange = { gamification = it },
-        )
-
-        SectionHeading("Protección del configurador")
-        SettingToggle(
-            title = if (configuratorProtection) "Representada como activa" else "Desactivada",
-            description = "Limita visualmente los cambios administrativos, no el uso cotidiano.",
-            checked = configuratorProtection,
-            onCheckedChange = { configuratorProtection = it },
-        )
         InfoCallout(
-            title = "Sin seguridad simulada",
-            body = "Esta fase no usa PIN ni contraseña de demostración como protección real.",
+            title = "Apoyos visuales siempre disponibles",
+            body = "El modo simple mantiene visibles los apoyos esenciales y no oculta la accesibilidad.",
         )
+
+        if (appMode == AppMode.ADVANCED) {
+            InfoCallout(
+                title = "Próximas opciones avanzadas",
+                body = "Texto a voz, gamificación y protección del configurador no se muestran como controles hasta contar con una implementación real.",
+            )
+        }
 
         SectionHeading("Información")
         InformationLinkCard(onClick = onOpenAbout)
@@ -387,19 +360,7 @@ private fun ProfileRow(name: String, detail: String, active: Boolean) {
                     },
                 )
             }
-            Text(
-                "Editar",
-                style = MaterialTheme.typography.labelLarge,
-                color = if (active) {
-                    if (highContrast) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    }
-                } else {
-                    MaterialTheme.colorScheme.primary
-                },
-            )
+            Text("Activo", style = MaterialTheme.typography.labelLarge)
         }
     }
 }

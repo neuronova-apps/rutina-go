@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.domain.model.RoutineCategory
 import com.neuronovaapps.rutinago.domain.model.filterFor
@@ -41,6 +42,7 @@ import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 
 @Composable
 fun RoutinesScreen(
+    appMode: AppMode,
     onOpenRoutine: (Routine) -> Unit,
     onStartRoutine: (Routine) -> Unit,
     onUseTemplate: (Routine) -> Unit,
@@ -52,22 +54,24 @@ fun RoutinesScreen(
     val matchingTemplates = DemoContent.templates.filterFor(query, category)
 
     ScreenColumn {
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            label = { Text("Buscar rutinas o actividades") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(RoutineCategory.entries, key = { it.name }) { option ->
-                FilterChip(
-                    selected = category == option,
-                    onClick = { categoryName = option.name },
-                    label = { Text(option.label) },
-                )
+        if (appMode == AppMode.ADVANCED) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Buscar rutinas o actividades") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(RoutineCategory.entries, key = { it.name }) { option ->
+                    FilterChip(
+                        selected = category == option,
+                        onClick = { categoryName = option.name },
+                        label = { Text(option.label) },
+                    )
+                }
             }
         }
 
@@ -87,16 +91,23 @@ fun RoutinesScreen(
             }
         }
 
-        SectionHeading("Catálogo de plantillas")
-        InfoCallout(
-            title = "Muestra de la biblioteca",
-            body = "Esta fase usa plantillas demostrativas. Las 52 rutinas maestras se integrarán después.",
-        )
-        matchingTemplates.forEach { routine ->
-            RoutineCard(
-                routine = routine,
-                onOpen = { onOpenRoutine(routine) },
-                onStart = { onUseTemplate(routine) },
+        if (appMode == AppMode.ADVANCED) {
+            SectionHeading("Catálogo de plantillas")
+            InfoCallout(
+                title = "Muestra de la biblioteca",
+                body = "Esta fase usa plantillas demostrativas. El banco maestro se integrará después.",
+            )
+            matchingTemplates.forEach { routine ->
+                RoutineCard(
+                    routine = routine,
+                    onOpen = { onOpenRoutine(routine) },
+                    onStart = { onUseTemplate(routine) },
+                )
+            }
+        } else {
+            InfoCallout(
+                title = "Modo simple",
+                body = "Aquí se muestran solo tus rutinas. Usa Crear para empezar con una plantilla.",
             )
         }
     }

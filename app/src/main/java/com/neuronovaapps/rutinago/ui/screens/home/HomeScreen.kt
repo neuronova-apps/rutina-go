@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.RoutineCard
@@ -32,6 +33,8 @@ import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 
 @Composable
 fun HomeScreen(
+    activeProfileName: String,
+    appMode: AppMode,
     onViewNowNext: () -> Unit,
     onOpenRoutine: (Routine) -> Unit,
     onStartRoutine: (Routine) -> Unit,
@@ -73,7 +76,7 @@ fun HomeScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Perfil activo", style = MaterialTheme.typography.labelMedium)
-                    Text("Alex", style = MaterialTheme.typography.titleMedium)
+                    Text(activeProfileName, style = MaterialTheme.typography.titleMedium)
                 }
                 Text("General", style = MaterialTheme.typography.labelLarge)
             }
@@ -94,12 +97,18 @@ fun HomeScreen(
             )
         }
 
-        SectionHeading("Más tarde")
-        DemoContent.routines.drop(1).forEach { routine ->
-            RoutineCard(
-                routine = routine,
-                onOpen = { onOpenRoutine(routine) },
-            )
+        if (appMode == AppMode.ADVANCED) {
+            SectionHeading("Más tarde")
+            DemoContent.routines.drop(1).forEach { routine ->
+                RoutineCard(
+                    routine = routine,
+                    onOpen = { onOpenRoutine(routine) },
+                )
+            }
+        } else {
+            Button(onClick = onCreateRoutine, modifier = Modifier.fillMaxWidth()) {
+                Text("Crear una rutina")
+            }
         }
     }
 }

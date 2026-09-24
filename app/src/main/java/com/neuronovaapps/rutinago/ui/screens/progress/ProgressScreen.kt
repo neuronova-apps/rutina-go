@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.domain.model.RoutineOutcome
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
@@ -25,11 +26,11 @@ import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 
 @Composable
-fun ProgressScreen() {
+fun ProgressScreen(activeProfileName: String, appMode: AppMode) {
     ScreenColumn {
         InfoCallout(
-            title = "Datos demostrativos",
-            body = "Este resumen ilustra la futura experiencia. Todavía no representa actividad real guardada.",
+            title = "Progreso de $activeProfileName",
+            body = "Este resumen usa datos demostrativos y todavía no representa actividad real guardada.",
         )
 
         Row(
@@ -71,23 +72,25 @@ fun ProgressScreen() {
             }
         }
 
-        SectionHeading("Logros y retos")
-        Text(
-            "Opcionales, individuales y sin rankings ni comparación.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        AchievementCard(
-            label = "LOGRO DEMO",
-            title = "Primera mañana",
-            detail = "Ejemplo de progreso individual",
-        )
-        AchievementCard(
-            label = "RETO VOLUNTARIO DEMO",
-            title = "Tres mañanas organizadas",
-            detail = "Disponible solo si la gamificación está activa",
-            hasAction = true,
-        )
+        if (appMode == AppMode.ADVANCED) {
+            SectionHeading("Logros y retos")
+            Text(
+                "Opcionales, individuales y sin rankings ni comparación.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            AchievementCard(
+                label = "LOGRO DEMO",
+                title = "Primera mañana",
+                detail = "Ejemplo de progreso individual",
+            )
+            AchievementCard(
+                label = "RETO VOLUNTARIO DEMO",
+                title = "Tres mañanas organizadas",
+                detail = "Disponible solo si la gamificación está activa",
+                hasAction = true,
+            )
+        }
     }
 }
 

@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -17,7 +18,7 @@ class WelcomeNavigationTest {
     @Test
     fun startOpensHomeAndKeepsMainNavigationAvailable() {
         composeRule.onNodeWithText("RUTINAGO").assertIsDisplayed()
-        composeRule.onNodeWithText("Comenzar").performClick()
+        startAndEnsureProfile()
 
         composeRule.onNodeWithText("Hoy · Lunes").assertIsDisplayed()
         composeRule.onNodeWithText("Rutinas").assertIsDisplayed()
@@ -30,7 +31,7 @@ class WelcomeNavigationTest {
 
     @Test
     fun aboutScreenOpensFromSettingsAndReturnsToSettings() {
-        composeRule.onNodeWithText("Comenzar").performClick()
+        startAndEnsureProfile()
         composeRule.onNodeWithText("Configuración").performClick()
 
         composeRule.onNodeWithText("Acerca de RutinaGo")
@@ -45,5 +46,17 @@ class WelcomeNavigationTest {
         composeRule.onNodeWithText("‹ Volver").performClick()
 
         composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
+    }
+
+    private fun startAndEnsureProfile() {
+        composeRule.onNodeWithText("Comenzar").performClick()
+        composeRule.waitForIdle()
+        if (composeRule.onAllNodesWithText("Bienvenido a RutinaGo").fetchSemanticsNodes().isNotEmpty()) {
+            composeRule.onNodeWithText("Nombre del perfil").performTextInput("Perfil de prueba")
+            composeRule.onNodeWithText("Continuar").performClick()
+        }
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Hoy · Lunes").fetchSemanticsNodes().isNotEmpty()
+        }
     }
 }

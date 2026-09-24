@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
+import com.neuronovaapps.rutinago.data.preferences.AppMode
+import com.neuronovaapps.rutinago.data.preferences.UserPreferences
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.ui.screens.about.AboutScreen
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
@@ -41,6 +43,8 @@ import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
 import com.neuronovaapps.rutinago.ui.screens.home.HomeScreen
 import com.neuronovaapps.rutinago.ui.screens.home.NowNextScreen
 import com.neuronovaapps.rutinago.ui.screens.progress.ProgressScreen
+import com.neuronovaapps.rutinago.ui.screens.profiles.FirstProfileScreen
+import com.neuronovaapps.rutinago.ui.screens.profiles.ProfilesScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutineDetailScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
@@ -49,12 +53,14 @@ import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 
 @Composable
 fun RutinaGoApp(
-    themeMode: ThemeMode,
+    preferences: UserPreferences,
     onThemeModeChange: (ThemeMode) -> Unit,
-    textScaleMode: TextScaleMode,
     onTextScaleModeChange: (TextScaleMode) -> Unit,
-    highContrast: Boolean,
     onHighContrastChange: (Boolean) -> Unit,
+    onAppModeChange: (AppMode) -> Unit,
+    onCreateProfile: (String) -> Unit,
+    onRenameProfile: (String, String) -> Unit,
+    onSelectProfile: (String) -> Unit,
 ) {
     val highContrast = LocalHighContrast.current
     var showWelcome by rememberSaveable { mutableStateOf(true) }
@@ -93,6 +99,13 @@ fun RutinaGoApp(
         return
     }
 
+    if (preferences.profiles.isEmpty()) {
+        FirstProfileScreen(onCreateProfile = onCreateProfile)
+        return
+    }
+
+    val activeProfileName = preferences.activeProfile?.name.orEmpty()
+
     if (destination == AppDestination.EXECUTION) {
         RoutineExecutionScreen(
             routine = selectedRoutine,
@@ -110,6 +123,7 @@ fun RutinaGoApp(
         topBar = {
             AppHeader(
                 destination = destination,
+                activeProfileName = activeProfileName,
                 onBack = { destinationName = previousMainName },
             )
         },
@@ -172,6 +186,8 @@ fun RutinaGoApp(
         ) {
             when (destination) {
                 AppDestination.HOME -> HomeScreen(
+                    activeProfileName = activeProfileName,
+                    appMode = preferences.appMode,
                     onViewNowNext = { navigateTo(AppDestination.NOW_NEXT) },
                     onOpenRoutine = { routine ->
                         selectRoutine(routine)
@@ -185,6 +201,7 @@ fun RutinaGoApp(
                 )
 
                 AppDestination.ROUTINES -> RoutinesScreen(
+                    appMode = preferences.appMode,
                     onOpenRoutine = { routine ->
                         selectRoutine(routine)
                         navigateTo(AppDestination.ROUTINE_DETAIL)
@@ -201,21 +218,37 @@ fun RutinaGoApp(
                 )
 
                 AppDestination.CREATE -> CreateScreen(
+                    appMode = preferences.appMode,
                     suggestedTemplateTitle = allRoutines
                         .firstOrNull { it.id == suggestedTemplateId }
                         ?.title,
                 )
 
-                AppDestination.PROGRESS -> ProgressScreen()
+                AppDestination.PROGRESS -> ProgressScreen(
+                    activeProfileName = activeProfileName,
+                    appMode = preferences.appMode,
+                )
 
                 AppDestination.SETTINGS -> SettingsScreen(
-                    themeMode = themeMode,
+                    themeMode = preferences.themeMode,
                     onThemeModeChange = onThemeModeChange,
-                    textScaleMode = textScaleMode,
+                    textScaleMode = preferences.textScaleMode,
                     onTextScaleModeChange = onTextScaleModeChange,
-                    highContrast = highContrast,
+                    highContrast = preferences.highContrast,
                     onHighContrastChange = onHighContrastChange,
+                    appMode = preferences.appMode,
+                    onAppModeChange = onAppModeChange,
+                    activeProfileName = activeProfileName,
+                    onManageProfiles = { navigateTo(AppDestination.PROFILES) },
                     onOpenAbout = { navigateTo(AppDestination.ABOUT) },
+                )
+
+                AppDestination.PROFILES -> ProfilesScreen(
+                    profiles = preferences.profiles,
+                    activeProfileId = preferences.activeProfile?.id,
+                    onCreateProfile = onCreateProfile,
+                    onRenameProfile = onRenameProfile,
+                    onSelectProfile = onSelectProfile,
                 )
 
                 AppDestination.ABOUT -> AboutScreen()
@@ -245,6 +278,7 @@ fun RutinaGoApp(
 @Composable
 private fun AppHeader(
     destination: AppDestination,
+    activeProfileName: String,
     onBack: () -> Unit,
 ) {
     val highContrast = LocalHighContrast.current
@@ -273,7 +307,7 @@ private fun AppHeader(
                 Text(
                     when (destination) {
                         AppDestination.HOME -> "NeuroNova Apps"
-                        AppDestination.PROGRESS -> "Perfil Alex · datos demo"
+                        AppDestination.PROGRESS -> "Perfil $activeProfileName · datos demo"
                         AppDestination.SETTINGS -> "Preferencias guardadas en este dispositivo"
                         AppDestination.ABOUT -> "Información de la aplicación"
                         else -> "RutinaGo"
@@ -294,7 +328,7 @@ private fun AppHeader(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text("Perfil", style = MaterialTheme.typography.labelSmall)
-                        Text("Alex", style = MaterialTheme.typography.labelLarge)
+                        Text(activeProfileName, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

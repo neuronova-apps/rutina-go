@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.luminance
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
+import com.neuronovaapps.rutinago.data.preferences.AppMode
+import com.neuronovaapps.rutinago.data.preferences.UserProfile
 import com.neuronovaapps.rutinago.ui.theme.rutinaGoColorScheme
 import com.neuronovaapps.rutinago.ui.theme.rutinaGoTypography
 import kotlin.math.max
@@ -17,6 +19,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UserPreferencesTest {
+    @Test
+    fun modesRestoreAndDoNotOwnProfileData() {
+        assertEquals(AppMode.SIMPLE, AppMode.fromStorage(null))
+        assertEquals(AppMode.ADVANCED, AppMode.fromStorage("advanced"))
+        val profile = UserProfile("one", "Mi perfil")
+        val simple = UserPreferences(profiles = listOf(profile), activeProfileId = profile.id)
+        val advanced = simple.copy(appMode = AppMode.ADVANCED)
+
+        assertEquals(simple.profiles, advanced.profiles)
+        assertEquals("Mi perfil", advanced.activeProfile?.name)
+    }
+
     @Test
     fun missingOrUnknownThemePreference_defaultsToDay() {
         assertEquals(ThemeMode.DAY, ThemeMode.fromStorage(null))
