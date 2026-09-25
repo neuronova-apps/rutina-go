@@ -72,6 +72,9 @@ class MasterCatalogRoomTest {
 
         val repository = RoomCatalogRepository(readDao)
         assertEquals(17, repository.categories().first().size)
+        assertEquals(203, repository.activities().first().size)
+        assertEquals(52, repository.routines().first().size)
+        assertEquals(490, repository.routineSteps().first().size)
         assertEquals(
             10,
             repository.activitiesByCategory("Inicio del día").first().size,

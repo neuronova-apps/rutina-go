@@ -7,6 +7,9 @@ import com.neuronovaapps.rutinago.data.catalog.local.RutinaGoDatabase
 import com.neuronovaapps.rutinago.data.catalog.repository.CatalogImportStateRepository
 import com.neuronovaapps.rutinago.data.catalog.repository.RoomCatalogRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRepository
+import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
+import com.neuronovaapps.rutinago.domain.catalog.observeCatalogUiState
+import kotlinx.coroutines.flow.Flow
 
 class CatalogContainer(context: Context) {
     val database: RutinaGoDatabase = RutinaGoDatabase.getInstance(context)
@@ -19,6 +22,7 @@ class CatalogContainer(context: Context) {
         database.catalogImportMetadataDao(),
         PACKAGED_CATALOG_VERSION,
     )
+    val uiState: Flow<CatalogUiState> = observeCatalogUiState(importState.state, repository)
 
     companion object {
         const val PACKAGED_CATALOG_VERSION = "1.0.0"

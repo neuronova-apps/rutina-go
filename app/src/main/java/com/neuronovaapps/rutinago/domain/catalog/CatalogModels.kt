@@ -32,6 +32,8 @@ data class CatalogRoutine(
     val ageGroup: String,
     val functionalObjective: String,
     val suggestedMoment: String,
+    val simpleStepCount: Int,
+    val completeStepCount: Int,
     val personalizable: Boolean,
     val keySupervision: String,
     val status: String,

@@ -6,13 +6,19 @@ import kotlinx.coroutines.flow.Flow
 interface CatalogRepository {
     fun categories(): Flow<List<CatalogCategory>>
 
+    fun activities(): Flow<List<CatalogActivity>>
+
     fun activitiesByCategory(category: String): Flow<List<CatalogActivity>>
 
     fun activityById(activityId: String): Flow<CatalogActivity?>
 
+    fun routines(): Flow<List<CatalogRoutine>>
+
     fun routinesByCategory(category: String): Flow<List<CatalogRoutine>>
 
     fun routineById(routineId: String): Flow<CatalogRoutine?>
+
+    fun routineSteps(): Flow<List<CatalogRoutineStep>>
 
     fun routineSteps(routineId: String): Flow<List<CatalogRoutineStep>>
 

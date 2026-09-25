@@ -25,6 +25,9 @@ class RoomCatalogRepository(
     override fun categories(): Flow<List<CatalogCategory>> =
         dao.observeCategories().map { items -> items.map(CatalogCategoryEntity::toModel) }
 
+    override fun activities(): Flow<List<CatalogActivity>> =
+        dao.observeActivities().map { items -> items.map(CatalogActivityEntity::toModel) }
+
     override fun activitiesByCategory(category: String): Flow<List<CatalogActivity>> =
         dao.observeActivitiesByCategory(category).map { items ->
             items.map(CatalogActivityEntity::toModel)
@@ -33,6 +36,9 @@ class RoomCatalogRepository(
     override fun activityById(activityId: String): Flow<CatalogActivity?> =
         dao.observeActivityById(activityId).map { it?.toModel() }
 
+    override fun routines(): Flow<List<CatalogRoutine>> =
+        dao.observeRoutines().map { items -> items.map(CatalogRoutineEntity::toModel) }
+
     override fun routinesByCategory(category: String): Flow<List<CatalogRoutine>> =
         dao.observeRoutinesByCategory(category).map { items ->
             items.map(CatalogRoutineEntity::toModel)
@@ -40,6 +46,9 @@ class RoomCatalogRepository(
 
     override fun routineById(routineId: String): Flow<CatalogRoutine?> =
         dao.observeRoutineById(routineId).map { it?.toModel() }
+
+    override fun routineSteps(): Flow<List<CatalogRoutineStep>> =
+        dao.observeRoutineSteps().map { items -> items.map(CatalogRoutineStepEntity::toModel) }
 
     override fun routineSteps(routineId: String): Flow<List<CatalogRoutineStep>> =
         dao.observeRoutineSteps(routineId).map { items ->
@@ -96,6 +105,8 @@ private fun CatalogRoutineEntity.toModel() = CatalogRoutine(
     ageGroup,
     functionalObjective,
     suggestedMoment,
+    declaredSimpleStepCount,
+    declaredCompleteStepCount,
     personalizable,
     keySupervision,
     status,

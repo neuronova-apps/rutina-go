@@ -36,6 +36,7 @@ import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
+import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.model.Routine
 import com.neuronovaapps.rutinago.ui.screens.about.AboutScreen
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
@@ -45,7 +46,8 @@ import com.neuronovaapps.rutinago.ui.screens.home.NowNextScreen
 import com.neuronovaapps.rutinago.ui.screens.progress.ProgressScreen
 import com.neuronovaapps.rutinago.ui.screens.profiles.FirstProfileScreen
 import com.neuronovaapps.rutinago.ui.screens.profiles.ProfilesScreen
-import com.neuronovaapps.rutinago.ui.screens.routines.RoutineDetailScreen
+import com.neuronovaapps.rutinago.ui.screens.routines.CatalogRoutineDetailScreen
+import com.neuronovaapps.rutinago.ui.screens.routines.LegacyRoutineDetailScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
 import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
@@ -54,6 +56,7 @@ import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 @Composable
 fun RutinaGoApp(
     preferences: UserPreferences,
+    catalogState: CatalogUiState,
     onThemeModeChange: (ThemeMode) -> Unit,
     onTextScaleModeChange: (TextScaleMode) -> Unit,
     onHighContrastChange: (Boolean) -> Unit,
@@ -67,11 +70,12 @@ fun RutinaGoApp(
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var selectedRoutineId by rememberSaveable { mutableStateOf(DemoContent.routines.first().id) }
+    var selectedCatalogRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
     var suggestedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
     var executionReturnName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     val destination = AppDestination.valueOf(destinationName)
-    val allRoutines = DemoContent.routines + DemoContent.templates
-    val selectedRoutine = allRoutines.firstOrNull { it.id == selectedRoutineId }
+    val selectedRoutine = (DemoContent.routines + DemoContent.templates)
+        .firstOrNull { it.id == selectedRoutineId }
         ?: DemoContent.routines.first()
 
     fun selectRoutine(routine: Routine) {
@@ -83,10 +87,10 @@ fun RutinaGoApp(
         destinationName = target.name
     }
 
-    fun navigateMain(target: AppDestination) {
+    fun navigateMain(target: AppDestination, templateId: String? = null) {
         destinationName = target.name
         previousMainName = target.name
-        if (target != AppDestination.CREATE) suggestedTemplateId = null
+        suggestedTemplateId = if (target == AppDestination.CREATE) templateId else null
     }
 
     fun startExecution(routine: Routine) {
@@ -207,6 +211,7 @@ fun RutinaGoApp(
                     onViewNowNext = { navigateTo(AppDestination.NOW_NEXT) },
                     onOpenRoutine = { routine ->
                         selectRoutine(routine)
+                        selectedCatalogRoutineId = null
                         navigateTo(AppDestination.ROUTINE_DETAIL)
                     },
                     onStartRoutine = { routine ->
@@ -217,25 +222,20 @@ fun RutinaGoApp(
 
                 AppDestination.ROUTINES -> RoutinesScreen(
                     appMode = preferences.appMode,
-                    onOpenRoutine = { routine ->
-                        selectRoutine(routine)
+                    catalogState = catalogState,
+                    onOpenRoutine = { routineId ->
+                        selectedCatalogRoutineId = routineId
                         navigateTo(AppDestination.ROUTINE_DETAIL)
                     },
-                    onStartRoutine = { routine ->
-                        startExecution(routine)
-                    },
-                    onUseTemplate = { routine ->
-                        selectRoutine(routine)
-                        suggestedTemplateId = routine.id
-                        navigateMain(AppDestination.CREATE)
+                    onUseTemplate = { routineId ->
+                        navigateMain(AppDestination.CREATE, routineId)
                     },
                 )
 
                 AppDestination.CREATE -> CreateScreen(
                     appMode = preferences.appMode,
-                    suggestedTemplateTitle = allRoutines
-                        .firstOrNull { it.id == suggestedTemplateId }
-                        ?.title,
+                    catalogState = catalogState,
+                    suggestedTemplateId = suggestedTemplateId,
                 )
 
                 AppDestination.PROGRESS -> ProgressScreen(
@@ -273,14 +273,24 @@ fun RutinaGoApp(
                     },
                 )
 
-                AppDestination.ROUTINE_DETAIL -> RoutineDetailScreen(
-                    routine = selectedRoutine,
-                    onStart = { startExecution(selectedRoutine) },
-                    onUseTemplate = {
-                        suggestedTemplateId = selectedRoutine.id
-                        navigateMain(AppDestination.CREATE)
-                    },
-                )
+                AppDestination.ROUTINE_DETAIL -> {
+                    if (selectedCatalogRoutineId != null) {
+                        CatalogRoutineDetailScreen(
+                            catalogState = catalogState,
+                            routineId = selectedCatalogRoutineId,
+                            appMode = preferences.appMode,
+                            onUseTemplate = { routineId ->
+                                navigateMain(AppDestination.CREATE, routineId)
+                            },
+                        )
+                    } else {
+                        LegacyRoutineDetailScreen(
+                            routine = selectedRoutine,
+                            onStart = { startExecution(selectedRoutine) },
+                            onUseTemplate = { navigateMain(AppDestination.CREATE) },
+                        )
+                    }
+                }
 
                 AppDestination.EXECUTION -> Unit
             }

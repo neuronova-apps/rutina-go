@@ -18,6 +18,14 @@ interface CatalogReadDao {
     fun observeCategories(): Flow<List<CatalogCategoryEntity>>
 
     @Query(
+        "SELECT activities.* FROM catalog_activities AS activities " +
+            "INNER JOIN catalog_categories AS categories " +
+            "ON categories.name = activities.category_name " +
+            "ORDER BY categories.sort_order, activities.name COLLATE NOCASE",
+    )
+    fun observeActivities(): Flow<List<CatalogActivityEntity>>
+
+    @Query(
         "SELECT * FROM catalog_activities " +
             "WHERE category_name = :category ORDER BY name COLLATE NOCASE",
     )
@@ -30,6 +38,14 @@ interface CatalogReadDao {
     suspend fun getActivityById(activityId: String): CatalogActivityEntity?
 
     @Query(
+        "SELECT routines.* FROM catalog_routines AS routines " +
+            "INNER JOIN catalog_categories AS categories " +
+            "ON categories.name = routines.primary_area " +
+            "ORDER BY categories.sort_order, routines.name COLLATE NOCASE",
+    )
+    fun observeRoutines(): Flow<List<CatalogRoutineEntity>>
+
+    @Query(
         "SELECT * FROM catalog_routines " +
             "WHERE primary_area = :category ORDER BY name COLLATE NOCASE",
     )
@@ -40,6 +56,12 @@ interface CatalogReadDao {
 
     @Query("SELECT * FROM catalog_routines WHERE routine_id = :routineId")
     suspend fun getRoutineById(routineId: String): CatalogRoutineEntity?
+
+    @Query(
+        "SELECT * FROM catalog_routine_steps " +
+            "ORDER BY routine_id, variant, position",
+    )
+    fun observeRoutineSteps(): Flow<List<CatalogRoutineStepEntity>>
 
     @Query(
         "SELECT * FROM catalog_routine_steps " +

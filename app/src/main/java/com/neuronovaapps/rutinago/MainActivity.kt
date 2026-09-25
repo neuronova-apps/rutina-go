@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
+import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.ui.navigation.RutinaGoApp
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import kotlinx.coroutines.launch
@@ -27,6 +28,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val systemDarkTheme = isSystemInDarkTheme()
             val storedPreferences by userPreferencesRepository.preferences.collectAsState(initial = null)
+            val catalogState by (application as RutinaGoApplication)
+                .catalogContainer.uiState.collectAsState(initial = CatalogUiState.Loading)
             val preferences = storedPreferences ?: UserPreferences()
             val darkTheme = preferences.themeMode.usesDarkTheme(systemDarkTheme)
             val useDarkSystemBars = darkTheme || preferences.highContrast
@@ -60,6 +63,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 if (storedPreferences != null) RutinaGoApp(
                     preferences = preferences,
+                    catalogState = catalogState,
                     onThemeModeChange = { mode ->
                         coroutineScope.launch { userPreferencesRepository.setThemeMode(mode) }
                     },
