@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -21,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,19 +40,25 @@ import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.catalog.catalogVariant
 import com.neuronovaapps.rutinago.domain.catalog.routinesFor
 import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import kotlinx.coroutines.launch
 
 @Composable
 fun RoutinesScreen(
     appMode: AppMode,
     catalogState: CatalogUiState,
+    activeProfileName: String,
+    userRoutines: List<UserRoutine>,
     onOpenRoutine: (String) -> Unit,
     onUseTemplate: (String) -> Unit,
+    onEditUserRoutine: (String) -> Unit,
+    onArchiveUserRoutine: suspend (String) -> Unit,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading("Preparando las rutinas del catálogo…")
@@ -58,8 +66,12 @@ fun RoutinesScreen(
         is CatalogUiState.Ready -> RoutinesCatalog(
             appMode = appMode,
             catalog = catalogState.catalog,
+            activeProfileName = activeProfileName,
+            userRoutines = userRoutines,
             onOpenRoutine = onOpenRoutine,
             onUseTemplate = onUseTemplate,
+            onEditUserRoutine = onEditUserRoutine,
+            onArchiveUserRoutine = onArchiveUserRoutine,
         )
     }
 }
@@ -68,11 +80,19 @@ fun RoutinesScreen(
 private fun RoutinesCatalog(
     appMode: AppMode,
     catalog: CatalogSnapshot,
+    activeProfileName: String,
+    userRoutines: List<UserRoutine>,
     onOpenRoutine: (String) -> Unit,
     onUseTemplate: (String) -> Unit,
+    onEditUserRoutine: (String) -> Unit,
+    onArchiveUserRoutine: suspend (String) -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf<String?>(null) }
+    var archiveId by rememberSaveable { mutableStateOf<String?>(null) }
+    var archiveError by rememberSaveable { mutableStateOf<String?>(null) }
+    var archivedName by rememberSaveable { mutableStateOf<String?>(null) }
     val routines = catalog.routinesFor(query, category)
     val variant = appMode.catalogVariant()
 
@@ -84,7 +104,39 @@ private fun RoutinesCatalog(
     ) {
         item {
             Text(
-                "Catálogo de rutinas",
+                "Mis rutinas",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics { heading() },
+            )
+        }
+        item {
+            Text(
+                "Perfil $activeProfileName · ${userRoutines.size} guardadas",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        archiveError?.let { message -> item { InfoCallout("No se pudo archivar", message) } }
+        archivedName?.let { name -> item { InfoCallout("Rutina archivada", "$name dejó de aparecer en Mis rutinas.") } }
+        if (userRoutines.isEmpty()) {
+            item {
+                EmptyState(
+                    title = "Aún no hay rutinas guardadas",
+                    body = "Crea una desde cero o adapta una plantilla para este perfil.",
+                )
+            }
+        } else {
+            items(userRoutines, key = UserRoutine::id) { routine ->
+                UserRoutineCard(
+                    routine = routine,
+                    catalog = catalog,
+                    onEdit = { onEditUserRoutine(routine.id) },
+                    onArchive = { archiveId = routine.id },
+                )
+            }
+        }
+        item {
+            Text(
+                "Explorar plantillas",
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.semantics { heading() },
             )
@@ -130,6 +182,68 @@ private fun RoutinesCatalog(
                     onOpen = { onOpenRoutine(routine.id) },
                     onUseTemplate = { onUseTemplate(routine.id) },
                 )
+            }
+        }
+    }
+
+    val routineToArchive = userRoutines.firstOrNull { it.id == archiveId }
+    if (routineToArchive != null) {
+        AlertDialog(
+            onDismissRequest = { archiveId = null },
+            title = { Text("¿Archivar rutina?") },
+            text = { Text("${routineToArchive.name} dejará de aparecer en la lista principal.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    archiveId = null
+                    archiveError = null
+                    scope.launch {
+                        runCatching { onArchiveUserRoutine(routineToArchive.id) }
+                            .onSuccess { archivedName = routineToArchive.name }
+                            .onFailure {
+                                archiveError = it.message ?: "No fue posible completar la operación."
+                            }
+                    }
+                }) { Text("Archivar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { archiveId = null }) { Text("Cancelar") }
+            },
+        )
+    }
+}
+
+@Composable
+private fun UserRoutineCard(
+    routine: UserRoutine,
+    catalog: CatalogSnapshot,
+    onEdit: () -> Unit,
+    onArchive: () -> Unit,
+) {
+    Card(
+        onClick = onEdit,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text("RUTINA PERSONAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            Text(routine.name, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "${routine.steps.size} pasos" + if (routine.sourceTemplateId != null) " · Adaptada de plantilla" else " · Creada desde cero",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                routine.steps.mapNotNull { catalog.activity(it.activityId)?.name }
+                    .take(3).joinToString(" → "),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                RutinaGoOutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
+                    Text("Editar")
+                }
+                RutinaGoOutlinedButton(onClick = onArchive, modifier = Modifier.weight(1f)) {
+                    Text("Archivar")
+                }
             }
         }
     }

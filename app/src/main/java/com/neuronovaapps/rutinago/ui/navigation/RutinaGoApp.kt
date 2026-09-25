@@ -38,8 +38,11 @@ import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.domain.user.UserRoutine
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.ui.screens.about.AboutScreen
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
+import com.neuronovaapps.rutinago.ui.screens.create.UserRoutineEditorScreen
 import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
 import com.neuronovaapps.rutinago.ui.screens.home.HomeScreen
 import com.neuronovaapps.rutinago.ui.screens.home.NowNextScreen
@@ -52,11 +55,16 @@ import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
 import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
+import com.neuronovaapps.rutinago.ui.components.EmptyState
+import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 
 @Composable
 fun RutinaGoApp(
     preferences: UserPreferences,
     catalogState: CatalogUiState,
+    userRoutines: List<UserRoutine>,
+    onSaveUserRoutine: suspend (UserRoutineDraft) -> UserRoutine,
+    onArchiveUserRoutine: suspend (String) -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
     onTextScaleModeChange: (TextScaleMode) -> Unit,
     onHighContrastChange: (Boolean) -> Unit,
@@ -71,6 +79,7 @@ fun RutinaGoApp(
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var selectedRoutineId by rememberSaveable { mutableStateOf(DemoContent.routines.first().id) }
     var selectedCatalogRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedUserRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
     var suggestedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
     var executionReturnName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     val destination = AppDestination.valueOf(destinationName)
@@ -144,6 +153,7 @@ fun RutinaGoApp(
             AppHeader(
                 destination = destination,
                 activeProfileName = activeProfileName,
+                showBack = destination != AppDestination.USER_ROUTINE_EDIT,
                 onBack = { destinationName = previousMainName },
             )
         },
@@ -223,6 +233,8 @@ fun RutinaGoApp(
                 AppDestination.ROUTINES -> RoutinesScreen(
                     appMode = preferences.appMode,
                     catalogState = catalogState,
+                    activeProfileName = activeProfileName,
+                    userRoutines = userRoutines,
                     onOpenRoutine = { routineId ->
                         selectedCatalogRoutineId = routineId
                         navigateTo(AppDestination.ROUTINE_DETAIL)
@@ -230,12 +242,19 @@ fun RutinaGoApp(
                     onUseTemplate = { routineId ->
                         navigateMain(AppDestination.CREATE, routineId)
                     },
+                    onEditUserRoutine = { routineId ->
+                        selectedUserRoutineId = routineId
+                        navigateTo(AppDestination.USER_ROUTINE_EDIT)
+                    },
+                    onArchiveUserRoutine = onArchiveUserRoutine,
                 )
 
                 AppDestination.CREATE -> CreateScreen(
                     appMode = preferences.appMode,
                     catalogState = catalogState,
                     suggestedTemplateId = suggestedTemplateId,
+                    onSaveRoutine = onSaveUserRoutine,
+                    onViewRoutines = { navigateMain(AppDestination.ROUTINES) },
                 )
 
                 AppDestination.PROGRESS -> ProgressScreen(
@@ -292,6 +311,28 @@ fun RutinaGoApp(
                     }
                 }
 
+                AppDestination.USER_ROUTINE_EDIT -> {
+                    val routine = userRoutines.firstOrNull { it.id == selectedUserRoutineId }
+                    if (routine == null) {
+                        ScreenColumn {
+                            EmptyState(
+                                "Rutina no disponible",
+                                "La rutina no pertenece al perfil activo o fue archivada.",
+                                "Volver a Mis rutinas",
+                            ) { navigateMain(AppDestination.ROUTINES) }
+                        }
+                    } else {
+                        UserRoutineEditorScreen(
+                            routine = routine,
+                            appMode = preferences.appMode,
+                            catalogState = catalogState,
+                            onBack = { navigateMain(AppDestination.ROUTINES) },
+                            onSaveRoutine = onSaveUserRoutine,
+                            onViewRoutines = { navigateMain(AppDestination.ROUTINES) },
+                        )
+                    }
+                }
+
                 AppDestination.EXECUTION -> Unit
             }
         }
@@ -302,6 +343,7 @@ fun RutinaGoApp(
 private fun AppHeader(
     destination: AppDestination,
     activeProfileName: String,
+    showBack: Boolean,
     onBack: () -> Unit,
 ) {
     val highContrast = LocalHighContrast.current
@@ -322,7 +364,7 @@ private fun AppHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (!destination.isMain) {
+            if (!destination.isMain && showBack) {
                 TextButton(onClick = onBack) { Text("‹ Volver") }
             }
             Column(modifier = Modifier.weight(1f)) {

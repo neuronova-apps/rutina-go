@@ -9,6 +9,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
@@ -16,6 +17,7 @@ import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.ui.navigation.RutinaGoApp
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flowOf
 
 class MainActivity : ComponentActivity() {
     private val userPreferencesRepository by lazy {
@@ -31,6 +33,13 @@ class MainActivity : ComponentActivity() {
             val catalogState by (application as RutinaGoApplication)
                 .catalogContainer.uiState.collectAsState(initial = CatalogUiState.Loading)
             val preferences = storedPreferences ?: UserPreferences()
+            val catalogContainer = (application as RutinaGoApplication).catalogContainer
+            val activeProfileId = preferences.activeProfile?.id
+            val userRoutinesFlow = remember(activeProfileId) {
+                activeProfileId?.let(catalogContainer.userRoutines::activeRoutines)
+                    ?: flowOf(emptyList())
+            }
+            val userRoutines by userRoutinesFlow.collectAsState(initial = emptyList())
             val darkTheme = preferences.themeMode.usesDarkTheme(systemDarkTheme)
             val useDarkSystemBars = darkTheme || preferences.highContrast
             val coroutineScope = rememberCoroutineScope()
@@ -64,6 +73,19 @@ class MainActivity : ComponentActivity() {
                 if (storedPreferences != null) RutinaGoApp(
                     preferences = preferences,
                     catalogState = catalogState,
+                    userRoutines = userRoutines,
+                    onSaveUserRoutine = { draft ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id) {
+                            "Selecciona un perfil antes de guardar."
+                        }
+                        catalogContainer.userRoutines.save(profileId, draft)
+                    },
+                    onArchiveUserRoutine = { routineId ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id) {
+                            "Selecciona un perfil antes de archivar."
+                        }
+                        catalogContainer.userRoutines.archive(profileId, routineId)
+                    },
                     onThemeModeChange = { mode ->
                         coroutineScope.launch { userPreferencesRepository.setThemeMode(mode) }
                     },

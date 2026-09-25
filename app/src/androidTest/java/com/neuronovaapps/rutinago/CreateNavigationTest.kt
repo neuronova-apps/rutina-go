@@ -4,7 +4,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import org.junit.Rule
 import org.junit.Test
@@ -42,6 +45,29 @@ class CreateNavigationTest {
         pressSystemBack()
         composeRule.onNodeWithText("Salir sin guardar").performClick()
         composeRule.onNodeWithText("Elegir origen").assertIsDisplayed()
+    }
+
+    @Test
+    fun savedRoutineAppearsInMyRoutinesAndOpensForEditing() {
+        val routineName = "Rutina persistente de navegación"
+        openCreateOrigin()
+        composeRule.onNodeWithText("Crear desde cero").performClick()
+        composeRule.onNodeWithText("Nombre de la rutina").performTextInput(routineName)
+
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Despertarse"))
+        composeRule.onNodeWithText("Despertarse").performClick()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Guardar rutina"))
+        composeRule.onNodeWithText("Guardar rutina").performClick()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText("Rutina guardada").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("Ver Mis rutinas").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(routineName).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(routineName).performClick()
+        composeRule.onNodeWithText("Editar rutina").assertIsDisplayed()
     }
 
     private fun openCreateOrigin() {

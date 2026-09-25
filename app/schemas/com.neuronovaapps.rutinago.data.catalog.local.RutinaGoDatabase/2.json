@@ -1,0 +1,1245 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "b14ce2ea424704144e9c35d3017683c3",
+    "entities": [
+      {
+        "tableName": "catalog_categories",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `sort_order` INTEGER NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`name`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sort_order",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "name"
+          ]
+        }
+      },
+      {
+        "tableName": "catalog_activities",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`activity_id` TEXT NOT NULL, `category_name` TEXT NOT NULL, `name` TEXT NOT NULL, `simple_instruction` TEXT NOT NULL, `arasaac_search_term` TEXT NOT NULL, `age_group` TEXT NOT NULL, `autonomy_level` TEXT NOT NULL, `supervision` TEXT NOT NULL, `simple_mode` INTEGER NOT NULL, `advanced_mode` INTEGER NOT NULL, `visual_resource` TEXT NOT NULL, `status` TEXT NOT NULL, `observations` TEXT, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`activity_id`), FOREIGN KEY(`category_name`) REFERENCES `catalog_categories`(`name`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "activityId",
+            "columnName": "activity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryName",
+            "columnName": "category_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "simpleInstruction",
+            "columnName": "simple_instruction",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "arasaacSearchTerm",
+            "columnName": "arasaac_search_term",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ageGroup",
+            "columnName": "age_group",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "autonomyLevel",
+            "columnName": "autonomy_level",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supervision",
+            "columnName": "supervision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "simpleMode",
+            "columnName": "simple_mode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "advancedMode",
+            "columnName": "advanced_mode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualResource",
+            "columnName": "visual_resource",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observations",
+            "columnName": "observations",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "activity_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_activities_category_name",
+            "unique": false,
+            "columnNames": [
+              "category_name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_activities_category_name` ON `${TABLE_NAME}` (`category_name`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "catalog_categories",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "category_name"
+            ],
+            "referencedColumns": [
+              "name"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_activity_contexts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`activity_id` TEXT NOT NULL, `context` TEXT NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`activity_id`, `context`), FOREIGN KEY(`activity_id`) REFERENCES `catalog_activities`(`activity_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "activityId",
+            "columnName": "activity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "context",
+            "columnName": "context",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "activity_id",
+            "context"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_activity_contexts_context",
+            "unique": false,
+            "columnNames": [
+              "context"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_activity_contexts_context` ON `${TABLE_NAME}` (`context`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "catalog_activities",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "activity_id"
+            ],
+            "referencedColumns": [
+              "activity_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_routines",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`routine_id` TEXT NOT NULL, `name` TEXT NOT NULL, `primary_area` TEXT NOT NULL, `context` TEXT NOT NULL, `age_group` TEXT NOT NULL, `functional_objective` TEXT NOT NULL, `suggested_moment` TEXT NOT NULL, `declared_simple_step_count` INTEGER NOT NULL, `declared_complete_step_count` INTEGER NOT NULL, `personalizable` INTEGER NOT NULL, `key_supervision` TEXT NOT NULL, `status` TEXT NOT NULL, `observations` TEXT, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`routine_id`), FOREIGN KEY(`primary_area`) REFERENCES `catalog_categories`(`name`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "routineId",
+            "columnName": "routine_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "primaryArea",
+            "columnName": "primary_area",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "context",
+            "columnName": "context",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ageGroup",
+            "columnName": "age_group",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "functionalObjective",
+            "columnName": "functional_objective",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "suggestedMoment",
+            "columnName": "suggested_moment",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "declaredSimpleStepCount",
+            "columnName": "declared_simple_step_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "declaredCompleteStepCount",
+            "columnName": "declared_complete_step_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "personalizable",
+            "columnName": "personalizable",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keySupervision",
+            "columnName": "key_supervision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observations",
+            "columnName": "observations",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "routine_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_routines_primary_area",
+            "unique": false,
+            "columnNames": [
+              "primary_area"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_routines_primary_area` ON `${TABLE_NAME}` (`primary_area`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "catalog_categories",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "primary_area"
+            ],
+            "referencedColumns": [
+              "name"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_routine_steps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`routine_id` TEXT NOT NULL, `activity_id` TEXT NOT NULL, `variant` TEXT NOT NULL, `position` INTEGER NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`routine_id`, `variant`, `position`), FOREIGN KEY(`routine_id`) REFERENCES `catalog_routines`(`routine_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`activity_id`) REFERENCES `catalog_activities`(`activity_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "routineId",
+            "columnName": "routine_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activityId",
+            "columnName": "activity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "variant",
+            "columnName": "variant",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "routine_id",
+            "variant",
+            "position"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_routine_steps_activity_id",
+            "unique": false,
+            "columnNames": [
+              "activity_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_routine_steps_activity_id` ON `${TABLE_NAME}` (`activity_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "catalog_routines",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "routine_id"
+            ],
+            "referencedColumns": [
+              "routine_id"
+            ]
+          },
+          {
+            "table": "catalog_activities",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "activity_id"
+            ],
+            "referencedColumns": [
+              "activity_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_achievements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`achievement_id` TEXT NOT NULL, `type` TEXT NOT NULL, `name` TEXT NOT NULL, `category` TEXT NOT NULL, `gamification_level` TEXT NOT NULL, `age_group` TEXT NOT NULL, `reference_type` TEXT NOT NULL, `unlock_condition` TEXT NOT NULL, `target_quantity` INTEGER NOT NULL, `window_days` INTEGER NOT NULL, `repeatable` INTEGER NOT NULL, `visual_reward` TEXT NOT NULL, `penalizes_if_incomplete` INTEGER NOT NULL, `default_activation` TEXT NOT NULL, `status` TEXT NOT NULL, `observations` TEXT NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`achievement_id`))",
+        "fields": [
+          {
+            "fieldPath": "achievementId",
+            "columnName": "achievement_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gamificationLevel",
+            "columnName": "gamification_level",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ageGroup",
+            "columnName": "age_group",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceType",
+            "columnName": "reference_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unlockCondition",
+            "columnName": "unlock_condition",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetQuantity",
+            "columnName": "target_quantity",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "windowDays",
+            "columnName": "window_days",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatable",
+            "columnName": "repeatable",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualReward",
+            "columnName": "visual_reward",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "penalizesIfIncomplete",
+            "columnName": "penalizes_if_incomplete",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultActivation",
+            "columnName": "default_activation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observations",
+            "columnName": "observations",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "achievement_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_achievements_category",
+            "unique": false,
+            "columnNames": [
+              "category"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_achievements_category` ON `${TABLE_NAME}` (`category`)"
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_challenges",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`challenge_id` TEXT NOT NULL, `type` TEXT NOT NULL, `name` TEXT NOT NULL, `category` TEXT NOT NULL, `gamification_level` TEXT NOT NULL, `age_group` TEXT NOT NULL, `reference_type` TEXT NOT NULL, `unlock_condition` TEXT NOT NULL, `target_quantity` INTEGER NOT NULL, `window_days` INTEGER NOT NULL, `repeatable` INTEGER NOT NULL, `visual_reward` TEXT NOT NULL, `penalizes_if_incomplete` INTEGER NOT NULL, `default_activation` TEXT NOT NULL, `status` TEXT NOT NULL, `observations` TEXT NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`challenge_id`))",
+        "fields": [
+          {
+            "fieldPath": "challengeId",
+            "columnName": "challenge_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gamificationLevel",
+            "columnName": "gamification_level",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ageGroup",
+            "columnName": "age_group",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceType",
+            "columnName": "reference_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unlockCondition",
+            "columnName": "unlock_condition",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetQuantity",
+            "columnName": "target_quantity",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "windowDays",
+            "columnName": "window_days",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatable",
+            "columnName": "repeatable",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualReward",
+            "columnName": "visual_reward",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "penalizesIfIncomplete",
+            "columnName": "penalizes_if_incomplete",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultActivation",
+            "columnName": "default_activation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observations",
+            "columnName": "observations",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "challenge_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_challenges_category",
+            "unique": false,
+            "columnNames": [
+              "category"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_challenges_category` ON `${TABLE_NAME}` (`category`)"
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_gamification_references",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`owner_id` TEXT NOT NULL, `owner_type` TEXT NOT NULL, `reference_type` TEXT NOT NULL, `reference_id` TEXT NOT NULL, `position` INTEGER NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`owner_id`, `position`))",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "owner_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerType",
+            "columnName": "owner_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceType",
+            "columnName": "reference_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceId",
+            "columnName": "reference_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "owner_id",
+            "position"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_gamification_references_reference_id",
+            "unique": false,
+            "columnNames": [
+              "reference_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_gamification_references_reference_id` ON `${TABLE_NAME}` (`reference_id`)"
+          },
+          {
+            "name": "index_catalog_gamification_references_owner_type",
+            "unique": false,
+            "columnNames": [
+              "owner_type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_gamification_references_owner_type` ON `${TABLE_NAME}` (`owner_type`)"
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_reinforcement_messages",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`message_id` TEXT NOT NULL, `event_type` TEXT NOT NULL, `category` TEXT NOT NULL, `tone` TEXT NOT NULL, `age_group` TEXT NOT NULL, `gamification_required` INTEGER NOT NULL, `gamification_level` TEXT NOT NULL, `message` TEXT NOT NULL, `usage_channel` TEXT NOT NULL, `length` TEXT NOT NULL, `allows_repetition` TEXT NOT NULL, `event_origin` TEXT NOT NULL, `safety_rule` TEXT NOT NULL, `status` TEXT NOT NULL, `observations` TEXT NOT NULL, `recommended_frequency` TEXT NOT NULL, `tts_activation` TEXT NOT NULL, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`message_id`))",
+        "fields": [
+          {
+            "fieldPath": "messageId",
+            "columnName": "message_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventType",
+            "columnName": "event_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tone",
+            "columnName": "tone",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ageGroup",
+            "columnName": "age_group",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gamificationRequired",
+            "columnName": "gamification_required",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gamificationLevel",
+            "columnName": "gamification_level",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usageChannel",
+            "columnName": "usage_channel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "length",
+            "columnName": "length",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "allowsRepetition",
+            "columnName": "allows_repetition",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventOrigin",
+            "columnName": "event_origin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "safetyRule",
+            "columnName": "safety_rule",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observations",
+            "columnName": "observations",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recommendedFrequency",
+            "columnName": "recommended_frequency",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ttsActivation",
+            "columnName": "tts_activation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "message_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_reinforcement_messages_event_type",
+            "unique": false,
+            "columnNames": [
+              "event_type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_reinforcement_messages_event_type` ON `${TABLE_NAME}` (`event_type`)"
+          },
+          {
+            "name": "index_catalog_reinforcement_messages_category",
+            "unique": false,
+            "columnNames": [
+              "category"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_reinforcement_messages_category` ON `${TABLE_NAME}` (`category`)"
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_visual_references",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`activity_id` TEXT NOT NULL, `visual_source` TEXT NOT NULL, `arasaac_id` INTEGER, `variant` TEXT, `local_file` TEXT, `alternative_text` TEXT NOT NULL, `review_status` TEXT NOT NULL, `attribution` TEXT, `license` TEXT, `catalog_version` TEXT NOT NULL, PRIMARY KEY(`activity_id`), FOREIGN KEY(`activity_id`) REFERENCES `catalog_activities`(`activity_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "activityId",
+            "columnName": "activity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualSource",
+            "columnName": "visual_source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "arasaacId",
+            "columnName": "arasaac_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "variant",
+            "columnName": "variant",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "localFile",
+            "columnName": "local_file",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "alternativeText",
+            "columnName": "alternative_text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewStatus",
+            "columnName": "review_status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attribution",
+            "columnName": "attribution",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "license",
+            "columnName": "license",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "activity_id"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "catalog_activities",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "activity_id"
+            ],
+            "referencedColumns": [
+              "activity_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_import_metadata",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`attempt_id` TEXT NOT NULL, `catalog_version` TEXT NOT NULL, `contract_version` TEXT NOT NULL, `manifest_checksum` TEXT NOT NULL, `attempted_at_epoch_millis` INTEGER NOT NULL, `status` TEXT NOT NULL, `category_count` INTEGER NOT NULL, `activity_count` INTEGER NOT NULL, `routine_count` INTEGER NOT NULL, `routine_step_count` INTEGER NOT NULL, `achievement_count` INTEGER NOT NULL, `challenge_count` INTEGER NOT NULL, `message_count` INTEGER NOT NULL, `visual_reference_count` INTEGER NOT NULL, `master_record_count` INTEGER NOT NULL, `error_message` TEXT, PRIMARY KEY(`attempt_id`))",
+        "fields": [
+          {
+            "fieldPath": "attemptId",
+            "columnName": "attempt_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catalogVersion",
+            "columnName": "catalog_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contractVersion",
+            "columnName": "contract_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "manifestChecksum",
+            "columnName": "manifest_checksum",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attemptedAtEpochMillis",
+            "columnName": "attempted_at_epoch_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryCount",
+            "columnName": "category_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activityCount",
+            "columnName": "activity_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "routineCount",
+            "columnName": "routine_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "routineStepCount",
+            "columnName": "routine_step_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "achievementCount",
+            "columnName": "achievement_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "challengeCount",
+            "columnName": "challenge_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageCount",
+            "columnName": "message_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualReferenceCount",
+            "columnName": "visual_reference_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "masterRecordCount",
+            "columnName": "master_record_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "errorMessage",
+            "columnName": "error_message",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "attempt_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_catalog_import_metadata_catalog_version",
+            "unique": false,
+            "columnNames": [
+              "catalog_version"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_import_metadata_catalog_version` ON `${TABLE_NAME}` (`catalog_version`)"
+          },
+          {
+            "name": "index_catalog_import_metadata_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_import_metadata_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_catalog_import_metadata_attempted_at_epoch_millis",
+            "unique": false,
+            "columnNames": [
+              "attempted_at_epoch_millis"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_import_metadata_attempted_at_epoch_millis` ON `${TABLE_NAME}` (`attempted_at_epoch_millis`)"
+          }
+        ]
+      },
+      {
+        "tableName": "user_routines",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_routine_id` TEXT NOT NULL, `profile_id` TEXT NOT NULL, `source_template_id` TEXT, `name` TEXT NOT NULL, `description` TEXT, `created_at_epoch_millis` INTEGER NOT NULL, `modified_at_epoch_millis` INTEGER NOT NULL, `archived` INTEGER NOT NULL, PRIMARY KEY(`user_routine_id`))",
+        "fields": [
+          {
+            "fieldPath": "userRoutineId",
+            "columnName": "user_routine_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileId",
+            "columnName": "profile_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceTemplateId",
+            "columnName": "source_template_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAtEpochMillis",
+            "columnName": "created_at_epoch_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modifiedAtEpochMillis",
+            "columnName": "modified_at_epoch_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "archived",
+            "columnName": "archived",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "user_routine_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_routines_profile_id_archived",
+            "unique": false,
+            "columnNames": [
+              "profile_id",
+              "archived"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_routines_profile_id_archived` ON `${TABLE_NAME}` (`profile_id`, `archived`)"
+          },
+          {
+            "name": "index_user_routines_source_template_id",
+            "unique": false,
+            "columnNames": [
+              "source_template_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_routines_source_template_id` ON `${TABLE_NAME}` (`source_template_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "user_routine_steps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_routine_id` TEXT NOT NULL, `position` INTEGER NOT NULL, `activity_id` TEXT NOT NULL, `custom_instruction` TEXT, `future_visual_reference` TEXT, PRIMARY KEY(`user_routine_id`, `position`), FOREIGN KEY(`user_routine_id`) REFERENCES `user_routines`(`user_routine_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`activity_id`) REFERENCES `catalog_activities`(`activity_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "userRoutineId",
+            "columnName": "user_routine_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activityId",
+            "columnName": "activity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "customInstruction",
+            "columnName": "custom_instruction",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "futureVisualReference",
+            "columnName": "future_visual_reference",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "user_routine_id",
+            "position"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_routine_steps_activity_id",
+            "unique": false,
+            "columnNames": [
+              "activity_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_routine_steps_activity_id` ON `${TABLE_NAME}` (`activity_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "user_routines",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_routine_id"
+            ],
+            "referencedColumns": [
+              "user_routine_id"
+            ]
+          },
+          {
+            "table": "catalog_activities",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "activity_id"
+            ],
+            "referencedColumns": [
+              "activity_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b14ce2ea424704144e9c35d3017683c3')"
+    ]
+  }
+}

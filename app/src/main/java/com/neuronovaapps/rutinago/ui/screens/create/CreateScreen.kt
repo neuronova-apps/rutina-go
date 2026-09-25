@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +14,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -25,10 +23,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -37,24 +37,29 @@ import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.domain.catalog.CatalogActivity
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRoutine
 import com.neuronovaapps.rutinago.domain.catalog.CatalogSnapshot
-import com.neuronovaapps.rutinago.domain.catalog.CatalogStepActivity
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.catalog.activitiesFor
 import com.neuronovaapps.rutinago.domain.catalog.catalogVariant
 import com.neuronovaapps.rutinago.domain.catalog.routinesFor
+import com.neuronovaapps.rutinago.domain.user.UserRoutine
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
-import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import java.util.UUID
+import kotlinx.coroutines.launch
 
-private enum class CreatePage { LANDING, ORIGIN, TEMPLATE_LIST, TEMPLATE_DETAIL, SCRATCH }
+private enum class CreatePage { LANDING, ORIGIN, TEMPLATE_LIST, TEMPLATE_EDITOR, SCRATCH_EDITOR }
 
 @Composable
 fun CreateScreen(
     appMode: AppMode,
     catalogState: CatalogUiState,
     suggestedTemplateId: String? = null,
+    onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
+    onViewRoutines: () -> Unit,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading()
@@ -63,6 +68,8 @@ fun CreateScreen(
             appMode = appMode,
             catalog = catalogState.catalog,
             suggestedTemplateId = suggestedTemplateId,
+            onSaveRoutine = onSaveRoutine,
+            onViewRoutines = onViewRoutines,
         )
     }
 }
@@ -72,118 +79,432 @@ private fun CreateReadyScreen(
     appMode: AppMode,
     catalog: CatalogSnapshot,
     suggestedTemplateId: String?,
+    onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
+    onViewRoutines: () -> Unit,
 ) {
     var pageName by rememberSaveable(suggestedTemplateId) {
         mutableStateOf(
             if (suggestedTemplateId == null) CreatePage.LANDING.name
-            else CreatePage.TEMPLATE_DETAIL.name,
+            else CreatePage.TEMPLATE_EDITOR.name,
         )
     }
     var selectedTemplateId by rememberSaveable(suggestedTemplateId) {
         mutableStateOf(suggestedTemplateId)
     }
-    var routineName by rememberSaveable { mutableStateOf("") }
-    var selectedIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
-    var baselineName by rememberSaveable { mutableStateOf("") }
-    var baselineIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
-    var prepared by rememberSaveable { mutableStateOf(false) }
-    var confirmExit by rememberSaveable { mutableStateOf(false) }
     val page = CreatePage.valueOf(pageName)
-    val hasScratchChanges = page == CreatePage.SCRATCH &&
-        (routineName != baselineName || selectedIds != baselineIds)
 
-    fun openScratch() {
-        pageName = CreatePage.SCRATCH.name
-        routineName = ""
-        selectedIds = emptyList()
-        baselineName = routineName
-        baselineIds = selectedIds
-        prepared = false
-    }
-
-    fun openTemplate(routineId: String) {
-        selectedTemplateId = routineId
-        pageName = CreatePage.TEMPLATE_DETAIL.name
-        prepared = false
-    }
-
-    fun returnOneLevel(force: Boolean = false) {
-        when (page) {
-            CreatePage.LANDING -> Unit
-            CreatePage.ORIGIN -> pageName = CreatePage.LANDING.name
-            CreatePage.TEMPLATE_LIST -> pageName = CreatePage.ORIGIN.name
-            CreatePage.TEMPLATE_DETAIL -> pageName = CreatePage.TEMPLATE_LIST.name
-            CreatePage.SCRATCH -> {
-                if (hasScratchChanges && !force) confirmExit = true
-                else pageName = CreatePage.ORIGIN.name
-            }
+    fun returnOneLevel() {
+        pageName = when (page) {
+            CreatePage.LANDING -> CreatePage.LANDING.name
+            CreatePage.ORIGIN -> CreatePage.LANDING.name
+            CreatePage.TEMPLATE_LIST -> CreatePage.ORIGIN.name
+            CreatePage.TEMPLATE_EDITOR -> CreatePage.TEMPLATE_LIST.name
+            CreatePage.SCRATCH_EDITOR -> CreatePage.ORIGIN.name
         }
     }
 
-    BackHandler(enabled = page != CreatePage.LANDING) { returnOneLevel() }
+    if (page != CreatePage.TEMPLATE_EDITOR && page != CreatePage.SCRATCH_EDITOR) {
+        BackHandler(enabled = page != CreatePage.LANDING) { returnOneLevel() }
+    }
 
     when (page) {
-        CreatePage.LANDING -> CreateLanding(
-            appMode = appMode,
-            onContinue = { pageName = CreatePage.ORIGIN.name },
-        )
+        CreatePage.LANDING -> CreateLanding(appMode) { pageName = CreatePage.ORIGIN.name }
         CreatePage.ORIGIN -> OriginScreen(
-            onBack = { returnOneLevel() },
+            onBack = ::returnOneLevel,
             onTemplate = { pageName = CreatePage.TEMPLATE_LIST.name },
-            onScratch = ::openScratch,
+            onScratch = { pageName = CreatePage.SCRATCH_EDITOR.name },
         )
         CreatePage.TEMPLATE_LIST -> TemplateCatalogScreen(
             appMode = appMode,
             catalog = catalog,
-            onBack = { returnOneLevel() },
-            onSelect = ::openTemplate,
+            onBack = ::returnOneLevel,
+            onSelect = { routineId ->
+                selectedTemplateId = routineId
+                pageName = CreatePage.TEMPLATE_EDITOR.name
+            },
         )
-        CreatePage.TEMPLATE_DETAIL -> TemplateDetailScreen(
+        CreatePage.TEMPLATE_EDITOR -> {
+            val routine = catalog.routine(selectedTemplateId)
+            if (routine == null) {
+                ScreenColumn {
+                    TextButton(onClick = ::returnOneLevel) { Text("‹ Volver a Plantillas") }
+                    EmptyState("Plantilla no disponible", "No se encontró la plantilla seleccionada.")
+                }
+            } else {
+                val variant = appMode.catalogVariant()
+                RoutineDraftEditor(
+                    draftKey = "template-${routine.id}",
+                    title = "Personalizar plantilla",
+                    backLabel = "‹ Volver a Plantillas",
+                    initialName = routine.name,
+                    initialActivityIds = catalog.steps(routine.id, variant).map { it.activityId },
+                    sourceTemplateId = routine.id,
+                    optionalActivityIds = if (appMode == AppMode.ADVANCED) {
+                        catalog.steps(routine.id, RoutineVariant.OPTIONAL).map { it.activityId }
+                    } else {
+                        emptyList()
+                    },
+                    appMode = appMode,
+                    catalog = catalog,
+                    onBack = ::returnOneLevel,
+                    onSaveRoutine = onSaveRoutine,
+                    onViewRoutines = onViewRoutines,
+                )
+            }
+        }
+        CreatePage.SCRATCH_EDITOR -> RoutineDraftEditor(
+            draftKey = "scratch",
+            title = "Crear desde cero",
+            backLabel = "‹ Volver a Elegir origen",
+            initialName = "",
+            initialActivityIds = emptyList(),
+            sourceTemplateId = null,
+            optionalActivityIds = emptyList(),
             appMode = appMode,
             catalog = catalog,
-            routineId = selectedTemplateId,
-            prepared = prepared,
-            onBack = { returnOneLevel() },
-            onPrepare = { prepared = true },
+            onBack = ::returnOneLevel,
+            onSaveRoutine = onSaveRoutine,
+            onViewRoutines = onViewRoutines,
         )
-        CreatePage.SCRATCH -> ScratchScreen(
+    }
+}
+
+@Composable
+fun UserRoutineEditorScreen(
+    routine: UserRoutine,
+    appMode: AppMode,
+    catalogState: CatalogUiState,
+    onBack: () -> Unit,
+    onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
+    onViewRoutines: () -> Unit,
+) {
+    when (catalogState) {
+        CatalogUiState.Loading -> CatalogLoading()
+        is CatalogUiState.Error -> CatalogError(catalogState.message)
+        is CatalogUiState.Ready -> RoutineDraftEditor(
+            draftKey = "edit-${routine.id}",
+            existingRoutineId = routine.id,
+            title = "Editar rutina",
+            backLabel = "‹ Volver a Mis rutinas",
+            initialName = routine.name,
+            initialActivityIds = routine.steps.sortedBy { it.position }.map { it.activityId },
+            initialInstructions = routine.steps.associate { it.activityId to it.customInstruction },
+            sourceTemplateId = routine.sourceTemplateId,
+            optionalActivityIds = emptyList(),
             appMode = appMode,
-            catalog = catalog,
-            routineName = routineName,
-            onRoutineNameChange = {
-                routineName = it
-                prepared = false
-            },
-            selectedIds = selectedIds,
-            onToggle = { id ->
-                selectedIds = if (id in selectedIds) selectedIds - id else selectedIds + id
-                prepared = false
-            },
-            prepared = prepared,
-            onBack = { returnOneLevel() },
-            onPrepare = {
-                prepared = true
-                baselineName = routineName
-                baselineIds = selectedIds
-            },
+            catalog = catalogState.catalog,
+            onBack = onBack,
+            onSaveRoutine = onSaveRoutine,
+            onViewRoutines = onViewRoutines,
         )
+    }
+}
+
+@Composable
+private fun RoutineDraftEditor(
+    draftKey: String,
+    title: String,
+    backLabel: String,
+    initialName: String,
+    initialActivityIds: List<String>,
+    sourceTemplateId: String?,
+    optionalActivityIds: List<String>,
+    appMode: AppMode,
+    catalog: CatalogSnapshot,
+    onBack: () -> Unit,
+    onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
+    onViewRoutines: () -> Unit,
+    existingRoutineId: String? = null,
+    initialInstructions: Map<String, String?> = emptyMap(),
+) {
+    val scope = rememberCoroutineScope()
+    var draftId by rememberSaveable(draftKey) {
+        mutableStateOf(existingRoutineId ?: UUID.randomUUID().toString())
+    }
+    var routineName by rememberSaveable(draftKey) { mutableStateOf(initialName) }
+    var selectedIds by rememberSaveable(draftKey) { mutableStateOf(initialActivityIds) }
+    var baselineName by rememberSaveable(draftKey) { mutableStateOf(initialName) }
+    var baselineIds by rememberSaveable(draftKey) { mutableStateOf(initialActivityIds) }
+    var query by rememberSaveable(draftKey) { mutableStateOf("") }
+    var category by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
+    var confirmExit by rememberSaveable(draftKey) { mutableStateOf(false) }
+    var saving by rememberSaveable(draftKey) { mutableStateOf(false) }
+    var saved by rememberSaveable(draftKey) { mutableStateOf(false) }
+    var errorMessage by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
+    val hasChanges = routineName != baselineName || selectedIds != baselineIds
+    val filteredActivities = catalog.activitiesFor(query, category)
+
+    fun requestBack() {
+        if (hasChanges) confirmExit = true else onBack()
+    }
+
+    fun toggle(activityId: String) {
+        selectedIds = if (activityId in selectedIds) selectedIds - activityId else selectedIds + activityId
+        saved = false
+        errorMessage = null
+    }
+
+    fun move(activityId: String, offset: Int) {
+        val from = selectedIds.indexOf(activityId)
+        val to = from + offset
+        if (from < 0 || to !in selectedIds.indices) return
+        selectedIds = selectedIds.toMutableList().also { list ->
+            val moved = list.removeAt(from)
+            list.add(to, moved)
+        }
+        saved = false
+        errorMessage = null
+    }
+
+    BackHandler { requestBack() }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item { TextButton(onClick = ::requestBack) { Text(backLabel) } }
+        item {
+            Text(
+                title,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics { heading() },
+            )
+        }
+        if (sourceTemplateId != null) {
+            item {
+                InfoCallout(
+                    "Copia personal",
+                    "Los cambios se guardarán para el perfil activo sin modificar la plantilla maestra.",
+                )
+            }
+        }
+        item {
+            OutlinedTextField(
+                value = routineName,
+                onValueChange = {
+                    routineName = it
+                    saved = false
+                    errorMessage = null
+                },
+                label = { Text("Nombre de la rutina") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        item {
+            Text(
+                "Secuencia · ${selectedIds.size} actividades",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+        }
+        if (selectedIds.isEmpty()) {
+            item { EmptyState("Secuencia vacía", "Añade al menos una actividad para poder guardar.") }
+        } else {
+            items(selectedIds, key = { "selected-$it" }) { activityId ->
+                val activity = catalog.activity(activityId)
+                if (activity != null) {
+                    SelectedStepCard(
+                        activity = activity,
+                        position = selectedIds.indexOf(activityId) + 1,
+                        canMoveUp = selectedIds.first() != activityId,
+                        canMoveDown = selectedIds.last() != activityId,
+                        onMoveUp = { move(activityId, -1) },
+                        onMoveDown = { move(activityId, 1) },
+                        onRemove = { toggle(activityId) },
+                    )
+                }
+            }
+        }
+        if (optionalActivityIds.any { it !in selectedIds }) {
+            item {
+                Text(
+                    "Opcionales de la plantilla",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.semantics { heading() },
+                )
+            }
+            items(optionalActivityIds.filterNot(selectedIds::contains), key = { "optional-$it" }) { id ->
+                catalog.activity(id)?.let { activity ->
+                    AddActivityCard(activity = activity, selected = false) { toggle(id) }
+                }
+            }
+        }
+        item {
+            Text(
+                "Añadir actividades",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+        }
+        if (appMode == AppMode.ADVANCED) {
+            item {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text("Buscar actividades") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item { CategoryFilters(catalog, category) { category = it } }
+        } else {
+            item {
+                InfoCallout(
+                    "Modo simple",
+                    "Usa Añadir o Quitar y los botones Subir y Bajar para preparar una secuencia breve.",
+                )
+            }
+        }
+        items(filteredActivities, key = CatalogActivity::id) { activity ->
+            AddActivityCard(
+                activity = activity,
+                selected = activity.id in selectedIds,
+                onToggle = { toggle(activity.id) },
+            )
+        }
+        errorMessage?.let { message ->
+            item { InfoCallout("No se pudo guardar", message) }
+        }
+        if (saved) {
+            item {
+                InfoCallout(
+                    "Rutina guardada",
+                    "El guardado en Room se completó para el perfil activo.",
+                )
+            }
+            item {
+                TextButton(onClick = onViewRoutines, modifier = Modifier.fillMaxWidth()) {
+                    Text("Ver Mis rutinas")
+                }
+            }
+        }
+        item {
+            Button(
+                onClick = {
+                    saving = true
+                    errorMessage = null
+                    scope.launch {
+                        runCatching {
+                            onSaveRoutine(
+                                UserRoutineDraft(
+                                    id = draftId,
+                                    sourceTemplateId = sourceTemplateId,
+                                    name = routineName,
+                                    steps = selectedIds.map { activityId ->
+                                        UserRoutineDraftStep(
+                                            activityId = activityId,
+                                            customInstruction = initialInstructions[activityId],
+                                        )
+                                    },
+                                ),
+                            )
+                        }.onSuccess { stored ->
+                            draftId = stored.id
+                            baselineName = stored.name
+                            baselineIds = stored.steps.sortedBy { it.position }.map { it.activityId }
+                            saved = true
+                        }.onFailure { error ->
+                            errorMessage = error.message ?: "No fue posible completar la transacción."
+                        }
+                        saving = false
+                    }
+                },
+                enabled = !saving && routineName.isNotBlank() && selectedIds.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (saving) "Guardando…" else "Guardar rutina")
+            }
+        }
     }
 
     if (confirmExit) {
         AlertDialog(
             onDismissRequest = { confirmExit = false },
             title = { Text("¿Deseas salir sin guardar los cambios?") },
-            text = { Text("Los datos introducidos en este borrador se perderán.") },
+            text = { Text("Los cambios de este borrador se perderán.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmExit = false
-                    returnOneLevel(force = true)
+                    onBack()
                 }) { Text("Salir sin guardar") }
             },
             dismissButton = {
                 TextButton(onClick = { confirmExit = false }) { Text("Continuar editando") }
             },
         )
+    }
+}
+
+@Composable
+private fun SelectedStepCard(
+    activity: CatalogActivity,
+    position: Int,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Paso $position · ${activity.name}", style = MaterialTheme.typography.titleMedium)
+            Text(activity.simpleInstruction, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                TextButton(
+                    onClick = onMoveUp,
+                    enabled = canMoveUp,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = "Subir ${activity.name}" },
+                ) { Text("Subir") }
+                TextButton(
+                    onClick = onMoveDown,
+                    enabled = canMoveDown,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = "Bajar ${activity.name}" },
+                ) { Text("Bajar") }
+                TextButton(
+                    onClick = onRemove,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = "Quitar ${activity.name}" },
+                ) { Text("Quitar") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddActivityCard(activity: CatalogActivity, selected: Boolean, onToggle: () -> Unit) {
+    Card(
+        onClick = onToggle,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(if (selected) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            VisualPlaceholder("Visual pendiente", size = 56.dp)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(activity.name, style = MaterialTheme.typography.titleMedium)
+                Text(activity.simpleInstruction, style = MaterialTheme.typography.bodySmall)
+            }
+            Text(if (selected) "Quitar" else "Añadir", color = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 
@@ -196,12 +517,8 @@ private fun CreateLanding(appMode: AppMode, onContinue: () -> Unit) {
             modifier = Modifier.semantics { heading() },
         )
         InfoCallout(
-            title = if (appMode == AppMode.SIMPLE) "Tres decisiones sencillas" else "Catálogo completo",
-            body = if (appMode == AppMode.SIMPLE) {
-                "Elige un origen, un nombre y las actividades principales."
-            } else {
-                "Busca entre las plantillas y actividades reales del catálogo maestro."
-            },
+            if (appMode == AppMode.SIMPLE) "Creación sencilla" else "Personalización completa",
+            "La rutina se guardará únicamente para el perfil activo.",
         )
         Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) { Text("Elegir origen") }
     }
@@ -216,16 +533,8 @@ private fun OriginScreen(onBack: () -> Unit, onTemplate: () -> Unit, onScratch: 
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.semantics { heading() },
         )
-        OriginCard(
-            title = "Usar una plantilla",
-            description = "Elige una de las 52 rutinas del catálogo maestro.",
-            onClick = onTemplate,
-        )
-        OriginCard(
-            title = "Crear desde cero",
-            description = "Elige entre las 203 actividades reales disponibles.",
-            onClick = onScratch,
-        )
+        OriginCard("Usar una plantilla", "Personaliza una de las 52 rutinas maestras.", onTemplate)
+        OriginCard("Crear desde cero", "Selecciona y ordena actividades del catálogo real.", onScratch)
     }
 }
 
@@ -237,7 +546,7 @@ private fun OriginCard(title: String, description: String, onClick: () -> Unit) 
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
-        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -283,206 +592,19 @@ private fun TemplateCatalogScreen(
             item { CategoryFilters(catalog, category) { category = it } }
         }
         items(routines, key = CatalogRoutine::id) { routine ->
-            TemplateCard(
-                routine = routine,
-                stepCount = catalog.steps(routine.id, variant).size,
+            Card(
                 onClick = { onSelect(routine.id) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun TemplateCard(routine: CatalogRoutine, stepCount: Int, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(routine.primaryArea, color = MaterialTheme.colorScheme.primary)
-            Text(routine.name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                "$stepCount pasos · ${routine.suggestedMoment}",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(routine.functionalObjective, style = MaterialTheme.typography.bodySmall)
-        }
-    }
-}
-
-@Composable
-private fun TemplateDetailScreen(
-    appMode: AppMode,
-    catalog: CatalogSnapshot,
-    routineId: String?,
-    prepared: Boolean,
-    onBack: () -> Unit,
-    onPrepare: () -> Unit,
-) {
-    val routine = catalog.routine(routineId)
-    if (routine == null) {
-        ScreenColumn {
-            TextButton(onClick = onBack) { Text("‹ Volver a Plantillas") }
-            EmptyState("Plantilla no disponible", "No se encontró la plantilla seleccionada.")
-        }
-        return
-    }
-    val variant = appMode.catalogVariant()
-    val mainSteps = catalog.activitiesFor(routine.id, variant)
-    val optional = if (appMode == AppMode.ADVANCED) {
-        catalog.activitiesFor(routine.id, RoutineVariant.OPTIONAL)
-    } else {
-        emptyList()
-    }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        item { TextButton(onClick = onBack) { Text("‹ Volver a Plantillas") } }
-        item {
-            Text(
-                routine.name,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.semantics { heading() },
-            )
-        }
-        item { InfoCallout("Plantilla maestra", routine.functionalObjective) }
-        item {
-            Text(
-                if (variant == RoutineVariant.SIMPLE) "Secuencia simple" else "Secuencia completa",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
-        }
-        items(mainSteps, key = { "${it.step.variant}-${it.step.position}" }) { item ->
-            TemplateStepCard(item)
-        }
-        if (optional.isNotEmpty()) {
-            item {
-                InfoCallout(
-                    "Actividades opcionales",
-                    "Se consultan por separado y no se agregan automáticamente al borrador.",
-                )
-            }
-            items(optional, key = { "optional-${it.step.position}" }) { item ->
-                TemplateStepCard(item, optional = true)
-            }
-        }
-        if (prepared) {
-            item {
-                InfoCallout(
-                    "Borrador preparado",
-                    "La plantilla se mantiene en memoria. Todavía no se guarda como rutina personal.",
-                )
-            }
-        }
-        item {
-            Button(onClick = onPrepare, modifier = Modifier.fillMaxWidth()) {
-                Text("Preparar borrador con esta plantilla")
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScratchScreen(
-    appMode: AppMode,
-    catalog: CatalogSnapshot,
-    routineName: String,
-    onRoutineNameChange: (String) -> Unit,
-    selectedIds: List<String>,
-    onToggle: (String) -> Unit,
-    prepared: Boolean,
-    onBack: () -> Unit,
-    onPrepare: () -> Unit,
-) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var category by rememberSaveable { mutableStateOf<String?>(null) }
-    val activities = catalog.activitiesFor(query, category)
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        item { TextButton(onClick = onBack) { Text("‹ Volver a Elegir origen") } }
-        item {
-            Text(
-                "Crear desde cero",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.semantics { heading() },
-            )
-        }
-        item {
-            OutlinedTextField(
-                value = routineName,
-                onValueChange = onRoutineNameChange,
-                label = { Text("Nombre de la rutina") },
-                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        item {
-            Text(
-                "Actividades · ${catalog.activities.size} disponibles · ${selectedIds.size} seleccionadas",
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-        if (appMode == AppMode.ADVANCED) {
-            item {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    label = { Text("Buscar actividades") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(routine.primaryArea, color = MaterialTheme.colorScheme.primary)
+                    Text(routine.name, style = MaterialTheme.typography.titleMedium)
+                    Text("${catalog.steps(routine.id, variant).size} pasos · ${routine.suggestedMoment}")
+                    Text(routine.functionalObjective, style = MaterialTheme.typography.bodySmall)
+                }
             }
-            item { CategoryFilters(catalog, category) { category = it } }
-        } else {
-            item {
-                InfoCallout(
-                    "Modo simple",
-                    "Selecciona solo las actividades esenciales; todas provienen del mismo catálogo maestro.",
-                )
-            }
-        }
-        if (activities.isEmpty()) {
-            item { EmptyState("Sin resultados", "Prueba otra búsqueda o categoría.") }
-        }
-        items(activities, key = CatalogActivity::id) { activity ->
-            ActivityCard(
-                activity = activity,
-                selected = activity.id in selectedIds,
-                onToggle = { onToggle(activity.id) },
-            )
-        }
-        if (appMode == AppMode.ADVANCED && selectedIds.isNotEmpty()) {
-            item {
-                InfoCallout(
-                    "Orden de actividades",
-                    selectedIds.mapNotNull { catalog.activity(it)?.name }.joinToString(" → "),
-                )
-            }
-        }
-        if (prepared) {
-            item {
-                InfoCallout(
-                    "Borrador preparado",
-                    "La rutina se mantiene en memoria y todavía no se guarda permanentemente.",
-                )
-            }
-        }
-        item {
-            Button(
-                onClick = onPrepare,
-                enabled = routineName.isNotBlank() && selectedIds.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Preparar borrador") }
         }
     }
 }
@@ -512,56 +634,6 @@ private fun CategoryFilters(
 }
 
 @Composable
-private fun ActivityCard(activity: CatalogActivity, selected: Boolean, onToggle: () -> Unit) {
-    Card(
-        onClick = onToggle,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(if (selected) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            VisualPlaceholder("Visual pendiente", size = if (selected) 68.dp else 56.dp)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(activity.name, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    activity.simpleInstruction,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Checkbox(checked = selected, onCheckedChange = { onToggle() })
-        }
-    }
-}
-
-@Composable
-private fun TemplateStepCard(item: CatalogStepActivity, optional: Boolean = false) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(item.step.position.toString(), color = MaterialTheme.colorScheme.primary)
-            VisualPlaceholder("Visual pendiente", size = 56.dp)
-            Column(modifier = Modifier.weight(1f)) {
-                if (optional) Text("OPCIONAL", style = MaterialTheme.typography.labelSmall)
-                Text(item.activity.name, style = MaterialTheme.typography.titleMedium)
-                Text(item.activity.simpleInstruction, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-    }
-}
-
-@Composable
 private fun CatalogLoading() {
     ScreenColumn {
         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -571,7 +643,5 @@ private fun CatalogLoading() {
 
 @Composable
 private fun CatalogError(message: String) {
-    ScreenColumn {
-        EmptyState("No se pudo cargar el catálogo", message)
-    }
+    ScreenColumn { EmptyState("No se pudo cargar el catálogo", message) }
 }
