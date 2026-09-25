@@ -1,2 +1,4 @@
 /data/master_bank/**/*.csv text eol=lf
 /data/master_bank/**/*.json text eol=lf
+/app/src/main/assets/master_catalog/**/*.json text eol=lf
+/app/schemas/**/*.json text eol=lf

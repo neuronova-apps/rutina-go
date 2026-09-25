@@ -22,6 +22,14 @@ class MasterBankArtifactsTest {
     private fun read(name: String): String =
         File(generatedDir, name).readText(Charsets.UTF_8)
 
+    private val packagedAssetsDir: File
+        get() {
+            val repositoryRoot = requireNotNull(
+                generatedDir.parentFile?.parentFile?.parentFile?.parentFile,
+            )
+            return File(repositoryRoot, "app/src/main/assets/master_catalog/v1")
+        }
+
     @Test
     fun generatedArtifactsKeepAuthorizedCountsAndIds() {
         val manifest = read("manifest.json")
@@ -108,6 +116,21 @@ class MasterBankArtifactsTest {
                 .digest(File(generatedDir, filename).readBytes())
                 .joinToString("") { byte -> "%02x".format(byte) }
             assertEquals(filename, expectedHash, digest)
+        }
+    }
+
+    @Test
+    fun androidAssetsAreByteIdenticalToValidatedGeneratedArtifacts() {
+        val expectedFiles = generatedDir.listFiles().orEmpty().map { it.name }.sorted()
+        val packagedFiles = packagedAssetsDir.listFiles().orEmpty().map { it.name }.sorted()
+        assertEquals(expectedFiles, packagedFiles)
+        expectedFiles.forEach { filename ->
+            assertTrue(
+                filename,
+                File(generatedDir, filename).readBytes().contentEquals(
+                    File(packagedAssetsDir, filename).readBytes(),
+                ),
+            )
         }
     }
 }

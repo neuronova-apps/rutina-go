@@ -1,0 +1,74 @@
+{
+  "catalogVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "items": [
+    {
+      "name": "Inicio del día",
+      "order": 1
+    },
+    {
+      "name": "Higiene personal",
+      "order": 2
+    },
+    {
+      "name": "Vestido y presentación",
+      "order": 3
+    },
+    {
+      "name": "Alimentación",
+      "order": 4
+    },
+    {
+      "name": "Baño e intimidad",
+      "order": 5
+    },
+    {
+      "name": "Preparación para estudiar",
+      "order": 6
+    },
+    {
+      "name": "Estudio y tareas",
+      "order": 7
+    },
+    {
+      "name": "Hogar y responsabilidades",
+      "order": 8
+    },
+    {
+      "name": "Ocio y tiempo libre",
+      "order": 9
+    },
+    {
+      "name": "Actividad física y movimiento",
+      "order": 10
+    },
+    {
+      "name": "Salidas y comunidad",
+      "order": 11
+    },
+    {
+      "name": "Salud y bienestar",
+      "order": 12
+    },
+    {
+      "name": "Autorregulación y emociones",
+      "order": 13
+    },
+    {
+      "name": "Interacción social",
+      "order": 14
+    },
+    {
+      "name": "Rutina de tarde y noche",
+      "order": 15
+    },
+    {
+      "name": "Cambios y situaciones especiales",
+      "order": 16
+    },
+    {
+      "name": "Autonomía adolescente",
+      "order": 17
+    }
+  ]
+}
