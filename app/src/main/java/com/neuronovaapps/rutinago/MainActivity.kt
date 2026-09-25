@@ -14,10 +14,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
+import com.neuronovaapps.rutinago.domain.execution.ProfileProgress
 import com.neuronovaapps.rutinago.ui.navigation.RutinaGoApp
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     private val userPreferencesRepository by lazy {
@@ -40,6 +42,16 @@ class MainActivity : ComponentActivity() {
                     ?: flowOf(emptyList())
             }
             val userRoutines by userRoutinesFlow.collectAsState(initial = emptyList())
+            val activeExecutionFlow = remember(activeProfileId) {
+                activeProfileId?.let(catalogContainer.executions::activeExecution)
+                    ?: flowOf(null)
+            }
+            val progressFlow = remember(activeProfileId) {
+                activeProfileId?.let(catalogContainer.executions::progress)
+                    ?: flowOf(ProfileProgress())
+            }
+            val activeExecution by activeExecutionFlow.collectAsState(initial = null)
+            val progress by progressFlow.collectAsState(initial = ProfileProgress())
             val darkTheme = preferences.themeMode.usesDarkTheme(systemDarkTheme)
             val useDarkSystemBars = darkTheme || preferences.highContrast
             val coroutineScope = rememberCoroutineScope()
@@ -74,6 +86,8 @@ class MainActivity : ComponentActivity() {
                     preferences = preferences,
                     catalogState = catalogState,
                     userRoutines = userRoutines,
+                    activeExecution = activeExecution,
+                    progress = progress,
                     onSaveUserRoutine = { draft ->
                         val profileId = requireNotNull(preferences.activeProfile?.id) {
                             "Selecciona un perfil antes de guardar."
@@ -85,6 +99,32 @@ class MainActivity : ComponentActivity() {
                             "Selecciona un perfil antes de archivar."
                         }
                         catalogContainer.userRoutines.archive(profileId, routineId)
+                    },
+                    onStartExecution = { routineId ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id) {
+                            "Selecciona un perfil antes de iniciar."
+                        }
+                        catalogContainer.executions.start(profileId, routineId)
+                    },
+                    onLoadExecution = { executionId ->
+                        catalogContainer.executions.execution(executionId).first()
+                            ?.takeIf { it.profileId == preferences.activeProfile?.id }
+                    },
+                    onCompleteExecutionStep = { executionId, position ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id)
+                        catalogContainer.executions.completeStep(profileId, executionId, position)
+                    },
+                    onSkipExecutionStep = { executionId, position ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id)
+                        catalogContainer.executions.skipStep(profileId, executionId, position)
+                    },
+                    onFinishPartialExecution = { executionId ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id)
+                        catalogContainer.executions.finishPartial(profileId, executionId)
+                    },
+                    onAbandonExecution = { executionId ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id)
+                        catalogContainer.executions.abandon(profileId, executionId)
                     },
                     onThemeModeChange = { mode ->
                         coroutineScope.launch { userPreferencesRepository.setThemeMode(mode) }
@@ -105,7 +145,13 @@ class MainActivity : ComponentActivity() {
                         coroutineScope.launch { userPreferencesRepository.renameProfile(id, name) }
                     },
                     onSelectProfile = { id ->
-                        coroutineScope.launch { userPreferencesRepository.selectProfile(id) }
+                        coroutineScope.launch {
+                            val currentProfileId = preferences.activeProfile?.id
+                            val pending = currentProfileId?.let {
+                                catalogContainer.executions.activeExecution(it).first()
+                            }
+                            if (pending == null) userPreferencesRepository.selectProfile(id)
+                        }
                     },
                 )
             }

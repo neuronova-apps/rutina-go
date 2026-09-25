@@ -1,7 +1,6 @@
 package com.neuronovaapps.rutinago.ui.screens.execution
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,8 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,58 +22,70 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neuronovaapps.rutinago.domain.model.Routine
-import com.neuronovaapps.rutinago.domain.model.RoutineOutcome
+import com.neuronovaapps.rutinago.domain.execution.ExecutionStatus
+import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import kotlinx.coroutines.launch
 
 @Composable
 fun RoutineExecutionScreen(
-    routine: Routine,
+    execution: RoutineExecution,
+    onCompleteStep: suspend (Int) -> RoutineExecution,
+    onSkipStep: suspend (Int) -> RoutineExecution,
+    onFinishPartial: suspend () -> RoutineExecution,
+    onAbandon: suspend () -> Unit,
+    onExecutionChanged: (RoutineExecution) -> Unit,
     onExit: () -> Unit,
     onCloseResult: () -> Unit,
     onViewProgress: () -> Unit,
 ) {
-    var stepIndex by rememberSaveable(routine.id) { mutableIntStateOf(0) }
-    var completedSteps by rememberSaveable(routine.id) { mutableIntStateOf(0) }
-    var paused by rememberSaveable(routine.id) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var paused by rememberSaveable(execution.id) { mutableStateOf(false) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
     var supportMessage by rememberSaveable { mutableStateOf<String?>(null) }
-    var outcomeName by rememberSaveable(routine.id) { mutableStateOf<String?>(null) }
-    var showExitConfirmation by rememberSaveable(routine.id) { mutableStateOf(false) }
-    val outcome = outcomeName?.let(RoutineOutcome::valueOf)
+    var showExitConfirmation by rememberSaveable(execution.id) { mutableStateOf(false) }
+    var showFinishConfirmation by rememberSaveable(execution.id) { mutableStateOf(false) }
+    var actionInProgress by rememberSaveable(execution.id) { mutableStateOf(false) }
+    var actionError by rememberSaveable(execution.id) { mutableStateOf<String?>(null) }
+    val isRunning = execution.status == ExecutionStatus.IN_PROGRESS
 
-    fun finish(result: RoutineOutcome) {
-        outcomeName = result.name
-        paused = false
-    }
-
-    BackHandler {
-        if (outcome == null) {
-            showExitConfirmation = true
-        } else {
-            onCloseResult()
+    fun runAction(action: suspend () -> RoutineExecution) {
+        if (actionInProgress) return
+        actionInProgress = true
+        actionError = null
+        scope.launch {
+            runCatching { action() }
+                .onSuccess(onExecutionChanged)
+                .onFailure { actionError = it.message ?: "No fue posible guardar el avance." }
+            actionInProgress = false
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-    ) {
+    BackHandler {
+        when {
+            showExitConfirmation -> showExitConfirmation = false
+            showFinishConfirmation -> showFinishConfirmation = false
+            isRunning -> showExitConfirmation = true
+            else -> onCloseResult()
+        }
+    }
+
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,132 +99,139 @@ fun RoutineExecutionScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    routine.title,
+                    execution.routineName,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
-                if (outcome == null) {
-                    TextButton(
-                        onClick = { showExitConfirmation = true },
-                    ) { Text("Salir") }
+                if (isRunning) {
+                    TextButton(onClick = { showExitConfirmation = true }, enabled = !actionInProgress) {
+                        Text("Salir")
+                    }
                 }
             }
 
-            if (outcome == null) {
-                val step = routine.steps[stepIndex]
-                LinearProgressIndicator(
-                    progress = { (stepIndex + 1f) / routine.steps.size },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    if (paused) {
-                        Text(
-                            "Rutina en pausa",
-                            style = MaterialTheme.typography.headlineSmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.semantics {
-                                heading()
-                                liveRegion = LiveRegionMode.Polite
-                            },
-                        )
-                        Text(
-                            "Puedes continuar cuando estés listo.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                    } else {
-                        VisualPlaceholder(step.visualLabel, size = 240.dp)
-                        Text(
-                            "Paso ${stepIndex + 1} de ${routine.steps.size}",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 16.dp),
-                        )
-                        Text(
-                            step.title,
-                            style = MaterialTheme.typography.headlineSmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .padding(top = 6.dp)
-                                .semantics { heading() },
-                        )
-                        Text(
-                            step.instruction,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
+            if (isRunning) {
+                val step = execution.currentStep
+                if (step == null) {
+                    InfoCallout(
+                        title = "No se pudo recuperar el paso actual",
+                        body = "Sal de la rutina y vuelve a abrirla desde Mis rutinas.",
+                    )
+                } else {
+                    LinearProgressIndicator(
+                        progress = { step.position.toFloat() / execution.totalSteps.coerceAtLeast(1) },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .padding(vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        if (paused) {
+                            Text(
+                                "Rutina en pausa",
+                                style = MaterialTheme.typography.headlineSmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.semantics {
+                                    heading()
+                                    liveRegion = LiveRegionMode.Polite
+                                },
+                            )
+                            Text(
+                                "Puedes continuar cuando estés listo. Tu avance está guardado.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                        } else {
+                            VisualPlaceholder(
+                                if (step.visualReference == null) "Visual pendiente" else "Recurso visual",
+                                size = 240.dp,
+                            )
+                            Text(
+                                "Paso ${step.position} de ${execution.totalSteps}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 16.dp),
+                            )
+                            Text(
+                                step.activityName,
+                                style = MaterialTheme.typography.headlineSmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 6.dp).semantics { heading() },
+                            )
+                            Text(
+                                step.instruction,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
+                        supportMessage?.let {
+                            InfoCallout("Apoyo solicitado", it, Modifier.padding(top = 16.dp))
+                        }
+                        actionError?.let {
+                            InfoCallout("No se guardó el cambio", it, Modifier.padding(top = 16.dp))
+                        }
                     }
-                    supportMessage?.let {
-                        InfoCallout(
-                            title = "Apoyo solicitado",
-                            body = it,
-                            modifier = Modifier.padding(top = 16.dp),
-                        )
-                    }
-                }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (paused) {
-                        Button(
-                            onClick = { paused = false },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Continuar") }
-                    } else {
-                        RutinaGoOutlinedButton(
-                            onClick = { showHelp = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Necesito ayuda") }
-                        Button(
-                            onClick = {
-                                supportMessage = null
-                                completedSteps++
-                                if (stepIndex < routine.steps.lastIndex) {
-                                    stepIndex++
-                                } else {
-                                    finish(RoutineOutcome.COMPLETED)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Completar paso") }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                        ) {
-                            TextButton(onClick = { paused = true }) { Text("Pausar") }
-                            TextButton(
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (paused) {
+                            Button(onClick = { paused = false }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Continuar")
+                            }
+                        } else {
+                            RutinaGoOutlinedButton(
+                                onClick = { showHelp = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !actionInProgress,
+                            ) { Text("Necesito ayuda") }
+                            Button(
                                 onClick = {
                                     supportMessage = null
-                                    if (stepIndex < routine.steps.lastIndex) {
-                                        stepIndex++
-                                    } else {
-                                        finish(RoutineOutcome.PARTIAL)
-                                    }
+                                    runAction { onCompleteStep(step.position) }
                                 },
-                            ) { Text("Omitir") }
+                                enabled = !actionInProgress,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(if (actionInProgress) "Guardando…" else "Completar paso") }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                            ) {
+                                TextButton(onClick = { paused = true }, enabled = !actionInProgress) {
+                                    Text("Pausar")
+                                }
+                                TextButton(
+                                    onClick = {
+                                        supportMessage = null
+                                        runAction { onSkipStep(step.position) }
+                                    },
+                                    enabled = !actionInProgress,
+                                ) { Text("Omitir") }
+                            }
+                            if (execution.completedSteps + execution.skippedSteps > 0) {
+                                TextButton(
+                                    onClick = { showFinishConfirmation = true },
+                                    enabled = !actionInProgress,
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) { Text("Finalizar por ahora") }
+                            }
                         }
                     }
                 }
             } else {
                 CompletionPanel(
-                    outcome = outcome,
-                    completedSteps = completedSteps,
-                    totalSteps = routine.steps.size,
+                    execution = execution,
                     onClose = onCloseResult,
                     onViewProgress = onViewProgress,
                     modifier = Modifier.weight(1f),
@@ -257,8 +273,23 @@ fun RoutineExecutionScreen(
                     ) { Text("Hacer una pausa") }
                 }
             },
+            confirmButton = { TextButton(onClick = { showHelp = false }) { Text("Volver") } },
+        )
+    }
+
+    if (showFinishConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showFinishConfirmation = false },
+            title = { Text("¿Finalizar por ahora?") },
+            text = { Text("Se guardará como una rutina realizada parcialmente.") },
             confirmButton = {
-                TextButton(onClick = { showHelp = false }) { Text("Volver") }
+                TextButton(onClick = {
+                    showFinishConfirmation = false
+                    runAction(onFinishPartial)
+                }) { Text("Finalizar parcialmente") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFinishConfirmation = false }) { Text("Continuar rutina") }
             },
         )
     }
@@ -267,16 +298,30 @@ fun RoutineExecutionScreen(
         AlertDialog(
             onDismissRequest = { showExitConfirmation = false },
             title = { Text("¿Deseas salir de la rutina?") },
-            text = {
-                Text("Puedes abandonar esta rutina y volver a intentarla cuando quieras.")
-            },
+            text = { Text("El intento se guardará como abandonado. Tu avance real no se perderá.") },
             confirmButton = {
-                TextButton(onClick = onExit) { Text("Salir de la rutina") }
+                TextButton(
+                    enabled = !actionInProgress,
+                    onClick = {
+                        if (actionInProgress) return@TextButton
+                        actionInProgress = true
+                        scope.launch {
+                            runCatching { onAbandon() }
+                                .onSuccess {
+                                    showExitConfirmation = false
+                                    onExit()
+                                }
+                                .onFailure {
+                                    actionError = it.message ?: "No fue posible guardar la salida."
+                                    showExitConfirmation = false
+                                }
+                            actionInProgress = false
+                        }
+                    },
+                ) { Text("Salir de la rutina") }
             },
             dismissButton = {
-                TextButton(onClick = { showExitConfirmation = false }) {
-                    Text("Continuar rutina")
-                }
+                TextButton(onClick = { showExitConfirmation = false }) { Text("Continuar rutina") }
             },
         )
     }
@@ -284,53 +329,40 @@ fun RoutineExecutionScreen(
 
 @Composable
 private fun CompletionPanel(
-    outcome: RoutineOutcome,
-    completedSteps: Int,
-    totalSteps: Int,
+    execution: RoutineExecution,
     onClose: () -> Unit,
     onViewProgress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
+        modifier = modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        StatusPill(outcome.label)
+        StatusPill(execution.status.label)
         Text(
-            when (outcome) {
-                RoutineOutcome.COMPLETED -> "Rutina completada"
-                RoutineOutcome.PARTIAL -> "Rutina realizada parcialmente"
-                RoutineOutcome.CANCELLED -> "Rutina cancelada"
+            if (execution.status == ExecutionStatus.COMPLETED) {
+                "Rutina completada"
+            } else {
+                "Rutina realizada parcialmente"
             },
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .semantics { heading() },
+            modifier = Modifier.padding(top = 16.dp).semantics { heading() },
         )
         Text(
-            when (outcome) {
-                RoutineOutcome.COMPLETED -> "$totalSteps de $totalSteps pasos realizados."
-                RoutineOutcome.PARTIAL -> "Completaste $completedSteps de $totalSteps pasos."
-                RoutineOutcome.CANCELLED -> "Puedes volver a intentarla cuando quieras."
-            },
+            "${execution.completedSteps} completados · ${execution.skippedSteps} omitidos · " +
+                "${execution.totalSteps} pasos en total",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp),
         )
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-            Text("Cerrar y volver")
-        }
+        Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Cerrar y volver") }
         RutinaGoOutlinedButton(
             onClick = onViewProgress,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         ) { Text("Ver progreso") }
     }
 }

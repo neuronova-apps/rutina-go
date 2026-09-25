@@ -21,8 +21,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,13 +33,13 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neuronovaapps.rutinago.data.demo.DemoContent
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.data.preferences.UserPreferences
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
-import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.domain.execution.ProfileProgress
+import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.ui.screens.about.AboutScreen
@@ -45,12 +47,10 @@ import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
 import com.neuronovaapps.rutinago.ui.screens.create.UserRoutineEditorScreen
 import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
 import com.neuronovaapps.rutinago.ui.screens.home.HomeScreen
-import com.neuronovaapps.rutinago.ui.screens.home.NowNextScreen
 import com.neuronovaapps.rutinago.ui.screens.progress.ProgressScreen
 import com.neuronovaapps.rutinago.ui.screens.profiles.FirstProfileScreen
 import com.neuronovaapps.rutinago.ui.screens.profiles.ProfilesScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.CatalogRoutineDetailScreen
-import com.neuronovaapps.rutinago.ui.screens.routines.LegacyRoutineDetailScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
 import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
@@ -63,8 +63,16 @@ fun RutinaGoApp(
     preferences: UserPreferences,
     catalogState: CatalogUiState,
     userRoutines: List<UserRoutine>,
+    activeExecution: RoutineExecution?,
+    progress: ProfileProgress,
     onSaveUserRoutine: suspend (UserRoutineDraft) -> UserRoutine,
     onArchiveUserRoutine: suspend (String) -> Unit,
+    onStartExecution: suspend (String) -> RoutineExecution,
+    onLoadExecution: suspend (String) -> RoutineExecution?,
+    onCompleteExecutionStep: suspend (String, Int) -> RoutineExecution,
+    onSkipExecutionStep: suspend (String, Int) -> RoutineExecution,
+    onFinishPartialExecution: suspend (String) -> RoutineExecution,
+    onAbandonExecution: suspend (String) -> RoutineExecution,
     onThemeModeChange: (ThemeMode) -> Unit,
     onTextScaleModeChange: (TextScaleMode) -> Unit,
     onHighContrastChange: (Boolean) -> Unit,
@@ -77,19 +85,14 @@ fun RutinaGoApp(
     var showWelcome by rememberSaveable { mutableStateOf(true) }
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
-    var selectedRoutineId by rememberSaveable { mutableStateOf(DemoContent.routines.first().id) }
     var selectedCatalogRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedUserRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
     var suggestedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
     var executionReturnName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
+    var selectedExecutionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var executionSession by remember { mutableStateOf<RoutineExecution?>(null) }
+    var executionLoadError by rememberSaveable { mutableStateOf<String?>(null) }
     val destination = AppDestination.valueOf(destinationName)
-    val selectedRoutine = (DemoContent.routines + DemoContent.templates)
-        .firstOrNull { it.id == selectedRoutineId }
-        ?: DemoContent.routines.first()
-
-    fun selectRoutine(routine: Routine) {
-        selectedRoutineId = routine.id
-    }
 
     fun navigateTo(target: AppDestination) {
         if (destination.isMain) previousMainName = destination.name
@@ -102,8 +105,20 @@ fun RutinaGoApp(
         suggestedTemplateId = if (target == AppDestination.CREATE) templateId else null
     }
 
-    fun startExecution(routine: Routine) {
-        selectRoutine(routine)
+    suspend fun startExecution(routineId: String) {
+        val started = onStartExecution(routineId)
+        executionSession = started
+        selectedExecutionId = started.id
+        executionLoadError = null
+        executionReturnName = destination.name
+        destinationName = AppDestination.EXECUTION.name
+    }
+
+    fun resumeExecution() {
+        val pending = activeExecution ?: return
+        executionSession = pending
+        selectedExecutionId = pending.id
+        executionLoadError = null
         executionReturnName = destination.name
         destinationName = AppDestination.EXECUTION.name
     }
@@ -114,6 +129,25 @@ fun RutinaGoApp(
             ?: AppDestination.HOME
         destinationName = safeDestination.name
         if (safeDestination.isMain) previousMainName = safeDestination.name
+        executionSession = null
+        selectedExecutionId = null
+        executionLoadError = null
+    }
+
+    LaunchedEffect(destination, selectedExecutionId) {
+        val executionId = selectedExecutionId
+        if (destination == AppDestination.EXECUTION && executionId != null &&
+            executionSession?.id != executionId
+        ) {
+            runCatching { onLoadExecution(executionId) }
+                .onSuccess { loaded ->
+                    executionSession = loaded
+                    executionLoadError = if (loaded == null) "No se encontró la ejecución guardada." else null
+                }
+                .onFailure {
+                    executionLoadError = it.message ?: "No fue posible recuperar la ejecución."
+                }
+        }
     }
 
     if (showWelcome) {
@@ -135,12 +169,39 @@ fun RutinaGoApp(
     val activeProfileName = preferences.activeProfile?.name.orEmpty()
 
     if (destination == AppDestination.EXECUTION) {
-        RoutineExecutionScreen(
-            routine = selectedRoutine,
-            onExit = ::returnFromExecution,
-            onCloseResult = ::returnFromExecution,
-            onViewProgress = { navigateMain(AppDestination.PROGRESS) },
-        )
+        val currentExecution = executionSession
+        if (currentExecution == null) {
+            ScreenColumn {
+                if (executionLoadError == null) {
+                    Text("Recuperando la rutina…")
+                } else {
+                    EmptyState(
+                        title = "No se pudo recuperar la rutina",
+                        body = executionLoadError.orEmpty(),
+                        actionLabel = "Volver",
+                        onAction = ::returnFromExecution,
+                    )
+                }
+            }
+        } else {
+            RoutineExecutionScreen(
+                execution = currentExecution,
+                onCompleteStep = { position ->
+                    onCompleteExecutionStep(currentExecution.id, position)
+                },
+                onSkipStep = { position -> onSkipExecutionStep(currentExecution.id, position) },
+                onFinishPartial = { onFinishPartialExecution(currentExecution.id) },
+                onAbandon = { onAbandonExecution(currentExecution.id) },
+                onExecutionChanged = { executionSession = it },
+                onExit = ::returnFromExecution,
+                onCloseResult = ::returnFromExecution,
+                onViewProgress = {
+                    executionSession = null
+                    selectedExecutionId = null
+                    navigateMain(AppDestination.PROGRESS)
+                },
+            )
+        }
         return
     }
 
@@ -217,16 +278,10 @@ fun RutinaGoApp(
             when (destination) {
                 AppDestination.HOME -> HomeScreen(
                     activeProfileName = activeProfileName,
-                    appMode = preferences.appMode,
-                    onViewNowNext = { navigateTo(AppDestination.NOW_NEXT) },
-                    onOpenRoutine = { routine ->
-                        selectRoutine(routine)
-                        selectedCatalogRoutineId = null
-                        navigateTo(AppDestination.ROUTINE_DETAIL)
-                    },
-                    onStartRoutine = { routine ->
-                        startExecution(routine)
-                    },
+                    activeExecution = activeExecution,
+                    progress = progress,
+                    onResumeExecution = ::resumeExecution,
+                    onOpenRoutines = { navigateMain(AppDestination.ROUTINES) },
                     onCreateRoutine = { navigateMain(AppDestination.CREATE) },
                 )
 
@@ -235,6 +290,7 @@ fun RutinaGoApp(
                     catalogState = catalogState,
                     activeProfileName = activeProfileName,
                     userRoutines = userRoutines,
+                    activeExecution = activeExecution,
                     onOpenRoutine = { routineId ->
                         selectedCatalogRoutineId = routineId
                         navigateTo(AppDestination.ROUTINE_DETAIL)
@@ -246,6 +302,8 @@ fun RutinaGoApp(
                         selectedUserRoutineId = routineId
                         navigateTo(AppDestination.USER_ROUTINE_EDIT)
                     },
+                    onStartUserRoutine = ::startExecution,
+                    onResumeExecution = ::resumeExecution,
                     onArchiveUserRoutine = onArchiveUserRoutine,
                 )
 
@@ -259,7 +317,7 @@ fun RutinaGoApp(
 
                 AppDestination.PROGRESS -> ProgressScreen(
                     activeProfileName = activeProfileName,
-                    appMode = preferences.appMode,
+                    progress = progress,
                 )
 
                 AppDestination.SETTINGS -> SettingsScreen(
@@ -282,33 +340,20 @@ fun RutinaGoApp(
                     onCreateProfile = onCreateProfile,
                     onRenameProfile = onRenameProfile,
                     onSelectProfile = onSelectProfile,
+                    profileSwitchingEnabled = activeExecution == null,
                 )
 
                 AppDestination.ABOUT -> AboutScreen()
 
-                AppDestination.NOW_NEXT -> NowNextScreen(
-                    onStartRoutine = {
-                        startExecution(DemoContent.routines.first())
-                    },
-                )
-
                 AppDestination.ROUTINE_DETAIL -> {
-                    if (selectedCatalogRoutineId != null) {
-                        CatalogRoutineDetailScreen(
-                            catalogState = catalogState,
-                            routineId = selectedCatalogRoutineId,
-                            appMode = preferences.appMode,
-                            onUseTemplate = { routineId ->
-                                navigateMain(AppDestination.CREATE, routineId)
-                            },
-                        )
-                    } else {
-                        LegacyRoutineDetailScreen(
-                            routine = selectedRoutine,
-                            onStart = { startExecution(selectedRoutine) },
-                            onUseTemplate = { navigateMain(AppDestination.CREATE) },
-                        )
-                    }
+                    CatalogRoutineDetailScreen(
+                        catalogState = catalogState,
+                        routineId = selectedCatalogRoutineId,
+                        appMode = preferences.appMode,
+                        onUseTemplate = { routineId ->
+                            navigateMain(AppDestination.CREATE, routineId)
+                        },
+                    )
                 }
 
                 AppDestination.USER_ROUTINE_EDIT -> {
@@ -372,7 +417,7 @@ private fun AppHeader(
                 Text(
                     when (destination) {
                         AppDestination.HOME -> "NeuroNova Apps"
-                        AppDestination.PROGRESS -> "Perfil $activeProfileName · datos demo"
+                        AppDestination.PROGRESS -> "Perfil $activeProfileName · datos guardados"
                         AppDestination.SETTINGS -> "Preferencias guardadas en este dispositivo"
                         AppDestination.ABOUT -> "Información de la aplicación"
                         else -> "RutinaGo"

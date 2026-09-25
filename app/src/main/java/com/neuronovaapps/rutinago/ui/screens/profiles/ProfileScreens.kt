@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.preferences.UserProfile
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
+import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 
 @Composable
@@ -100,6 +101,7 @@ fun ProfilesScreen(
     onCreateProfile: (String) -> Unit,
     onRenameProfile: (String, String) -> Unit,
     onSelectProfile: (String) -> Unit,
+    profileSwitchingEnabled: Boolean = true,
 ) {
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var showCreate by rememberSaveable { mutableStateOf(false) }
@@ -111,10 +113,17 @@ fun ProfilesScreen(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (!profileSwitchingEnabled) {
+            InfoCallout(
+                title = "Hay una rutina en curso",
+                body = "Reanúdala y finalízala o sal de ella antes de cambiar de perfil.",
+            )
+        }
         profiles.forEach { profile ->
             val active = profile.id == activeProfileId
             Card(
                 onClick = { onSelectProfile(profile.id) },
+                enabled = active || profileSwitchingEnabled,
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = if (active) {

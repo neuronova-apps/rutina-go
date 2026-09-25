@@ -16,81 +16,86 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neuronovaapps.rutinago.data.demo.DemoContent
-import com.neuronovaapps.rutinago.data.preferences.AppMode
-import com.neuronovaapps.rutinago.domain.model.RoutineOutcome
+import com.neuronovaapps.rutinago.domain.execution.ExecutionStatus
+import com.neuronovaapps.rutinago.domain.execution.ProfileProgress
+import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
+import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
-import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.components.StatusPill
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
-fun ProgressScreen(activeProfileName: String, appMode: AppMode) {
+fun ProgressScreen(activeProfileName: String, progress: ProfileProgress) {
     ScreenColumn {
         InfoCallout(
             title = "Progreso de $activeProfileName",
-            body = "Este resumen usa datos demostrativos y todavía no representa actividad real guardada.",
+            body = "Este resumen se calcula con las ejecuciones guardadas en este perfil.",
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ProgressStat("12", "Realizadas", Modifier.weight(1f))
-            ProgressStat("3", "Parciales", Modifier.weight(1f))
-            ProgressStat("1", "Cancelada", Modifier.weight(1f))
+            ProgressStat(progress.completedRoutines.toString(), "Completadas", Modifier.weight(1f))
+            ProgressStat(progress.partialRoutines.toString(), "Parciales", Modifier.weight(1f))
+            ProgressStat(progress.completedActivities.toString(), "Actividades", Modifier.weight(1f))
         }
 
         SectionHeading("Historial")
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 14.dp)) {
-                DemoContent.history.forEachIndexed { index, record ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(record.routineTitle, style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                record.whenLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        StatusPill(record.outcome.label)
+        if (progress.history.isEmpty()) {
+            EmptyState(
+                title = "Aún no hay rutinas realizadas",
+                body = "Cuando inicies una rutina personal, su resultado aparecerá aquí.",
+            )
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 14.dp)) {
+                    progress.history.forEachIndexed { index, execution ->
+                        HistoryRow(execution)
+                        if (index < progress.history.lastIndex) HorizontalDivider()
                     }
-                    if (index < DemoContent.history.lastIndex) HorizontalDivider()
                 }
             }
         }
+    }
+}
 
-        if (appMode == AppMode.ADVANCED) {
-            SectionHeading("Logros y retos")
+@Composable
+private fun HistoryRow(execution: RoutineExecution) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(execution.routineName, style = MaterialTheme.typography.titleSmall)
             Text(
-                "Opcionales, individuales y sin rankings ni comparación.",
-                style = MaterialTheme.typography.bodyMedium,
+                formatDate(execution.finishedAtEpochMillis ?: execution.startedAtEpochMillis),
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            AchievementCard(
-                label = "LOGRO DEMO",
-                title = "Primera mañana",
-                detail = "Ejemplo de progreso individual",
-            )
-            AchievementCard(
-                label = "RETO VOLUNTARIO DEMO",
-                title = "Tres mañanas organizadas",
-                detail = "Disponible solo si la gamificación está activa",
-                hasAction = true,
+            Text(
+                "${execution.completedSteps} completados · ${execution.skippedSteps} omitidos · " +
+                    "${execution.totalSteps} en total",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        StatusPill(
+            when (execution.status) {
+                ExecutionStatus.IN_PROGRESS -> "En curso"
+                ExecutionStatus.COMPLETED -> "Completada"
+                ExecutionStatus.PARTIAL -> "Parcial"
+                ExecutionStatus.ABANDONED -> "Abandonada"
+            },
+        )
     }
 }
 
@@ -102,9 +107,7 @@ private fun ProgressStat(value: String, label: String, modifier: Modifier = Modi
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 14.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(value, style = MaterialTheme.typography.headlineSmall)
@@ -118,32 +121,5 @@ private fun ProgressStat(value: String, label: String, modifier: Modifier = Modi
     }
 }
 
-@Composable
-private fun AchievementCard(
-    label: String,
-    title: String,
-    detail: String,
-    hasAction: Boolean = false,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                detail,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (hasAction) {
-                RutinaGoOutlinedButton(onClick = {}) { Text("Activar reto") }
-            }
-        }
-    }
-}
+private fun formatDate(epochMillis: Long): String =
+    DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(epochMillis))

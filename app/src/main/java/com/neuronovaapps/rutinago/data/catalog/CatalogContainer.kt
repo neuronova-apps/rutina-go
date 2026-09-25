@@ -7,10 +7,12 @@ import com.neuronovaapps.rutinago.data.catalog.local.RutinaGoDatabase
 import com.neuronovaapps.rutinago.data.catalog.repository.CatalogImportStateRepository
 import com.neuronovaapps.rutinago.data.catalog.repository.RoomCatalogRepository
 import com.neuronovaapps.rutinago.data.user.repository.RoomUserRoutineRepository
+import com.neuronovaapps.rutinago.data.execution.repository.RoomRoutineExecutionRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.catalog.observeCatalogUiState
 import com.neuronovaapps.rutinago.domain.user.UserRoutineRepository
+import com.neuronovaapps.rutinago.domain.execution.RoutineExecutionRepository
 import kotlinx.coroutines.flow.Flow
 
 class CatalogContainer(context: Context) {
@@ -21,6 +23,7 @@ class CatalogContainer(context: Context) {
     )
     val repository: CatalogRepository = RoomCatalogRepository(database.catalogReadDao())
     val userRoutines: UserRoutineRepository = RoomUserRoutineRepository(database)
+    val executions: RoutineExecutionRepository = RoomRoutineExecutionRepository(database)
     val importState = CatalogImportStateRepository(
         database.catalogImportMetadataDao(),
         PACKAGED_CATALOG_VERSION,

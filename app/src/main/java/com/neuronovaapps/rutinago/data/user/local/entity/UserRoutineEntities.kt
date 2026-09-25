@@ -76,3 +76,11 @@ data class UserRoutineWithSteps(
     )
     val steps: List<UserRoutineStepEntity>,
 )
+
+data class UserRoutineExecutionStep(
+    @ColumnInfo(name = "position") val position: Int,
+    @ColumnInfo(name = "activity_id") val activityId: String,
+    @ColumnInfo(name = "activity_name") val activityName: String,
+    @ColumnInfo(name = "instruction") val instruction: String,
+    @ColumnInfo(name = "visual_reference") val visualReference: String?,
+)

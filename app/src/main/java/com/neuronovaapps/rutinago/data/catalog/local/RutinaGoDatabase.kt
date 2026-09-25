@@ -22,6 +22,9 @@ import com.neuronovaapps.rutinago.data.catalog.local.entity.CatalogRoutineEntity
 import com.neuronovaapps.rutinago.data.catalog.local.entity.CatalogRoutineStepEntity
 import com.neuronovaapps.rutinago.data.catalog.local.entity.CatalogVisualReferenceEntity
 import com.neuronovaapps.rutinago.data.user.local.dao.UserRoutineDao
+import com.neuronovaapps.rutinago.data.execution.local.dao.RoutineExecutionDao
+import com.neuronovaapps.rutinago.data.execution.local.entity.ExecutionStepEntity
+import com.neuronovaapps.rutinago.data.execution.local.entity.RoutineExecutionEntity
 import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineEntity
 import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineStepEntity
 
@@ -40,8 +43,10 @@ import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineStepEntity
         CatalogImportMetadataEntity::class,
         UserRoutineEntity::class,
         UserRoutineStepEntity::class,
+        RoutineExecutionEntity::class,
+        ExecutionStepEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(CatalogDatabaseConverters::class)
@@ -53,6 +58,8 @@ abstract class RutinaGoDatabase : RoomDatabase() {
     abstract fun catalogImportMetadataDao(): CatalogImportMetadataDao
 
     abstract fun userRoutineDao(): UserRoutineDao
+
+    abstract fun routineExecutionDao(): RoutineExecutionDao
 
     companion object {
         const val DATABASE_NAME = "rutinago_catalog.db"
@@ -66,7 +73,7 @@ abstract class RutinaGoDatabase : RoomDatabase() {
                     context.applicationContext,
                     RutinaGoDatabase::class.java,
                     DATABASE_NAME,
-                ).addMigrations(MIGRATION_1_2)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build().also { instance = it }
             }
 
@@ -108,6 +115,56 @@ abstract class RutinaGoDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_user_routine_steps_activity_id` " +
                         "ON `user_routine_steps` (`activity_id`)",
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `routine_executions` (" +
+                        "`execution_id` TEXT NOT NULL, " +
+                        "`profile_id` TEXT NOT NULL, " +
+                        "`user_routine_id` TEXT NOT NULL, " +
+                        "`routine_name` TEXT NOT NULL, " +
+                        "`started_at_epoch_millis` INTEGER NOT NULL, " +
+                        "`finished_at_epoch_millis` INTEGER, " +
+                        "`status` TEXT NOT NULL, " +
+                        "`total_steps` INTEGER NOT NULL, " +
+                        "`completed_steps` INTEGER NOT NULL, " +
+                        "`skipped_steps` INTEGER NOT NULL, " +
+                        "`current_step_position` INTEGER, " +
+                        "PRIMARY KEY(`execution_id`))",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_routine_executions_profile_id_status` " +
+                        "ON `routine_executions` (`profile_id`, `status`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_routine_executions_profile_id_started_at_epoch_millis` " +
+                        "ON `routine_executions` (`profile_id`, `started_at_epoch_millis`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_routine_executions_user_routine_id` " +
+                        "ON `routine_executions` (`user_routine_id`)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `execution_steps` (" +
+                        "`execution_id` TEXT NOT NULL, " +
+                        "`position` INTEGER NOT NULL, " +
+                        "`activity_id` TEXT NOT NULL, " +
+                        "`activity_name` TEXT NOT NULL, " +
+                        "`instruction` TEXT NOT NULL, " +
+                        "`visual_reference` TEXT, " +
+                        "`status` TEXT NOT NULL, " +
+                        "`performed_at_epoch_millis` INTEGER, " +
+                        "PRIMARY KEY(`execution_id`, `position`), " +
+                        "FOREIGN KEY(`execution_id`) REFERENCES `routine_executions`" +
+                        "(`execution_id`) ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_execution_steps_activity_id` " +
+                        "ON `execution_steps` (`activity_id`)",
                 )
             }
         }

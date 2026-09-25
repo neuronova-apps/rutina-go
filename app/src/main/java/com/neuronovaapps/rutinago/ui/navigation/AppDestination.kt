@@ -13,7 +13,6 @@ enum class AppDestination(
     SETTINGS("Configuración", "Configuración", "⚙", true),
     PROFILES("Gestionar perfiles"),
     ABOUT("Acerca de RutinaGo"),
-    NOW_NEXT("Ahora / Después"),
     ROUTINE_DETAIL("Detalle de rutina"),
     USER_ROUTINE_EDIT("Editar rutina"),
     EXECUTION("Ejecución"),

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
@@ -39,7 +40,7 @@ import com.neuronovaapps.rutinago.domain.catalog.CatalogStepActivity
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.catalog.catalogVariant
 import com.neuronovaapps.rutinago.domain.catalog.routinesFor
-import com.neuronovaapps.rutinago.domain.model.Routine
+import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
@@ -55,9 +56,12 @@ fun RoutinesScreen(
     catalogState: CatalogUiState,
     activeProfileName: String,
     userRoutines: List<UserRoutine>,
+    activeExecution: RoutineExecution?,
     onOpenRoutine: (String) -> Unit,
     onUseTemplate: (String) -> Unit,
     onEditUserRoutine: (String) -> Unit,
+    onStartUserRoutine: suspend (String) -> Unit,
+    onResumeExecution: () -> Unit,
     onArchiveUserRoutine: suspend (String) -> Unit,
 ) {
     when (catalogState) {
@@ -68,9 +72,12 @@ fun RoutinesScreen(
             catalog = catalogState.catalog,
             activeProfileName = activeProfileName,
             userRoutines = userRoutines,
+            activeExecution = activeExecution,
             onOpenRoutine = onOpenRoutine,
             onUseTemplate = onUseTemplate,
             onEditUserRoutine = onEditUserRoutine,
+            onStartUserRoutine = onStartUserRoutine,
+            onResumeExecution = onResumeExecution,
             onArchiveUserRoutine = onArchiveUserRoutine,
         )
     }
@@ -82,9 +89,12 @@ private fun RoutinesCatalog(
     catalog: CatalogSnapshot,
     activeProfileName: String,
     userRoutines: List<UserRoutine>,
+    activeExecution: RoutineExecution?,
     onOpenRoutine: (String) -> Unit,
     onUseTemplate: (String) -> Unit,
     onEditUserRoutine: (String) -> Unit,
+    onStartUserRoutine: suspend (String) -> Unit,
+    onResumeExecution: () -> Unit,
     onArchiveUserRoutine: suspend (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -93,6 +103,8 @@ private fun RoutinesCatalog(
     var archiveId by rememberSaveable { mutableStateOf<String?>(null) }
     var archiveError by rememberSaveable { mutableStateOf<String?>(null) }
     var archivedName by rememberSaveable { mutableStateOf<String?>(null) }
+    var startError by rememberSaveable { mutableStateOf<String?>(null) }
+    var startingId by rememberSaveable { mutableStateOf<String?>(null) }
     val routines = catalog.routinesFor(query, category)
     val variant = appMode.catalogVariant()
 
@@ -115,7 +127,34 @@ private fun RoutinesCatalog(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        if (activeExecution != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    ),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("RUTINA EN CURSO", style = MaterialTheme.typography.labelSmall)
+                        Text(activeExecution.routineName, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "${activeExecution.completedSteps} completados · " +
+                                "${activeExecution.skippedSteps} omitidos",
+                        )
+                        Button(onClick = onResumeExecution, modifier = Modifier.fillMaxWidth()) {
+                            Text("Reanudar rutina")
+                        }
+                    }
+                }
+            }
+        }
         archiveError?.let { message -> item { InfoCallout("No se pudo archivar", message) } }
+        startError?.let { message -> item { InfoCallout("No se pudo iniciar", message) } }
         archivedName?.let { name -> item { InfoCallout("Rutina archivada", "$name dejó de aparecer en Mis rutinas.") } }
         if (userRoutines.isEmpty()) {
             item {
@@ -129,8 +168,20 @@ private fun RoutinesCatalog(
                 UserRoutineCard(
                     routine = routine,
                     catalog = catalog,
+                    startEnabled = activeExecution == null && startingId == null,
                     onEdit = { onEditUserRoutine(routine.id) },
                     onArchive = { archiveId = routine.id },
+                    onStart = {
+                        startError = null
+                        startingId = routine.id
+                        scope.launch {
+                            runCatching { onStartUserRoutine(routine.id) }
+                                .onFailure {
+                                    startError = it.message ?: "No fue posible iniciar la rutina."
+                                }
+                            startingId = null
+                        }
+                    },
                 )
             }
         }
@@ -216,8 +267,10 @@ private fun RoutinesCatalog(
 private fun UserRoutineCard(
     routine: UserRoutine,
     catalog: CatalogSnapshot,
+    startEnabled: Boolean,
     onEdit: () -> Unit,
     onArchive: () -> Unit,
+    onStart: () -> Unit,
 ) {
     Card(
         onClick = onEdit,
@@ -237,6 +290,9 @@ private fun UserRoutineCard(
                     .take(3).joinToString(" → "),
                 style = MaterialTheme.typography.bodySmall,
             )
+            Button(onClick = onStart, enabled = startEnabled, modifier = Modifier.fillMaxWidth()) {
+                Text("Iniciar rutina")
+            }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 RutinaGoOutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
                     Text("Editar")
@@ -470,45 +526,5 @@ private fun CatalogLoading(message: String) {
 private fun CatalogError(message: String) {
     ScreenColumn {
         EmptyState(title = "No se pudo cargar el catálogo", body = message)
-    }
-}
-
-@Composable
-fun LegacyRoutineDetailScreen(
-    routine: Routine,
-    onStart: () -> Unit,
-    onUseTemplate: () -> Unit,
-) {
-    ScreenColumn {
-        StatusPill(if (routine.isTemplate) "Plantilla demo" else "Rutina demo")
-        Text(
-            routine.title,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.semantics { heading() },
-        )
-        routine.steps.forEachIndexed { index, step ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text("${index + 1}", style = MaterialTheme.typography.titleMedium)
-                    VisualPlaceholder(step.visualLabel, size = 56.dp)
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(step.title, style = MaterialTheme.typography.titleMedium)
-                        Text(step.instruction, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            }
-        }
-        TextButton(onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text("Iniciar rutina demo") }
-        RutinaGoOutlinedButton(onClick = onUseTemplate, modifier = Modifier.fillMaxWidth()) {
-            Text("Explorar plantillas maestras")
-        }
     }
 }

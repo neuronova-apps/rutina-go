@@ -7,7 +7,11 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import com.neuronovaapps.rutinago.data.demo.DemoContent
+import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -18,78 +22,83 @@ class RoutineExecutionNavigationTest {
 
     @Test
     fun exitConfirmationCanContinueAtSameStepAndExitWithoutResult() {
-        startRoutineFromHome()
+        startPersonalRoutine()
         composeRule.onNodeWithText("Completar paso").performClick()
-        composeRule.onNodeWithText("Paso 2 de ${DemoContent.routines.first().steps.size}").assertIsDisplayed()
+        composeRule.onNodeWithText("Paso 2 de 2").assertIsDisplayed()
 
         composeRule.onNodeWithText("Salir").performClick()
         composeRule.onNodeWithText("¿Deseas salir de la rutina?").assertIsDisplayed()
         composeRule.onNodeWithText("Continuar rutina").performClick()
-        composeRule.onNodeWithText("Paso 2 de ${DemoContent.routines.first().steps.size}").assertIsDisplayed()
+        composeRule.onNodeWithText("Paso 2 de 2").assertIsDisplayed()
 
         composeRule.onNodeWithText("Salir").performClick()
         composeRule.onNodeWithText("Salir de la rutina").performClick()
-        composeRule.onNodeWithText("Hoy · Lunes").assertIsDisplayed()
-        assertNoResultPanel()
-    }
-
-    @Test
-    fun systemBackShowsConfirmationAndASecondBackDismissesIt() {
-        startRoutineFromHome()
-        pressSystemBack()
-        composeRule.onNodeWithText("¿Deseas salir de la rutina?").assertIsDisplayed()
-
-        pressSystemBack()
-        composeRule.onNodeWithText("Paso 1 de ${DemoContent.routines.first().steps.size}").assertIsDisplayed()
-        composeRule.onNodeWithText("Salir").assertIsDisplayed()
-    }
-
-    @Test
-    fun completingAllStepsShowsCompletedResultAndClosesToOrigin() {
-        startRoutineFromHome()
-        repeat(DemoContent.routines.first().steps.size) {
-            composeRule.onNodeWithText("Completar paso").performClick()
-        }
-
-        composeRule.onNodeWithText("Rutina completada").assertIsDisplayed()
-        composeRule.onNodeWithText(
-            "${DemoContent.routines.first().steps.size} de ${DemoContent.routines.first().steps.size} pasos realizados.",
-        ).assertIsDisplayed()
-        composeRule.onNodeWithText("Cerrar y volver").performClick()
-        composeRule.onNodeWithText("Hoy · Lunes").assertIsDisplayed()
-    }
-
-    @Test
-    fun exitingRoutineStartedFromRoutinesReturnsToRoutines() {
-        startAndEnsureProfile()
-        composeRule.onNodeWithText("Rutinas").performClick()
-        composeRule.onAllNodesWithText("Iniciar").onFirst().performClick()
-        composeRule.onNodeWithText("Salir").performClick()
-        composeRule.onNodeWithText("Salir de la rutina").performClick()
-
         composeRule.onNodeWithText("Mis rutinas").assertIsDisplayed()
         assertNoResultPanel()
     }
 
     @Test
-    fun explicitPartialCompletionUsesRespectfulDistinctResult() {
-        startRoutineFromHome()
-        repeat(DemoContent.routines.first().steps.size) {
-            composeRule.onNodeWithText("Omitir").performClick()
-        }
+    fun systemBackShowsConfirmationAndASecondBackDismissesIt() {
+        startPersonalRoutine()
+        pressSystemBack()
+        composeRule.onNodeWithText("¿Deseas salir de la rutina?").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Rutina realizada parcialmente").assertIsDisplayed()
-        composeRule.onNodeWithText(
-            "Completaste 0 de ${DemoContent.routines.first().steps.size} pasos.",
-        ).assertIsDisplayed()
-        composeRule.onNodeWithText("Cerrar y volver").performClick()
-        composeRule.onNodeWithText("Hoy · Lunes").assertIsDisplayed()
+        pressSystemBack()
+        composeRule.onNodeWithText("Paso 1 de 2").assertIsDisplayed()
+        composeRule.onNodeWithText("Salir").assertIsDisplayed()
     }
 
-    private fun startRoutineFromHome() {
+    @Test
+    fun completingAllStepsShowsRealCompletedResultAndClosesToOrigin() {
+        startPersonalRoutine()
+        repeat(2) { composeRule.onNodeWithText("Completar paso").performClick() }
+
+        composeRule.onNodeWithText("Rutina completada").assertIsDisplayed()
+        composeRule.onNodeWithText("2 completados · 0 omitidos · 2 pasos en total").assertIsDisplayed()
+        composeRule.onNodeWithText("Cerrar y volver").performClick()
+        composeRule.onNodeWithText("Mis rutinas").assertIsDisplayed()
+    }
+
+    @Test
+    fun omittedStepsProduceRespectfulPartialResult() {
+        startPersonalRoutine()
+        repeat(2) { composeRule.onNodeWithText("Omitir").performClick() }
+
+        composeRule.onNodeWithText("Rutina realizada parcialmente").assertIsDisplayed()
+        composeRule.onNodeWithText("0 completados · 2 omitidos · 2 pasos en total").assertIsDisplayed()
+    }
+
+    private fun startPersonalRoutine() {
         startAndEnsureProfile()
-        composeRule.onNodeWithText("Iniciar rutina").performClick()
-        composeRule.onNodeWithText("Paso 1 de ${DemoContent.routines.first().steps.size}").assertIsDisplayed()
+        val application = composeRule.activity.application as RutinaGoApplication
+        val preferencesRepository = UserPreferencesRepository(composeRule.activity)
+        runBlocking {
+            application.catalogContainer.importer.importIfNeeded()
+            val profileId = requireNotNull(preferencesRepository.preferences.first().activeProfile?.id)
+            application.catalogContainer.executions.activeExecution(profileId).first()?.let {
+                application.catalogContainer.executions.abandon(profileId, it.id)
+            }
+            application.catalogContainer.userRoutines.save(
+                profileId,
+                UserRoutineDraft(
+                    id = TEST_ROUTINE_ID,
+                    sourceTemplateId = null,
+                    name = "Rutina de prueba real",
+                    steps = listOf(
+                        UserRoutineDraftStep("ACT-001", "Haz la primera actividad"),
+                        UserRoutineDraftStep("ACT-002", "Haz la segunda actividad"),
+                    ),
+                ),
+            )
+        }
+        composeRule.onNodeWithText("Rutinas").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Rutina de prueba real").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onAllNodesWithText("Iniciar rutina").onFirst().performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Paso 1 de 2").fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun startAndEnsureProfile() {
@@ -100,7 +109,7 @@ class RoutineExecutionNavigationTest {
             composeRule.onNodeWithText("Continuar").performClick()
         }
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("Hoy · Lunes").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Perfil activo").fetchSemanticsNodes().isNotEmpty()
         }
     }
 
@@ -116,6 +125,9 @@ class RoutineExecutionNavigationTest {
         assertTrue(
             composeRule.onAllNodesWithText("Rutina realizada parcialmente").fetchSemanticsNodes().isEmpty(),
         )
-        assertTrue(composeRule.onAllNodesWithText("Rutina cancelada").fetchSemanticsNodes().isEmpty())
+    }
+
+    private companion object {
+        const val TEST_ROUTINE_ID = "navigation-real-routine"
     }
 }

@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineEntity
+import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineExecutionStep
 import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineStepEntity
 import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineWithSteps
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,17 @@ interface UserRoutineDao {
 
     @Query("SELECT profile_id FROM user_routines WHERE user_routine_id = :routineId")
     suspend fun getOwnerProfileId(routineId: String): String?
+
+    @Query(
+        "SELECT s.position AS position, s.activity_id AS activity_id, " +
+            "a.name AS activity_name, " +
+            "COALESCE(s.custom_instruction, a.simple_instruction) AS instruction, " +
+            "s.future_visual_reference AS visual_reference " +
+            "FROM user_routine_steps s " +
+            "INNER JOIN catalog_activities a ON a.activity_id = s.activity_id " +
+            "WHERE s.user_routine_id = :routineId ORDER BY s.position",
+    )
+    suspend fun getExecutionSteps(routineId: String): List<UserRoutineExecutionStep>
 
     @Query("SELECT activity_id FROM catalog_activities WHERE activity_id IN (:activityIds)")
     suspend fun getExistingActivityIds(activityIds: List<String>): List<String>
