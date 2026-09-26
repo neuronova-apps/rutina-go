@@ -56,8 +56,7 @@ class CreateNavigationTest {
 
         composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Despertarse"))
         composeRule.onNodeWithText("Despertarse").performClick()
-        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Guardar rutina"))
-        composeRule.onNodeWithText("Guardar rutina").performClick()
+        composeRule.onNodeWithText("Guardar rutina").assertIsDisplayed().performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("Rutina guardada").fetchSemanticsNodes().isNotEmpty()
         }

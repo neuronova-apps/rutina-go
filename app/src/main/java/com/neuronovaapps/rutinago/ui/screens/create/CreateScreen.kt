@@ -4,9 +4,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -18,11 +23,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -30,7 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.catalog.local.entity.RoutineVariant
 import com.neuronovaapps.rutinago.data.preferences.AppMode
@@ -49,6 +61,7 @@ import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 
 private enum class CreatePage { LANDING, ORIGIN, TEMPLATE_LIST, TEMPLATE_EDITOR, SCRATCH_EDITOR }
@@ -218,6 +231,7 @@ private fun RoutineDraftEditor(
     initialInstructions: Map<String, String?> = emptyMap(),
 ) {
     val scope = rememberCoroutineScope()
+    val saveRequestInFlight = remember(draftKey) { AtomicBoolean(false) }
     var draftId by rememberSaveable(draftKey) {
         mutableStateOf(existingRoutineId ?: UUID.randomUUID().toString())
     }
@@ -256,14 +270,68 @@ private fun RoutineDraftEditor(
         errorMessage = null
     }
 
+    fun saveRoutine() {
+        if (!saveRequestInFlight.compareAndSet(false, true)) return
+        saving = true
+        errorMessage = null
+        scope.launch {
+            try {
+                runCatching {
+                    onSaveRoutine(
+                        UserRoutineDraft(
+                            id = draftId,
+                            sourceTemplateId = sourceTemplateId,
+                            name = routineName,
+                            steps = selectedIds.map { activityId ->
+                                UserRoutineDraftStep(
+                                    activityId = activityId,
+                                    customInstruction = initialInstructions[activityId],
+                                )
+                            },
+                        ),
+                    )
+                }.onSuccess { stored ->
+                    draftId = stored.id
+                    baselineName = stored.name
+                    baselineIds = stored.steps.sortedBy { it.position }.map { it.activityId }
+                    saved = true
+                }.onFailure { error ->
+                    errorMessage = error.message ?: "No fue posible completar la transacción."
+                }
+            } finally {
+                saving = false
+                saveRequestInFlight.set(false)
+            }
+        }
+    }
+
     BackHandler { requestBack() }
 
-    LazyColumn(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
+            .imePadding(),
+        bottomBar = {
+            RoutineSaveActionBar(
+                saving = saving,
+                enabled = routineName.isNotBlank() && selectedIds.isNotEmpty(),
+                onSave = ::saveRoutine,
+            )
+        },
+    ) { editorPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(editorPadding)
+                .consumeWindowInsets(editorPadding),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                top = 18.dp,
+                end = 16.dp,
+                bottom = 24.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
         item { TextButton(onClick = ::requestBack) { Text(backLabel) } }
         item {
             Text(
@@ -381,42 +449,6 @@ private fun RoutineDraftEditor(
                 }
             }
         }
-        item {
-            Button(
-                onClick = {
-                    saving = true
-                    errorMessage = null
-                    scope.launch {
-                        runCatching {
-                            onSaveRoutine(
-                                UserRoutineDraft(
-                                    id = draftId,
-                                    sourceTemplateId = sourceTemplateId,
-                                    name = routineName,
-                                    steps = selectedIds.map { activityId ->
-                                        UserRoutineDraftStep(
-                                            activityId = activityId,
-                                            customInstruction = initialInstructions[activityId],
-                                        )
-                                    },
-                                ),
-                            )
-                        }.onSuccess { stored ->
-                            draftId = stored.id
-                            baselineName = stored.name
-                            baselineIds = stored.steps.sortedBy { it.position }.map { it.activityId }
-                            saved = true
-                        }.onFailure { error ->
-                            errorMessage = error.message ?: "No fue posible completar la transacción."
-                        }
-                        saving = false
-                    }
-                },
-                enabled = !saving && routineName.isNotBlank() && selectedIds.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(if (saving) "Guardando…" else "Guardar rutina")
-            }
         }
     }
 
@@ -435,6 +467,56 @@ private fun RoutineDraftEditor(
                 TextButton(onClick = { confirmExit = false }) { Text("Continuar editando") }
             },
         )
+    }
+}
+
+@Composable
+private fun RoutineSaveActionBar(
+    saving: Boolean,
+    enabled: Boolean,
+    onSave: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("routine-save-action-bar"),
+        tonalElevation = 3.dp,
+        shadowElevation = 6.dp,
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Button(
+            onClick = onSave,
+            enabled = enabled && !saving,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .testTag("save-routine-action")
+                .semantics {
+                    contentDescription = if (saving) "Guardando rutina" else "Guardar rutina"
+                    stateDescription = when {
+                        saving -> "Guardado en progreso"
+                        enabled -> "Disponible"
+                        else -> "No disponible: escribe un nombre y añade una actividad"
+                    }
+                    if (saving) liveRegion = LiveRegionMode.Polite
+                },
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (saving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Text("  Guardando…")
+                } else {
+                    Text("Guardar rutina")
+                }
+            }
+        }
     }
 }
 

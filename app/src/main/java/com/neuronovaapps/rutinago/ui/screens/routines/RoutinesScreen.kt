@@ -1,12 +1,14 @@
 package com.neuronovaapps.rutinago.ui.screens.routines
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -23,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -30,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.catalog.local.entity.RoutineVariant
@@ -48,6 +53,7 @@ import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 
 @Composable
@@ -98,6 +104,7 @@ private fun RoutinesCatalog(
     onArchiveUserRoutine: suspend (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val startRequestInFlight = remember { AtomicBoolean(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf<String?>(null) }
     var archiveId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -165,21 +172,30 @@ private fun RoutinesCatalog(
             }
         } else {
             items(userRoutines, key = UserRoutine::id) { routine ->
+                val isStarting = startingId == routine.id
                 UserRoutineCard(
                     routine = routine,
                     catalog = catalog,
-                    startEnabled = activeExecution == null && startingId == null,
+                    startEnabled = activeExecution == null && !isStarting,
+                    isStarting = isStarting,
                     onEdit = { onEditUserRoutine(routine.id) },
                     onArchive = { archiveId = routine.id },
-                    onStart = {
+                    onStart = start@{
+                        if (activeExecution != null ||
+                            !startRequestInFlight.compareAndSet(false, true)
+                        ) return@start
                         startError = null
                         startingId = routine.id
                         scope.launch {
-                            runCatching { onStartUserRoutine(routine.id) }
-                                .onFailure {
-                                    startError = it.message ?: "No fue posible iniciar la rutina."
-                                }
-                            startingId = null
+                            try {
+                                runCatching { onStartUserRoutine(routine.id) }
+                                    .onFailure {
+                                        startError = it.message ?: "No fue posible iniciar la rutina."
+                                    }
+                            } finally {
+                                if (startingId == routine.id) startingId = null
+                                startRequestInFlight.set(false)
+                            }
                         }
                     },
                 )
@@ -268,10 +284,12 @@ private fun UserRoutineCard(
     routine: UserRoutine,
     catalog: CatalogSnapshot,
     startEnabled: Boolean,
+    isStarting: Boolean,
     onEdit: () -> Unit,
     onArchive: () -> Unit,
     onStart: () -> Unit,
 ) {
+    val startInteractionSource = remember(routine.id) { MutableInteractionSource() }
     Card(
         onClick = onEdit,
         modifier = Modifier.fillMaxWidth(),
@@ -290,8 +308,31 @@ private fun UserRoutineCard(
                     .take(3).joinToString(" → "),
                 style = MaterialTheme.typography.bodySmall,
             )
-            Button(onClick = onStart, enabled = startEnabled, modifier = Modifier.fillMaxWidth()) {
-                Text("Iniciar rutina")
+            Button(
+                onClick = onStart,
+                enabled = startEnabled,
+                interactionSource = startInteractionSource,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("start-routine-${routine.id}")
+                    .semantics {
+                        stateDescription = when {
+                            isStarting -> "Iniciando rutina"
+                            startEnabled -> "Disponible"
+                            else -> "No disponible"
+                        }
+                    },
+            ) {
+                if (isStarting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Text("  Iniciando…")
+                } else {
+                    Text("Iniciar rutina")
+                }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 RutinaGoOutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
