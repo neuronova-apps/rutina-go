@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -15,9 +16,12 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import com.neuronovaapps.rutinago.data.catalog.local.entity.RoutineVariant
 import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.domain.catalog.CatalogActivity
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacPictogramCandidate
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRoutine
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRoutineStep
 import com.neuronovaapps.rutinago.domain.catalog.CatalogSnapshot
@@ -26,6 +30,7 @@ import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineStep
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
+import com.neuronovaapps.rutinago.ui.screens.arasaac.ARASAAC_ATTRIBUTION
 import com.neuronovaapps.rutinago.ui.screens.create.UserRoutineEditorScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
@@ -40,6 +45,64 @@ import org.junit.Test
 class RoutineInteractionAndSaveActionTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun manualArasaacSelectionIsPreviewOnlyAndDoesNotEnterSavedRoutine() {
+        val queries = mutableListOf<String>()
+        var savedDraft: UserRoutineDraft? = null
+        val candidate = ArasaacPictogramCandidate(
+            id = 6456,
+            keywords = listOf("comer"),
+            description = "Alimentación",
+            categories = listOf("Acciones"),
+            previewUrl = "https://static.arasaac.org/pictograms/6456/6456_300.png",
+        )
+        val fake = object : ArasaacRepository {
+            override suspend fun searchPictograms(query: String): List<ArasaacPictogramCandidate> {
+                queries += query
+                return listOf(candidate)
+            }
+            override suspend fun getPictogram(id: Long): ArasaacPictogramCandidate {
+                assertEquals(6456L, id)
+                return candidate
+            }
+        }
+        composeRule.setContent {
+            RutinaGoTheme(highContrast = true, textScale = 1.45f) {
+                CreateScreen(
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1)),
+                    onSaveRoutine = { draft ->
+                        savedDraft = draft
+                        draft.toStoredRoutine()
+                    },
+                    onSaved = {},
+                    arasaacRepository = fake,
+                )
+            }
+        }
+        composeRule.onNodeWithText("Elegir origen").performClick()
+        composeRule.onNodeWithText("Crear desde cero").performClick()
+        composeRule.onNodeWithText("Nombre de la rutina").performTextInput("Prueba manual")
+        composeRule.onNodeWithText("Actividad 01").performClick()
+        composeRule.onNodeWithText("Buscar pictograma").performClick()
+        composeRule.onNodeWithTag("arasaac-query").assertTextContains("actividad")
+            .performTextReplacement("comer")
+        composeRule.waitUntil(5_000) { queries.contains("comer") }
+        composeRule.onNodeWithTag("arasaac-result-6456").performClick()
+        composeRule.onNodeWithText(ARASAAC_ATTRIBUTION).assertIsDisplayed()
+        composeRule.onNodeWithTag("arasaac-provisional-select").assertIsEnabled().performClick()
+        composeRule.onNodeWithText("Selección provisional. No guardada en el catálogo ni en la rutina.")
+            .assertIsDisplayed()
+        assertNull(savedDraft)
+        composeRule.onNodeWithText("‹ Volver a resultados").performClick()
+        composeRule.onNodeWithText("‹ Volver a Crear").performClick()
+        composeRule.onNodeWithTag("save-routine-action").performClick()
+        composeRule.waitUntil(5_000) { savedDraft != null }
+        assertEquals(listOf("ACT-001"), savedDraft?.steps?.map { it.activityId })
+        assertTrue(savedDraft?.steps?.all { it.futureVisualReference == null } == true)
+        assertTrue(queries.all { it == "actividad" || it == "comer" })
+    }
 
     @Test
     fun sameNameRoutinesKeepIndependentIdsAndOnlyPressedRoutineStartsOnce() {

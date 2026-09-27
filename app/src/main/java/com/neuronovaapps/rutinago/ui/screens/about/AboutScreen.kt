@@ -86,9 +86,10 @@ fun AboutScreen(modifier: Modifier = Modifier) {
 
         AboutSection("Privacidad") {
             AboutBody(
-                "En esta fase, los perfiles y las preferencias de apariencia se guardan " +
-                    "localmente en el dispositivo. Las rutinas y el progreso visibles son " +
-                    "contenido de demostración y todavía no cuentan con persistencia definitiva.",
+                "Los perfiles, las preferencias, las rutinas personales y el progreso se guardan " +
+                    "localmente en el dispositivo. Al buscar manualmente pictogramas, RutinaGo " +
+                    "envía a ARASAAC solo el texto de búsqueda necesario. No envía el perfil, " +
+                    "la rutina ni el historial.",
             )
             AboutBody(
                 "RutinaGo no incluye actualmente una cuenta ni sincronización en la nube. La " +

@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.catalog.local.entity.RoutineVariant
+import com.neuronovaapps.rutinago.data.arasaac.DefaultArasaacRepository
 import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.domain.catalog.CatalogActivity
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRoutine
@@ -56,6 +57,7 @@ import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.catalog.activitiesFor
 import com.neuronovaapps.rutinago.domain.catalog.catalogVariant
 import com.neuronovaapps.rutinago.domain.catalog.routinesFor
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacRepository
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
@@ -63,6 +65,7 @@ import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacSearchDialog
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
@@ -78,6 +81,7 @@ fun CreateScreen(
     suggestedTemplateId: String? = null,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
     onSaved: (UserRoutine) -> Unit,
+    arasaacRepository: ArasaacRepository = DefaultArasaacRepository,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading()
@@ -88,6 +92,7 @@ fun CreateScreen(
             suggestedTemplateId = suggestedTemplateId,
             onSaveRoutine = onSaveRoutine,
             onSaved = onSaved,
+            arasaacRepository = arasaacRepository,
         )
     }
 }
@@ -99,6 +104,7 @@ private fun CreateReadyScreen(
     suggestedTemplateId: String?,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
     onSaved: (UserRoutine) -> Unit,
+    arasaacRepository: ArasaacRepository,
 ) {
     var pageName by rememberSaveable(suggestedTemplateId) {
         mutableStateOf(
@@ -167,6 +173,7 @@ private fun CreateReadyScreen(
                     onBack = ::returnOneLevel,
                     onSaveRoutine = onSaveRoutine,
                     onSaved = onSaved,
+                    arasaacRepository = arasaacRepository,
                 )
             }
         }
@@ -183,6 +190,7 @@ private fun CreateReadyScreen(
             onBack = ::returnOneLevel,
             onSaveRoutine = onSaveRoutine,
             onSaved = onSaved,
+            arasaacRepository = arasaacRepository,
         )
     }
 }
@@ -195,6 +203,7 @@ fun UserRoutineEditorScreen(
     onBack: () -> Unit,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
     onSaved: (UserRoutine) -> Unit,
+    arasaacRepository: ArasaacRepository = DefaultArasaacRepository,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading()
@@ -214,6 +223,7 @@ fun UserRoutineEditorScreen(
             onBack = onBack,
             onSaveRoutine = onSaveRoutine,
             onSaved = onSaved,
+            arasaacRepository = arasaacRepository,
         )
     }
 }
@@ -234,6 +244,7 @@ private fun RoutineDraftEditor(
     onSaved: (UserRoutine) -> Unit,
     existingRoutineId: String? = null,
     initialInstructions: Map<String, String?> = emptyMap(),
+    arasaacRepository: ArasaacRepository,
 ) {
     val scope = rememberCoroutineScope()
     val saveRequestInFlight = remember(draftKey) { AtomicBoolean(false) }
@@ -250,6 +261,7 @@ private fun RoutineDraftEditor(
     var confirmExit by rememberSaveable(draftKey) { mutableStateOf(false) }
     var saveState by remember(draftKey) { mutableStateOf(RoutineSaveState.IDLE) }
     var errorMessage by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
+    var pictogramActivity by remember(draftKey) { mutableStateOf<CatalogActivity?>(null) }
     val hasChanges = routineName != baselineName || selectedIds != baselineIds
     val filteredActivities = catalog.activitiesFor(query, category)
 
@@ -408,6 +420,7 @@ private fun RoutineDraftEditor(
                         onMoveUp = { move(activityId, -1) },
                         onMoveDown = { move(activityId, 1) },
                         onRemove = { toggle(activityId) },
+                        onSearchPictogram = { pictogramActivity = activity },
                     )
                 }
             }
@@ -478,6 +491,13 @@ private fun RoutineDraftEditor(
             },
         )
     }
+    pictogramActivity?.let { activity ->
+        ArasaacSearchDialog(
+            activity = activity,
+            repository = arasaacRepository,
+            onDismiss = { pictogramActivity = null },
+        )
+    }
 }
 
 @Composable
@@ -544,6 +564,7 @@ private fun SelectedStepCard(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
+    onSearchPictogram: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -553,6 +574,7 @@ private fun SelectedStepCard(
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Paso $position · ${activity.name}", style = MaterialTheme.typography.titleMedium)
             Text(activity.simpleInstruction, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onSearchPictogram) { Text("Buscar pictograma") }
             androidx.compose.foundation.layout.Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
