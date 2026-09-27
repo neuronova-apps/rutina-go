@@ -61,11 +61,16 @@ import com.neuronovaapps.rutinago.domain.arasaac.ArasaacRepository
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualCodec
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualReference
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacSearchDialog
+import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacPictogramImage
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageResolution
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageUrls
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
@@ -216,6 +221,9 @@ fun UserRoutineEditorScreen(
             initialName = routine.name,
             initialActivityIds = routine.steps.sortedBy { it.position }.map { it.activityId },
             initialInstructions = routine.steps.associate { it.activityId to it.customInstruction },
+            initialVisuals = routine.steps.mapNotNull { step ->
+                step.futureVisualReference?.let { step.activityId to it }
+            }.toMap(),
             sourceTemplateId = routine.sourceTemplateId,
             optionalActivityIds = emptyList(),
             appMode = appMode,
@@ -244,6 +252,7 @@ private fun RoutineDraftEditor(
     onSaved: (UserRoutine) -> Unit,
     existingRoutineId: String? = null,
     initialInstructions: Map<String, String?> = emptyMap(),
+    initialVisuals: Map<String, String> = emptyMap(),
     arasaacRepository: ArasaacRepository,
 ) {
     val scope = rememberCoroutineScope()
@@ -256,13 +265,16 @@ private fun RoutineDraftEditor(
     var selectedIds by rememberSaveable(draftKey) { mutableStateOf(initialActivityIds) }
     var baselineName by rememberSaveable(draftKey) { mutableStateOf(initialName) }
     var baselineIds by rememberSaveable(draftKey) { mutableStateOf(initialActivityIds) }
+    var visualByActivityId by rememberSaveable(draftKey) { mutableStateOf(initialVisuals) }
+    var baselineVisuals by rememberSaveable(draftKey) { mutableStateOf(initialVisuals) }
     var query by rememberSaveable(draftKey) { mutableStateOf("") }
     var category by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
     var confirmExit by rememberSaveable(draftKey) { mutableStateOf(false) }
     var saveState by remember(draftKey) { mutableStateOf(RoutineSaveState.IDLE) }
     var errorMessage by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
     var pictogramActivity by remember(draftKey) { mutableStateOf<CatalogActivity?>(null) }
-    val hasChanges = routineName != baselineName || selectedIds != baselineIds
+    val hasChanges = routineName != baselineName || selectedIds != baselineIds ||
+        visualByActivityId != baselineVisuals
     val filteredActivities = catalog.activitiesFor(query, category)
 
     fun requestBack() {
@@ -271,6 +283,7 @@ private fun RoutineDraftEditor(
 
     fun toggle(activityId: String) {
         if (saveState == RoutineSaveState.SAVING) return
+        if (activityId in selectedIds) visualByActivityId = visualByActivityId - activityId
         selectedIds = if (activityId in selectedIds) selectedIds - activityId else selectedIds + activityId
         saveState = RoutineSaveState.IDLE
         errorMessage = null
@@ -305,6 +318,7 @@ private fun RoutineDraftEditor(
                             UserRoutineDraftStep(
                                 activityId = activityId,
                                 customInstruction = initialInstructions[activityId],
+                                futureVisualReference = visualByActivityId[activityId],
                             )
                         },
                     ),
@@ -421,6 +435,12 @@ private fun RoutineDraftEditor(
                         onMoveDown = { move(activityId, 1) },
                         onRemove = { toggle(activityId) },
                         onSearchPictogram = { pictogramActivity = activity },
+                        visual = RoutineStepVisualCodec.decode(visualByActivityId[activityId]),
+                        onRemovePictogram = {
+                            visualByActivityId = visualByActivityId - activityId
+                            saveState = RoutineSaveState.IDLE
+                            errorMessage = null
+                        },
                     )
                 }
             }
@@ -496,6 +516,19 @@ private fun RoutineDraftEditor(
             activity = activity,
             repository = arasaacRepository,
             onDismiss = { pictogramActivity = null },
+            onUsePictogram = { candidate ->
+                if (candidate.id > 0 && candidate.source == RoutineStepVisualReference.SOURCE_ARASAAC) {
+                    visualByActivityId = visualByActivityId + (activity.id to
+                        RoutineStepVisualCodec.encode(RoutineStepVisualReference(
+                            source = candidate.source,
+                            pictogramId = candidate.id,
+                            label = candidate.label,
+                        )))
+                    saveState = RoutineSaveState.IDLE
+                    errorMessage = null
+                    pictogramActivity = null
+                }
+            },
         )
     }
 }
@@ -565,6 +598,8 @@ private fun SelectedStepCard(
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
     onSearchPictogram: () -> Unit,
+    visual: RoutineStepVisualReference?,
+    onRemovePictogram: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -574,7 +609,22 @@ private fun SelectedStepCard(
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Paso $position · ${activity.name}", style = MaterialTheme.typography.titleMedium)
             Text(activity.simpleInstruction, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick = onSearchPictogram) { Text("Buscar pictograma") }
+            if (visual == null) {
+                VisualPlaceholder("Visual pendiente", size = 72.dp)
+            } else {
+                ArasaacPictogramImage(
+                    ArasaacImageUrls.forPictogram(visual.pictogramId, ArasaacImageResolution.THUMBNAIL),
+                    activity.name,
+                    72,
+                )
+                Text("${visual.label} · ARASAAC", style = MaterialTheme.typography.bodySmall)
+            }
+            TextButton(onClick = onSearchPictogram) {
+                Text(if (visual == null) "Buscar pictograma" else "Cambiar pictograma")
+            }
+            if (visual != null) {
+                TextButton(onClick = onRemovePictogram) { Text("Quitar pictograma") }
+            }
             androidx.compose.foundation.layout.Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),

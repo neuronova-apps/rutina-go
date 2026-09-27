@@ -11,6 +11,7 @@ import com.neuronovaapps.rutinago.domain.user.UserRoutineDeletionBlockedExceptio
 import com.neuronovaapps.rutinago.domain.user.UserRoutineRepository
 import com.neuronovaapps.rutinago.domain.user.UserRoutineStep
 import com.neuronovaapps.rutinago.domain.user.UserRoutineValidationException
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualCodec
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -39,6 +40,11 @@ class RoomUserRoutineRepository(
         val activityIds = draft.steps.map { it.activityId.trim() }
         if (activityIds.any(String::isEmpty) || activityIds.size != activityIds.toSet().size) {
             throw UserRoutineValidationException("La secuencia contiene actividades inválidas o duplicadas.")
+        }
+        if (draft.steps.any { step ->
+                step.futureVisualReference?.let { RoutineStepVisualCodec.decode(it) == null } == true
+            }) {
+            throw UserRoutineValidationException("La referencia del pictograma no es válida.")
         }
         val sourceTemplateId = draft.sourceTemplateId?.trim()?.takeIf(String::isNotEmpty)
 

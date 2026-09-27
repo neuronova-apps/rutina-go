@@ -30,12 +30,17 @@ import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineStep
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualCodec
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualReference
 import com.neuronovaapps.rutinago.domain.execution.ExecutionStatus
+import com.neuronovaapps.rutinago.domain.execution.ExecutionStep
+import com.neuronovaapps.rutinago.domain.execution.ExecutionStepStatus
 import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
 import com.neuronovaapps.rutinago.ui.screens.arasaac.ARASAAC_ATTRIBUTION
 import com.neuronovaapps.rutinago.ui.screens.create.UserRoutineEditorScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
+import com.neuronovaapps.rutinago.ui.screens.execution.RoutineExecutionScreen
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
@@ -178,7 +183,7 @@ class RoutineInteractionAndSaveActionTest {
     }
 
     @Test
-    fun manualArasaacSelectionIsPreviewOnlyAndDoesNotEnterSavedRoutine() {
+    fun manualArasaacSelectionStaysInDraftUntilRoutineIsSaved() {
         val queries = mutableListOf<String>()
         var savedDraft: UserRoutineDraft? = null
         val candidate = ArasaacPictogramCandidate(
@@ -222,17 +227,89 @@ class RoutineInteractionAndSaveActionTest {
         composeRule.waitUntil(5_000) { queries.contains("comer") }
         composeRule.onNodeWithTag("arasaac-result-6456").performClick()
         composeRule.onNodeWithText(ARASAAC_ATTRIBUTION).assertIsDisplayed()
-        composeRule.onNodeWithTag("arasaac-provisional-select").assertIsEnabled().performClick()
-        composeRule.onNodeWithText("Selección provisional. No guardada en el catálogo ni en la rutina.")
-            .assertIsDisplayed()
+        composeRule.onNodeWithTag("arasaac-use-pictogram").assertIsEnabled().performClick()
+        composeRule.onNodeWithText("comer · ARASAAC").assertIsDisplayed()
+        composeRule.onNodeWithText("Cambiar pictograma").assertIsDisplayed()
         assertNull(savedDraft)
-        composeRule.onNodeWithText("‹ Volver a resultados").performClick()
-        composeRule.onNodeWithText("‹ Volver a Crear").performClick()
         composeRule.onNodeWithTag("save-routine-action").performClick()
         composeRule.waitUntil(5_000) { savedDraft != null }
         assertEquals(listOf("ACT-001"), savedDraft?.steps?.map { it.activityId })
-        assertTrue(savedDraft?.steps?.all { it.futureVisualReference == null } == true)
+        assertEquals(6456L, RoutineStepVisualCodec.decode(
+            savedDraft?.steps?.single()?.futureVisualReference,
+        )?.pictogramId)
         assertTrue(queries.all { it == "actividad" || it == "comer" })
+    }
+
+    @Test
+    fun removingAnExistingPictogramIsDraftOnlyAndDiscardKeepsOriginal() {
+        val original = RoutineStepVisualCodec.encode(
+            RoutineStepVisualReference("ARASAAC", 10384, "lavar"),
+        )
+        var savedDraft: UserRoutineDraft? = null
+        var exits = 0
+        val routine = userRoutine("stable-id", "Mi rutina").copy(
+            steps = listOf(UserRoutineStep(1, "ACT-001", null, original)),
+        )
+        composeRule.setContent {
+            RutinaGoTheme {
+                UserRoutineEditorScreen(
+                    routine = routine,
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1)),
+                    onBack = { exits++ },
+                    onSaveRoutine = { draft -> savedDraft = draft; draft.toStoredRoutine() },
+                    onSaved = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("lavar · ARASAAC").assertIsDisplayed()
+        composeRule.onNodeWithText("Quitar pictograma").performClick()
+        composeRule.onNodeWithText("Buscar pictograma").assertIsDisplayed()
+        composeRule.onNodeWithText("‹ Volver a Mis rutinas").performClick()
+        composeRule.onNodeWithText("¿Deseas salir sin guardar los cambios?").assertIsDisplayed()
+        assertEquals(0, exits)
+        assertNull(savedDraft)
+        composeRule.onNodeWithText("Salir sin guardar").performClick()
+        assertEquals(1, exits)
+        assertEquals(10384L, routine.steps.single().selectedVisual?.pictogramId)
+    }
+
+    @Test
+    fun executionWithRemotePictogramKeepsTextAndProgressActionAvailable() {
+        val reference = RoutineStepVisualCodec.encode(
+            RoutineStepVisualReference("ARASAAC", 10384, "lavar"),
+        )
+        val execution = RoutineExecution(
+            id = "execution-visual", profileId = "profile-1", userRoutineId = "routine-visual",
+            routineName = "Mi rutina", startedAtEpochMillis = 1L,
+            finishedAtEpochMillis = null, status = ExecutionStatus.IN_PROGRESS,
+            totalSteps = 1, completedSteps = 0, skippedSteps = 0, currentStepPosition = 1,
+            steps = listOf(ExecutionStep(
+                position = 1, activityId = "ACT-001", activityName = "Lavarse las manos",
+                instruction = "Usa agua y jabón", visualReference = reference,
+                status = ExecutionStepStatus.PENDING, performedAtEpochMillis = null,
+            )),
+        )
+        var completed = 0
+        composeRule.setContent {
+            RutinaGoTheme {
+                RoutineExecutionScreen(
+                    execution = execution,
+                    onCompleteStep = { completed++; execution },
+                    onSkipStep = { execution },
+                    onFinishPartial = { execution },
+                    onAbandon = {},
+                    onExecutionChanged = {},
+                    onExit = {},
+                    onCloseResult = {},
+                    onViewProgress = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Lavarse las manos").assertIsDisplayed()
+        composeRule.onNodeWithText("Usa agua y jabón").assertIsDisplayed()
+        composeRule.onNodeWithText("Completar paso").assertIsEnabled().performClick()
+        composeRule.waitUntil(5_000) { completed == 1 }
     }
 
     @Test

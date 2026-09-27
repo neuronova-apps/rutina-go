@@ -15,6 +15,8 @@ import com.neuronovaapps.rutinago.domain.execution.ExecutionStepStatus
 import com.neuronovaapps.rutinago.domain.execution.RoutineExecutionValidationException
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualCodec
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualReference
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.flow.first
@@ -171,6 +173,39 @@ class RoutineExecutionRoomTest {
         assertEquals("Rutina original", restored?.routineName)
         assertEquals(listOf("ACT-001", "ACT-002", "ACT-003"), restored?.steps?.map { it.activityId })
         assertEquals("Primera instrucción personal", restored?.steps?.first()?.instruction)
+    }
+
+    @Test
+    fun visualSnapshotSurvivesChangingRemovingAndDeletingDefinition() = runBlocking {
+        fun visual(id: Long) = RoutineStepVisualCodec.encode(
+            RoutineStepVisualReference("ARASAAC", id, "visual $id"),
+        )
+        routines.save(PROFILE_A, UserRoutineDraft(
+            ROUTINE_ID, null, "Rutina original", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(10384)),
+                UserRoutineDraftStep("ACT-002"),
+            ),
+        ))
+        val first = executions.start(PROFILE_A, ROUTINE_ID)
+        assertEquals(10384L, first.steps[0].selectedVisual?.pictogramId)
+        assertEquals(null, first.steps[1].selectedVisual)
+        routines.save(PROFILE_A, UserRoutineDraft(
+            ROUTINE_ID, null, "Rutina original", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(6456)),
+                UserRoutineDraftStep("ACT-002"),
+            ),
+        ))
+        assertEquals(10384L, executions.execution(first.id).first()?.steps?.first()?.selectedVisual?.pictogramId)
+        executions.completeStep(PROFILE_A, first.id, 1)
+        executions.completeStep(PROFILE_A, first.id, 2)
+        routines.save(PROFILE_A, UserRoutineDraft(
+            ROUTINE_ID, null, "Rutina original", steps = listOf(UserRoutineDraftStep("ACT-001")),
+        ))
+        assertEquals(null, routines.activeRoutines(PROFILE_A).first().single().steps.single().selectedVisual)
+        routines.delete(PROFILE_A, ROUTINE_ID)
+        assertEquals(0, database.userRoutineDao().stepCount(ROUTINE_ID))
+        assertEquals(10384L, executions.execution(first.id).first()?.steps?.first()?.selectedVisual?.pictogramId)
+        assertEquals(ExecutionStatus.COMPLETED, executions.execution(first.id).first()?.status)
     }
 
     @Test

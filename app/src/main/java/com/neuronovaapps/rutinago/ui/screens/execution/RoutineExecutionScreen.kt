@@ -40,6 +40,9 @@ import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
+import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacPictogramImage
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageResolution
+import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageUrls
 import kotlinx.coroutines.launch
 
 @Composable
@@ -150,10 +153,18 @@ fun RoutineExecutionScreen(
                                 textAlign = TextAlign.Center,
                             )
                         } else {
-                            VisualPlaceholder(
-                                if (step.visualReference == null) "Visual pendiente" else "Recurso visual",
-                                size = 240.dp,
-                            )
+                            val visual = step.selectedVisual
+                            if (visual == null) {
+                                VisualPlaceholder("Visual pendiente", size = 240.dp)
+                            } else {
+                                ArasaacPictogramImage(
+                                    ArasaacImageUrls.forPictogram(
+                                        visual.pictogramId, ArasaacImageResolution.THUMBNAIL,
+                                    ),
+                                    step.activityName,
+                                    240,
+                                )
+                            }
                             Text(
                                 "Paso ${step.position} de ${execution.totalSteps}",
                                 style = MaterialTheme.typography.labelLarge,

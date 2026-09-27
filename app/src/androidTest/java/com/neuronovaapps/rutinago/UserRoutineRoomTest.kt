@@ -17,6 +17,8 @@ import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDeletionBlockedException
 import com.neuronovaapps.rutinago.domain.user.UserRoutineValidationException
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualCodec
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualReference
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -254,7 +256,9 @@ class UserRoutineRoomTest {
             MasterCatalogImporter(firstDatabase, AndroidCatalogAssetSource(context)).importIfNeeded()
             RoomUserRoutineRepository(firstDatabase).save(
                 PROFILE_A,
-                draft("persistent-routine", "ACT-001"),
+                draft("persistent-routine", "ACT-001").copy(steps = listOf(
+                    UserRoutineDraftStep("ACT-001", futureVisualReference = visual(10384, "lavar")),
+                )),
             )
             firstDatabase.close()
 
@@ -266,6 +270,8 @@ class UserRoutineRoomTest {
                     .activeRoutines(PROFILE_A).first().single()
                 assertEquals("persistent-routine", restored.id)
                 assertEquals("ACT-001", restored.steps.single().activityId)
+                assertEquals(10384L, restored.steps.single().selectedVisual?.pictogramId)
+                assertEquals("lavar", restored.steps.single().selectedVisual?.label)
             } finally {
                 reopened.close()
             }
@@ -273,6 +279,67 @@ class UserRoutineRoomTest {
             context.deleteDatabase(databaseName)
         }
     }
+
+    @Test
+    fun visualsBelongToPersonalStepsAndChangesDoNotAffectOtherRoutinesOrProfiles() = runBlocking {
+        repository.save(PROFILE_A, UserRoutineDraft(
+            "routine-a", null, "Rutina A", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(10384, "lavar")),
+                UserRoutineDraftStep("ACT-002", futureVisualReference = visual(6456, "comer")),
+            ),
+        ))
+        repository.save(PROFILE_A, UserRoutineDraft(
+            "routine-b", null, "Rutina B", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(5001, "manos")),
+            ),
+        ))
+        repository.save(PROFILE_B, UserRoutineDraft(
+            "routine-c", null, "Rutina C", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(5002, "cuidado")),
+            ),
+        ))
+        val before = repository.activeRoutines(PROFILE_A).first()
+        assertEquals(listOf(10384L, 6456L), before.first { it.id == "routine-a" }
+            .steps.map { it.selectedVisual?.pictogramId })
+        assertEquals(5001L, before.first { it.id == "routine-b" }.steps.single().selectedVisual?.pictogramId)
+
+        repository.save(PROFILE_A, UserRoutineDraft(
+            "routine-a", null, "Rutina A", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(7000, "nuevo")),
+                UserRoutineDraftStep("ACT-002"),
+            ),
+        ))
+        val after = repository.activeRoutines(PROFILE_A).first()
+        assertEquals(7000L, after.first { it.id == "routine-a" }.steps[0].selectedVisual?.pictogramId)
+        assertEquals(null, after.first { it.id == "routine-a" }.steps[1].selectedVisual)
+        assertEquals(5001L, after.first { it.id == "routine-b" }.steps.single().selectedVisual?.pictogramId)
+        assertEquals(5002L, repository.activeRoutines(PROFILE_B).first()
+            .single().steps.single().selectedVisual?.pictogramId)
+        captureValidationFailure {
+            repository.save(PROFILE_B, UserRoutineDraft("routine-a", null, "Ataque", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = visual(9999, "otro")),
+            )))
+        }
+        repository.archive(PROFILE_A, "routine-a")
+        assertEquals(7000L, database.userRoutineDao().getByIdForProfile("routine-a", PROFILE_A)
+            ?.steps?.first()?.futureVisualReference?.let(RoutineStepVisualCodec::decode)?.pictogramId)
+        repository.delete(PROFILE_A, "routine-a")
+        assertEquals(0, database.userRoutineDao().stepCount("routine-a"))
+    }
+
+    @Test
+    fun invalidVisualIdsAndOpaqueReferencesAreRejected() = runBlocking {
+        captureValidationFailure {
+            repository.save(PROFILE_A, UserRoutineDraft("invalid-visual", null, "Invalid", steps = listOf(
+                UserRoutineDraftStep("ACT-001", futureVisualReference = "{\"source\":\"ARASAAC\",\"id\":0}"),
+            )))
+        }
+        assertEquals(0, database.userRoutineDao().routineCount(PROFILE_A))
+    }
+
+    private fun visual(id: Long, label: String) = RoutineStepVisualCodec.encode(
+        RoutineStepVisualReference("ARASAAC", id, label),
+    )
 
     private fun draft(id: String, activityId: String) = UserRoutineDraft(
         id = id,

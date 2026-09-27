@@ -1,5 +1,8 @@
 package com.neuronovaapps.rutinago.domain.execution
 
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualCodec
+import com.neuronovaapps.rutinago.domain.user.RoutineStepVisualReference
+
 enum class ExecutionStatus(val label: String) {
     IN_PROGRESS("En curso"),
     COMPLETED("Completada"),
@@ -21,7 +24,10 @@ data class ExecutionStep(
     val visualReference: String?,
     val status: ExecutionStepStatus,
     val performedAtEpochMillis: Long?,
-)
+) {
+    val selectedVisual: RoutineStepVisualReference?
+        get() = RoutineStepVisualCodec.decode(visualReference)
+}
 
 data class RoutineExecution(
     val id: String,

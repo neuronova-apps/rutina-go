@@ -17,7 +17,10 @@ data class UserRoutineStep(
     val activityId: String,
     val customInstruction: String?,
     val futureVisualReference: String?,
-)
+) {
+    val selectedVisual: RoutineStepVisualReference?
+        get() = RoutineStepVisualCodec.decode(futureVisualReference)
+}
 
 data class UserRoutineDraft(
     val id: String,

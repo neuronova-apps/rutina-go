@@ -68,6 +68,7 @@ fun ArasaacSearchDialog(
     activity: CatalogActivity,
     repository: ArasaacRepository,
     onDismiss: () -> Unit,
+    onUsePictogram: (ArasaacPictogramCandidate) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val controller = remember(activity.id, repository) {
@@ -80,7 +81,6 @@ fun ArasaacSearchDialog(
     var detail by remember(activity.id) { mutableStateOf<ArasaacPictogramCandidate?>(null) }
     var detailError by remember(activity.id) { mutableStateOf<ArasaacFailureKind?>(null) }
     var detailLoading by remember(activity.id) { mutableStateOf(false) }
-    var provisional by remember(activity.id) { mutableStateOf<ArasaacPictogramCandidate?>(null) }
     var detailJob by remember(activity.id) { mutableStateOf<Job?>(null) }
     var detailRetryDelay by remember(activity.id) { mutableStateOf(0L) }
 
@@ -147,13 +147,6 @@ fun ArasaacSearchDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("arasaac-query"),
                     )
-                    provisional?.let {
-                        Text(
-                            "Selección provisional: ${it.label} (ID ${it.id}). No guardada.",
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        )
-                    }
                     when (val current = state) {
                         ArasaacSearchState.Idle -> StatusText("No has realizado una búsqueda.")
                         ArasaacSearchState.Loading -> Row(
@@ -185,7 +178,7 @@ fun ArasaacSearchDialog(
                         modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        PictogramImage(
+                        ArasaacPictogramImage(
                             url = ArasaacImageUrls.forPictogram(
                                 candidate.id, ArasaacImageResolution.PREVIEW,
                             ),
@@ -206,15 +199,12 @@ fun ArasaacSearchDialog(
                                 Text("Reintentar detalle")
                             }
                         }
-                        provisional?.takeIf { it.id == candidate.id }?.let {
-                            StatusText("Selección provisional. No guardada en el catálogo ni en la rutina.")
-                        }
                         Text(ARASAAC_ATTRIBUTION, style = MaterialTheme.typography.bodySmall)
                         Button(
-                            onClick = { provisional = candidate },
+                            onClick = { detail?.let(onUsePictogram) },
                             enabled = detail != null,
-                            modifier = Modifier.fillMaxWidth().testTag("arasaac-provisional-select"),
-                        ) { Text("Seleccionar provisionalmente") }
+                            modifier = Modifier.fillMaxWidth().testTag("arasaac-use-pictogram"),
+                        ) { Text("Usar este pictograma") }
                     }
                 }
             }
@@ -238,7 +228,7 @@ private fun CandidateCard(candidate: ArasaacPictogramCandidate, onClick: () -> U
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            PictogramImage(candidate.previewUrl, candidate.label, 72)
+            ArasaacPictogramImage(candidate.previewUrl, candidate.label, 72)
             Column {
                 Text(candidate.label, style = MaterialTheme.typography.titleMedium)
                 candidate.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
@@ -249,7 +239,7 @@ private fun CandidateCard(candidate: ArasaacPictogramCandidate, onClick: () -> U
 }
 
 @Composable
-private fun PictogramImage(url: String, label: String, size: Int) {
+fun ArasaacPictogramImage(url: String, label: String, size: Int) {
     var failed by remember(url) { mutableStateOf(false) }
     val context = LocalContext.current
     val request = remember(url, context) {
@@ -264,7 +254,7 @@ private fun PictogramImage(url: String, label: String, size: Int) {
         ),
     ) {
         if (failed) {
-            Text("Imagen no disponible", modifier = Modifier.padding(8.dp),
+            Text("Pictograma no disponible", modifier = Modifier.padding(8.dp),
                 color = Color.Black, style = MaterialTheme.typography.bodySmall)
         } else {
             AsyncImage(
