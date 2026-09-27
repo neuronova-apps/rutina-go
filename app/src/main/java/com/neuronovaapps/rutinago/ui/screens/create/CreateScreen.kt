@@ -24,6 +24,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,9 +65,11 @@ import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 private enum class CreatePage { LANDING, ORIGIN, TEMPLATE_LIST, TEMPLATE_EDITOR, SCRATCH_EDITOR }
+private enum class RoutineSaveState { IDLE, SAVING, SAVED, ERROR }
 
 @Composable
 fun CreateScreen(
@@ -72,7 +77,7 @@ fun CreateScreen(
     catalogState: CatalogUiState,
     suggestedTemplateId: String? = null,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
-    onViewRoutines: () -> Unit,
+    onSaved: (UserRoutine) -> Unit,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading()
@@ -82,7 +87,7 @@ fun CreateScreen(
             catalog = catalogState.catalog,
             suggestedTemplateId = suggestedTemplateId,
             onSaveRoutine = onSaveRoutine,
-            onViewRoutines = onViewRoutines,
+            onSaved = onSaved,
         )
     }
 }
@@ -93,7 +98,7 @@ private fun CreateReadyScreen(
     catalog: CatalogSnapshot,
     suggestedTemplateId: String?,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
-    onViewRoutines: () -> Unit,
+    onSaved: (UserRoutine) -> Unit,
 ) {
     var pageName by rememberSaveable(suggestedTemplateId) {
         mutableStateOf(
@@ -161,7 +166,7 @@ private fun CreateReadyScreen(
                     catalog = catalog,
                     onBack = ::returnOneLevel,
                     onSaveRoutine = onSaveRoutine,
-                    onViewRoutines = onViewRoutines,
+                    onSaved = onSaved,
                 )
             }
         }
@@ -177,7 +182,7 @@ private fun CreateReadyScreen(
             catalog = catalog,
             onBack = ::returnOneLevel,
             onSaveRoutine = onSaveRoutine,
-            onViewRoutines = onViewRoutines,
+            onSaved = onSaved,
         )
     }
 }
@@ -189,7 +194,7 @@ fun UserRoutineEditorScreen(
     catalogState: CatalogUiState,
     onBack: () -> Unit,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
-    onViewRoutines: () -> Unit,
+    onSaved: (UserRoutine) -> Unit,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading()
@@ -208,7 +213,7 @@ fun UserRoutineEditorScreen(
             catalog = catalogState.catalog,
             onBack = onBack,
             onSaveRoutine = onSaveRoutine,
-            onViewRoutines = onViewRoutines,
+            onSaved = onSaved,
         )
     }
 }
@@ -226,12 +231,13 @@ private fun RoutineDraftEditor(
     catalog: CatalogSnapshot,
     onBack: () -> Unit,
     onSaveRoutine: suspend (UserRoutineDraft) -> UserRoutine,
-    onViewRoutines: () -> Unit,
+    onSaved: (UserRoutine) -> Unit,
     existingRoutineId: String? = null,
     initialInstructions: Map<String, String?> = emptyMap(),
 ) {
     val scope = rememberCoroutineScope()
     val saveRequestInFlight = remember(draftKey) { AtomicBoolean(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     var draftId by rememberSaveable(draftKey) {
         mutableStateOf(existingRoutineId ?: UUID.randomUUID().toString())
     }
@@ -242,8 +248,7 @@ private fun RoutineDraftEditor(
     var query by rememberSaveable(draftKey) { mutableStateOf("") }
     var category by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
     var confirmExit by rememberSaveable(draftKey) { mutableStateOf(false) }
-    var saving by rememberSaveable(draftKey) { mutableStateOf(false) }
-    var saved by rememberSaveable(draftKey) { mutableStateOf(false) }
+    var saveState by remember(draftKey) { mutableStateOf(RoutineSaveState.IDLE) }
     var errorMessage by rememberSaveable(draftKey) { mutableStateOf<String?>(null) }
     val hasChanges = routineName != baselineName || selectedIds != baselineIds
     val filteredActivities = catalog.activitiesFor(query, category)
@@ -253,12 +258,14 @@ private fun RoutineDraftEditor(
     }
 
     fun toggle(activityId: String) {
+        if (saveState == RoutineSaveState.SAVING) return
         selectedIds = if (activityId in selectedIds) selectedIds - activityId else selectedIds + activityId
-        saved = false
+        saveState = RoutineSaveState.IDLE
         errorMessage = null
     }
 
     fun move(activityId: String, offset: Int) {
+        if (saveState == RoutineSaveState.SAVING) return
         val from = selectedIds.indexOf(activityId)
         val to = from + offset
         if (from < 0 || to !in selectedIds.indices) return
@@ -266,42 +273,48 @@ private fun RoutineDraftEditor(
             val moved = list.removeAt(from)
             list.add(to, moved)
         }
-        saved = false
+        saveState = RoutineSaveState.IDLE
         errorMessage = null
     }
 
     fun saveRoutine() {
+        if (saveState == RoutineSaveState.SAVED) return
         if (!saveRequestInFlight.compareAndSet(false, true)) return
-        saving = true
+        saveState = RoutineSaveState.SAVING
         errorMessage = null
         scope.launch {
-            try {
-                runCatching {
-                    onSaveRoutine(
-                        UserRoutineDraft(
-                            id = draftId,
-                            sourceTemplateId = sourceTemplateId,
-                            name = routineName,
-                            steps = selectedIds.map { activityId ->
-                                UserRoutineDraftStep(
-                                    activityId = activityId,
-                                    customInstruction = initialInstructions[activityId],
-                                )
-                            },
-                        ),
+            val stored = try {
+                onSaveRoutine(
+                    UserRoutineDraft(
+                        id = draftId,
+                        sourceTemplateId = sourceTemplateId,
+                        name = routineName,
+                        steps = selectedIds.map { activityId ->
+                            UserRoutineDraftStep(
+                                activityId = activityId,
+                                customInstruction = initialInstructions[activityId],
+                            )
+                        },
+                    ),
+                )
+            } catch (error: CancellationException) {
+                saveState = RoutineSaveState.IDLE
+                throw error
+            } catch (error: Exception) {
+                errorMessage = error.message ?: "No fue posible completar la transacción."
+                saveState = RoutineSaveState.ERROR
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "No se pudo guardar la rutina",
+                        duration = SnackbarDuration.Long,
                     )
-                }.onSuccess { stored ->
-                    draftId = stored.id
-                    baselineName = stored.name
-                    baselineIds = stored.steps.sortedBy { it.position }.map { it.activityId }
-                    saved = true
-                }.onFailure { error ->
-                    errorMessage = error.message ?: "No fue posible completar la transacción."
                 }
+                return@launch
             } finally {
-                saving = false
                 saveRequestInFlight.set(false)
             }
+            saveState = RoutineSaveState.SAVED
+            onSaved(stored)
         }
     }
 
@@ -311,10 +324,18 @@ private fun RoutineDraftEditor(
         modifier = Modifier
             .fillMaxSize()
             .imePadding(),
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        },
         bottomBar = {
             RoutineSaveActionBar(
-                saving = saving,
-                enabled = routineName.isNotBlank() && selectedIds.isNotEmpty(),
+                saving = saveState == RoutineSaveState.SAVING,
+                enabled = routineName.isNotBlank() && selectedIds.isNotEmpty() &&
+                    saveState != RoutineSaveState.SAVED,
+                editing = existingRoutineId != null,
                 onSave = ::saveRoutine,
             )
         },
@@ -340,6 +361,9 @@ private fun RoutineDraftEditor(
                 modifier = Modifier.semantics { heading() },
             )
         }
+        errorMessage?.let { message ->
+            item { InfoCallout("No se pudo guardar la rutina", message) }
+        }
         if (sourceTemplateId != null) {
             item {
                 InfoCallout(
@@ -352,9 +376,11 @@ private fun RoutineDraftEditor(
             OutlinedTextField(
                 value = routineName,
                 onValueChange = {
-                    routineName = it
-                    saved = false
-                    errorMessage = null
+                    if (saveState != RoutineSaveState.SAVING) {
+                        routineName = it
+                        saveState = RoutineSaveState.IDLE
+                        errorMessage = null
+                    }
                 },
                 label = { Text("Nombre de la rutina") },
                 singleLine = true,
@@ -433,22 +459,6 @@ private fun RoutineDraftEditor(
                 onToggle = { toggle(activity.id) },
             )
         }
-        errorMessage?.let { message ->
-            item { InfoCallout("No se pudo guardar", message) }
-        }
-        if (saved) {
-            item {
-                InfoCallout(
-                    "Rutina guardada",
-                    "El guardado en Room se completó para el perfil activo.",
-                )
-            }
-            item {
-                TextButton(onClick = onViewRoutines, modifier = Modifier.fillMaxWidth()) {
-                    Text("Ver Mis rutinas")
-                }
-            }
-        }
         }
     }
 
@@ -474,6 +484,7 @@ private fun RoutineDraftEditor(
 private fun RoutineSaveActionBar(
     saving: Boolean,
     enabled: Boolean,
+    editing: Boolean,
     onSave: () -> Unit,
 ) {
     Surface(
@@ -492,7 +503,11 @@ private fun RoutineSaveActionBar(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .testTag("save-routine-action")
                 .semantics {
-                    contentDescription = if (saving) "Guardando rutina" else "Guardar rutina"
+                    contentDescription = when {
+                        saving -> "Guardando rutina"
+                        editing -> "Guardar cambios"
+                        else -> "Guardar rutina"
+                    }
                     stateDescription = when {
                         saving -> "Guardado en progreso"
                         enabled -> "Disponible"
@@ -513,7 +528,7 @@ private fun RoutineSaveActionBar(
                     )
                     Text("  Guardando…")
                 } else {
-                    Text("Guardar rutina")
+                    Text(if (editing) "Guardar cambios" else "Guardar rutina")
                 }
             }
         }

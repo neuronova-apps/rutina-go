@@ -17,6 +17,9 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,11 +28,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -57,6 +65,7 @@ import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
+import kotlinx.coroutines.launch
 
 @Composable
 fun RutinaGoApp(
@@ -92,7 +101,24 @@ fun RutinaGoApp(
     var selectedExecutionId by rememberSaveable { mutableStateOf<String?>(null) }
     var executionSession by remember { mutableStateOf<RoutineExecution?>(null) }
     var executionLoadError by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingSavedRoutine by remember { mutableStateOf<UserRoutine?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val destination = AppDestination.valueOf(destinationName)
+
+    val visibleUserRoutines = pendingSavedRoutine
+        ?.takeIf { it.profileId == preferences.activeProfile?.id }
+        ?.let { stored -> listOf(stored) + userRoutines.filterNot { it.id == stored.id } }
+        ?: userRoutines
+
+    LaunchedEffect(userRoutines, pendingSavedRoutine, preferences.activeProfile?.id) {
+        val stored = pendingSavedRoutine
+        if (stored != null && (
+                stored.profileId != preferences.activeProfile?.id ||
+                    userRoutines.any { it == stored }
+            )
+        ) pendingSavedRoutine = null
+    }
 
     fun navigateTo(target: AppDestination) {
         if (destination.isMain) previousMainName = destination.name
@@ -103,6 +129,21 @@ fun RutinaGoApp(
         destinationName = target.name
         previousMainName = target.name
         suggestedTemplateId = if (target == AppDestination.CREATE) templateId else null
+    }
+
+    fun completeRoutineSave(stored: UserRoutine, edited: Boolean) {
+        pendingSavedRoutine = stored
+        navigateMain(AppDestination.ROUTINES)
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = if (edited) {
+                    "Cambios guardados correctamente"
+                } else {
+                    "Rutina guardada correctamente"
+                },
+                duration = SnackbarDuration.Long,
+            )
+        }
     }
 
     suspend fun startExecution(routineId: String) {
@@ -210,6 +251,14 @@ fun RutinaGoApp(
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .testTag("routine-save-confirmation")
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        },
         topBar = {
             AppHeader(
                 destination = destination,
@@ -232,6 +281,7 @@ fun RutinaGoApp(
                         NavigationBarItem(
                             selected = destination == item,
                             onClick = { navigateMain(item) },
+                            modifier = Modifier.testTag("destination-${item.name}"),
                             icon = {
                                 Text(
                                     item.symbol,
@@ -289,7 +339,7 @@ fun RutinaGoApp(
                     appMode = preferences.appMode,
                     catalogState = catalogState,
                     activeProfileName = activeProfileName,
-                    userRoutines = userRoutines,
+                    userRoutines = visibleUserRoutines,
                     activeExecution = activeExecution,
                     onOpenRoutine = { routineId ->
                         selectedCatalogRoutineId = routineId
@@ -304,7 +354,10 @@ fun RutinaGoApp(
                     },
                     onStartUserRoutine = ::startExecution,
                     onResumeExecution = ::resumeExecution,
-                    onArchiveUserRoutine = onArchiveUserRoutine,
+                    onArchiveUserRoutine = { routineId ->
+                        onArchiveUserRoutine(routineId)
+                        if (pendingSavedRoutine?.id == routineId) pendingSavedRoutine = null
+                    },
                 )
 
                 AppDestination.CREATE -> CreateScreen(
@@ -312,7 +365,7 @@ fun RutinaGoApp(
                     catalogState = catalogState,
                     suggestedTemplateId = suggestedTemplateId,
                     onSaveRoutine = onSaveUserRoutine,
-                    onViewRoutines = { navigateMain(AppDestination.ROUTINES) },
+                    onSaved = { completeRoutineSave(it, edited = false) },
                 )
 
                 AppDestination.PROGRESS -> ProgressScreen(
@@ -357,7 +410,7 @@ fun RutinaGoApp(
                 }
 
                 AppDestination.USER_ROUTINE_EDIT -> {
-                    val routine = userRoutines.firstOrNull { it.id == selectedUserRoutineId }
+                    val routine = visibleUserRoutines.firstOrNull { it.id == selectedUserRoutineId }
                     if (routine == null) {
                         ScreenColumn {
                             EmptyState(
@@ -373,7 +426,7 @@ fun RutinaGoApp(
                             catalogState = catalogState,
                             onBack = { navigateMain(AppDestination.ROUTINES) },
                             onSaveRoutine = onSaveUserRoutine,
-                            onViewRoutines = { navigateMain(AppDestination.ROUTINES) },
+                            onSaved = { completeRoutineSave(it, edited = true) },
                         )
                     }
                 }

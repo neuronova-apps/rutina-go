@@ -1,12 +1,16 @@
 package com.neuronovaapps.rutinago
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -22,12 +26,14 @@ import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineStep
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
+import com.neuronovaapps.rutinago.ui.screens.create.UserRoutineEditorScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -93,7 +99,7 @@ class RoutineInteractionAndSaveActionTest {
                         savedDraft = draft
                         draft.toStoredRoutine()
                     },
-                    onViewRoutines = {},
+                    onSaved = {},
                 )
             }
         }
@@ -129,7 +135,7 @@ class RoutineInteractionAndSaveActionTest {
                         savedDraft = draft
                         draft.toStoredRoutine()
                     },
-                    onViewRoutines = {},
+                    onSaved = {},
                 )
             }
         }
@@ -144,6 +150,114 @@ class RoutineInteractionAndSaveActionTest {
 
         assertEquals("RUT-TEST", savedDraft?.sourceTemplateId)
         assertEquals(listOf("ACT-001"), savedDraft?.steps?.map { it.activityId })
+    }
+
+    @Test
+    fun saveSuccessWaitsForPersistenceAndRapidTapsEmitOnlyOnce() {
+        val gate = CompletableDeferred<Unit>()
+        val writes = AtomicInteger(0)
+        val confirmations = AtomicInteger(0)
+        val highContrast = mutableStateOf(false)
+        composeRule.setContent {
+            RutinaGoTheme(highContrast = highContrast.value) {
+                CreateScreen(
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1, includeTemplate = true)),
+                    suggestedTemplateId = "RUT-TEST",
+                    onSaveRoutine = { draft ->
+                        writes.incrementAndGet()
+                        gate.await()
+                        draft.toStoredRoutine()
+                    },
+                    onSaved = { confirmations.incrementAndGet() },
+                )
+            }
+        }
+
+        val saveAction = composeRule.onNodeWithTag("save-routine-action")
+        saveAction.performClick()
+        saveAction.performClick()
+        composeRule.waitForIdle()
+        assertEquals(1, writes.get())
+        assertEquals(0, confirmations.get())
+        saveAction.assertIsNotEnabled()
+
+        gate.complete(Unit)
+        composeRule.waitUntil(5_000) { confirmations.get() == 1 }
+        composeRule.waitForIdle()
+        composeRule.runOnUiThread { highContrast.value = true }
+        composeRule.waitForIdle()
+        saveAction.assertIsNotEnabled()
+        assertEquals(1, confirmations.get())
+        assertEquals(1, writes.get())
+    }
+
+    @Test
+    fun failedSaveKeepsScratchDraftAndAllowsRetryWithoutFalseSuccess() {
+        val attempts = AtomicInteger(0)
+        val confirmations = AtomicInteger(0)
+        var successfulDraft: UserRoutineDraft? = null
+        composeRule.setContent {
+            RutinaGoTheme {
+                CreateScreen(
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1)),
+                    onSaveRoutine = { draft ->
+                        if (attempts.incrementAndGet() == 1) error("Fallo de Room")
+                        successfulDraft = draft
+                        draft.toStoredRoutine()
+                    },
+                    onSaved = { confirmations.incrementAndGet() },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Elegir origen").performClick()
+        composeRule.onNodeWithText("Crear desde cero").performClick()
+        composeRule.onNodeWithText("Nombre de la rutina").performTextInput("Mi borrador")
+        composeRule.onNodeWithText("Actividad 01").performClick()
+        val saveAction = composeRule.onNodeWithTag("save-routine-action")
+        saveAction.performClick()
+        composeRule.waitUntil(5_000) { attempts.get() == 1 }
+        composeRule.waitForIdle()
+
+        assertEquals(0, confirmations.get())
+        composeRule.onNodeWithText("Mi borrador").assertIsDisplayed()
+        composeRule.onAllNodesWithText("No se pudo guardar la rutina").onFirst().assertIsDisplayed()
+        saveAction.assertIsEnabled().performClick()
+        composeRule.waitUntil(5_000) { confirmations.get() == 1 }
+        assertEquals("Mi borrador", successfulDraft?.name)
+        assertEquals(listOf("ACT-001"), successfulDraft?.steps?.map { it.activityId })
+        assertEquals(2, attempts.get())
+    }
+
+    @Test
+    fun editReturnsStoredRoutineWithSameIdAndUpdatedName() {
+        var savedDraft: UserRoutineDraft? = null
+        var confirmed: UserRoutine? = null
+        composeRule.setContent {
+            RutinaGoTheme {
+                UserRoutineEditorScreen(
+                    routine = userRoutine("stable-id", "Antes"),
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1)),
+                    onBack = {},
+                    onSaveRoutine = { draft ->
+                        savedDraft = draft
+                        draft.toStoredRoutine()
+                    },
+                    onSaved = { confirmed = it },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Guardar cambios").assertIsDisplayed()
+        composeRule.onNodeWithText("Nombre de la rutina").performTextInput(" editada")
+        composeRule.onNodeWithTag("save-routine-action").performClick()
+        composeRule.waitUntil(5_000) { confirmed != null }
+        assertEquals("stable-id", savedDraft?.id)
+        assertEquals("stable-id", confirmed?.id)
+        assertTrue(confirmed?.name?.contains("editada") == true)
     }
 
     private fun hasStateDescription(value: String) =

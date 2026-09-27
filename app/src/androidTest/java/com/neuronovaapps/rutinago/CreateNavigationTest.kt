@@ -58,14 +58,13 @@ class CreateNavigationTest {
         composeRule.onNodeWithText("Despertarse").performClick()
         composeRule.onNodeWithText("Guardar rutina").assertIsDisplayed().performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText("Rutina guardada").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Rutina guardada correctamente").fetchSemanticsNodes().isNotEmpty()
         }
 
-        composeRule.onNodeWithText("Ver Mis rutinas").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(routineName).fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText(routineName).performClick()
+        composeRule.onNodeWithText("Editar").performClick()
         composeRule.onNodeWithText("Editar rutina").assertIsDisplayed()
     }
 
