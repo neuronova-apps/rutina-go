@@ -100,6 +100,12 @@ class MainActivity : ComponentActivity() {
                         }
                         catalogContainer.userRoutines.archive(profileId, routineId)
                     },
+                    onDeleteUserRoutine = { routineId ->
+                        val profileId = requireNotNull(preferences.activeProfile?.id) {
+                            "Selecciona un perfil antes de eliminar."
+                        }
+                        catalogContainer.userRoutines.delete(profileId, routineId)
+                    },
                     onStartExecution = { routineId ->
                         val profileId = requireNotNull(preferences.activeProfile?.id) {
                             "Selecciona un perfil antes de iniciar."

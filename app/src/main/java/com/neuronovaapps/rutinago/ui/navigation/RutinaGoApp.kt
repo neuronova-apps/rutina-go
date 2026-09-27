@@ -76,6 +76,7 @@ fun RutinaGoApp(
     progress: ProfileProgress,
     onSaveUserRoutine: suspend (UserRoutineDraft) -> UserRoutine,
     onArchiveUserRoutine: suspend (String) -> Unit,
+    onDeleteUserRoutine: suspend (String) -> Unit,
     onStartExecution: suspend (String) -> RoutineExecution,
     onLoadExecution: suspend (String) -> RoutineExecution?,
     onCompleteExecutionStep: suspend (String, Int) -> RoutineExecution,
@@ -356,6 +357,10 @@ fun RutinaGoApp(
                     onResumeExecution = ::resumeExecution,
                     onArchiveUserRoutine = { routineId ->
                         onArchiveUserRoutine(routineId)
+                        if (pendingSavedRoutine?.id == routineId) pendingSavedRoutine = null
+                    },
+                    onDeleteUserRoutine = { routineId ->
+                        onDeleteUserRoutine(routineId)
                         if (pendingSavedRoutine?.id == routineId) pendingSavedRoutine = null
                     },
                 )

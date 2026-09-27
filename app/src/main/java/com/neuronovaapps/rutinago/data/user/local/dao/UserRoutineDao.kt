@@ -63,6 +63,15 @@ interface UserRoutineDao {
     )
     suspend fun archive(routineId: String, profileId: String, modifiedAt: Long): Int
 
+    @Query(
+        "DELETE FROM user_routines " +
+            "WHERE user_routine_id = :routineId AND profile_id = :profileId",
+    )
+    suspend fun deleteOwned(routineId: String, profileId: String): Int
+
+    @Query("SELECT COUNT(*) FROM user_routine_steps WHERE user_routine_id = :routineId")
+    suspend fun stepCount(routineId: String): Int
+
     @Query("SELECT COUNT(*) FROM user_routines WHERE profile_id = :profileId")
     suspend fun routineCount(profileId: String): Int
 }

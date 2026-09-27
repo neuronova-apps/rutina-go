@@ -3,6 +3,7 @@ package com.neuronovaapps.rutinago.ui.screens.routines
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.testTag
@@ -47,6 +51,7 @@ import com.neuronovaapps.rutinago.domain.catalog.catalogVariant
 import com.neuronovaapps.rutinago.domain.catalog.routinesFor
 import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDeletionBlockedException
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
@@ -54,6 +59,7 @@ import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,6 +75,7 @@ fun RoutinesScreen(
     onStartUserRoutine: suspend (String) -> Unit,
     onResumeExecution: () -> Unit,
     onArchiveUserRoutine: suspend (String) -> Unit,
+    onDeleteUserRoutine: suspend (String) -> Unit,
 ) {
     when (catalogState) {
         CatalogUiState.Loading -> CatalogLoading("Preparando las rutinas del catálogo…")
@@ -85,6 +92,7 @@ fun RoutinesScreen(
             onStartUserRoutine = onStartUserRoutine,
             onResumeExecution = onResumeExecution,
             onArchiveUserRoutine = onArchiveUserRoutine,
+            onDeleteUserRoutine = onDeleteUserRoutine,
         )
     }
 }
@@ -102,6 +110,7 @@ private fun RoutinesCatalog(
     onStartUserRoutine: suspend (String) -> Unit,
     onResumeExecution: () -> Unit,
     onArchiveUserRoutine: suspend (String) -> Unit,
+    onDeleteUserRoutine: suspend (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val startRequestInFlight = remember { AtomicBoolean(false) }
@@ -110,6 +119,10 @@ private fun RoutinesCatalog(
     var archiveId by rememberSaveable { mutableStateOf<String?>(null) }
     var archiveError by rememberSaveable { mutableStateOf<String?>(null) }
     var archivedName by rememberSaveable { mutableStateOf<String?>(null) }
+    var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var deleteError by rememberSaveable { mutableStateOf<String?>(null) }
+    var deletedName by rememberSaveable { mutableStateOf<String?>(null) }
+    var deleting by remember { mutableStateOf(false) }
     var startError by rememberSaveable { mutableStateOf<String?>(null) }
     var startingId by rememberSaveable { mutableStateOf<String?>(null) }
     val routines = catalog.routinesFor(query, category)
@@ -163,6 +176,9 @@ private fun RoutinesCatalog(
         archiveError?.let { message -> item { InfoCallout("No se pudo archivar", message) } }
         startError?.let { message -> item { InfoCallout("No se pudo iniciar", message) } }
         archivedName?.let { name -> item { InfoCallout("Rutina archivada", "$name dejó de aparecer en Mis rutinas.") } }
+        deletedName?.let { name ->
+            item { InfoCallout("Rutina eliminada correctamente", "$name se eliminó de este perfil.") }
+        }
         if (userRoutines.isEmpty()) {
             item {
                 EmptyState(
@@ -180,6 +196,11 @@ private fun RoutinesCatalog(
                     isStarting = isStarting,
                     onEdit = { onEditUserRoutine(routine.id) },
                     onArchive = { archiveId = routine.id },
+                    onDelete = {
+                        deleteError = null
+                        deletedName = null
+                        deleteId = routine.id
+                    },
                     onStart = start@{
                         if (activeExecution != null ||
                             !startRequestInFlight.compareAndSet(false, true)
@@ -277,6 +298,59 @@ private fun RoutinesCatalog(
             },
         )
     }
+
+    val routineToDelete = userRoutines.firstOrNull { it.id == deleteId }
+    if (routineToDelete != null) {
+        val hasActiveExecution = activeExecution?.userRoutineId == routineToDelete.id
+        AlertDialog(
+            onDismissRequest = { if (!deleting) { deleteId = null; deleteError = null } },
+            title = { Text("¿Eliminar esta rutina?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("La rutina «${routineToDelete.name}» y sus pasos se eliminarán de forma permanente.")
+                    Text("Las ejecuciones anteriores seguirán disponibles en el historial.")
+                    if (hasActiveExecution) {
+                        Text("No puedes eliminar esta rutina mientras tiene una ejecución en curso.")
+                    }
+                    deleteError?.let { message ->
+                        Text(message, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !hasActiveExecution && !deleting,
+                    onClick = {
+                        if (deleting) return@TextButton
+                        deleting = true
+                        deleteError = null
+                        scope.launch {
+                            try {
+                                onDeleteUserRoutine(routineToDelete.id)
+                                deletedName = routineToDelete.name
+                                deleteId = null
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (error: UserRoutineDeletionBlockedException) {
+                                deleteError = error.message
+                            } catch (_: Exception) {
+                                deleteError = "No se pudo eliminar la rutina. Inténtalo nuevamente."
+                            } finally {
+                                deleting = false
+                            }
+                        }
+                    },
+                    modifier = Modifier.testTag("confirm-delete-routine"),
+                ) { Text(if (deleting) "Eliminando…" else "Eliminar") }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !deleting,
+                    onClick = { deleteId = null; deleteError = null },
+                ) { Text("Cancelar") }
+            },
+        )
+    }
 }
 
 @Composable
@@ -287,12 +361,14 @@ private fun UserRoutineCard(
     isStarting: Boolean,
     onEdit: () -> Unit,
     onArchive: () -> Unit,
+    onDelete: () -> Unit,
     onStart: () -> Unit,
 ) {
     val startInteractionSource = remember(routine.id) { MutableInteractionSource() }
+    var showMore by remember(routine.id) { mutableStateOf(false) }
     Card(
         onClick = onEdit,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("user-routine-${routine.id}"),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
@@ -338,8 +414,26 @@ private fun UserRoutineCard(
                 RutinaGoOutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
                     Text("Editar")
                 }
-                RutinaGoOutlinedButton(onClick = onArchive, modifier = Modifier.weight(1f)) {
-                    Text("Archivar")
+                Box(modifier = Modifier.weight(1f)) {
+                    RutinaGoOutlinedButton(
+                        onClick = { showMore = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Más opciones") }
+                    DropdownMenu(
+                        expanded = showMore,
+                        onDismissRequest = { showMore = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Archivar") },
+                            onClick = { showMore = false; onArchive() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Eliminar", color = MaterialTheme.colorScheme.error) },
+                            onClick = { showMore = false; onDelete() },
+                            modifier = Modifier.testTag("delete-routine-${routine.id}")
+                                .semantics { contentDescription = "Eliminar rutina ${routine.name}" },
+                        )
+                    }
                 }
             }
         }

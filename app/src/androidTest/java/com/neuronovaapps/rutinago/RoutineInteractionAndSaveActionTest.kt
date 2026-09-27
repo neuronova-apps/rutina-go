@@ -10,6 +10,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
@@ -29,6 +30,8 @@ import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineStep
+import com.neuronovaapps.rutinago.domain.execution.ExecutionStatus
+import com.neuronovaapps.rutinago.domain.execution.RoutineExecution
 import com.neuronovaapps.rutinago.ui.screens.create.CreateScreen
 import com.neuronovaapps.rutinago.ui.screens.arasaac.ARASAAC_ATTRIBUTION
 import com.neuronovaapps.rutinago.ui.screens.create.UserRoutineEditorScreen
@@ -45,6 +48,134 @@ import org.junit.Test
 class RoutineInteractionAndSaveActionTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun deleteRequiresConfirmationThenRemovesOnlyItsCardAndArchiveStillWorks() {
+        val rows = mutableStateOf(listOf(
+            userRoutine("personal-1", "Mi rutina"),
+            userRoutine("personal-2", "Otra rutina"),
+        ))
+        val deletes = AtomicInteger(0)
+        val archives = AtomicInteger(0)
+        composeRule.setContent {
+            RutinaGoTheme {
+                RoutinesScreen(
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1, includeTemplate = true)),
+                    activeProfileName = "Pruebas",
+                    userRoutines = rows.value,
+                    activeExecution = null,
+                    onOpenRoutine = {}, onUseTemplate = {}, onEditUserRoutine = {},
+                    onStartUserRoutine = {}, onResumeExecution = {},
+                    onArchiveUserRoutine = { id ->
+                        archives.incrementAndGet()
+                        rows.value = rows.value.filterNot { it.id == id }
+                    },
+                    onDeleteUserRoutine = { id ->
+                        deletes.incrementAndGet()
+                        rows.value = rows.value.filterNot { it.id == id }
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("user-routine-personal-1").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Más opciones").onFirst().performScrollTo().performClick()
+        composeRule.onNodeWithTag("delete-routine-personal-1").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.ContentDescription,
+                listOf("Eliminar rutina Mi rutina"),
+            ),
+        )
+        composeRule.onNodeWithTag("delete-routine-personal-1").performClick()
+        composeRule.onNodeWithText("¿Eliminar esta rutina?").assertIsDisplayed()
+        composeRule.onNodeWithText("Cancelar").performClick()
+        assertEquals(0, deletes.get())
+        composeRule.onNodeWithTag("user-routine-personal-1").assertIsDisplayed()
+
+        composeRule.onAllNodesWithText("Más opciones").onFirst().performScrollTo().performClick()
+        composeRule.onNodeWithTag("delete-routine-personal-1").performClick()
+        composeRule.onNodeWithTag("confirm-delete-routine").performClick()
+        composeRule.waitUntil(5_000) { deletes.get() == 1 }
+        composeRule.waitForIdle()
+        assertTrue(composeRule.onAllNodesWithTag("user-routine-personal-1").fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithTag("user-routine-personal-2").fetchSemanticsNodes().isNotEmpty())
+        composeRule.onNodeWithText("Rutina eliminada correctamente").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Más opciones").performScrollTo().performClick()
+        composeRule.onNodeWithText("Archivar").performClick()
+        composeRule.onNodeWithText("¿Archivar rutina?").assertIsDisplayed()
+        composeRule.onNodeWithText("Archivar").performClick()
+        composeRule.waitUntil(5_000) { archives.get() == 1 }
+        assertEquals(1, deletes.get())
+    }
+
+    @Test
+    fun deleteFailureKeepsDialogOpenAndDoesNotShowSuccessUntilRetrySucceeds() {
+        val rows = mutableStateOf(listOf(userRoutine("personal-1", "Mi rutina")))
+        val attempts = AtomicInteger(0)
+        composeRule.setContent {
+            RutinaGoTheme(highContrast = true, textScale = 1.45f) {
+                RoutinesScreen(
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1)),
+                    activeProfileName = "Pruebas", userRoutines = rows.value,
+                    activeExecution = null,
+                    onOpenRoutine = {}, onUseTemplate = {}, onEditUserRoutine = {},
+                    onStartUserRoutine = {}, onResumeExecution = {}, onArchiveUserRoutine = {},
+                    onDeleteUserRoutine = { id ->
+                        if (attempts.incrementAndGet() == 1) error("Room falló")
+                        rows.value = rows.value.filterNot { it.id == id }
+                    },
+                )
+            }
+        }
+        composeRule.onNodeWithText("Más opciones").performScrollTo().performClick()
+        composeRule.onNodeWithTag("delete-routine-personal-1").performClick()
+        composeRule.onNodeWithTag("confirm-delete-routine").performClick()
+        composeRule.waitUntil(5_000) { attempts.get() == 1 }
+        composeRule.onNodeWithText("No se pudo eliminar la rutina. Inténtalo nuevamente.")
+            .assertIsDisplayed()
+        assertTrue(composeRule.onAllNodesWithText("Rutina eliminada correctamente")
+            .fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithTag("user-routine-personal-1").fetchSemanticsNodes().isNotEmpty())
+        composeRule.onNodeWithTag("confirm-delete-routine").performClick()
+        composeRule.waitUntil(5_000) { attempts.get() == 2 }
+        composeRule.onNodeWithText("Rutina eliminada correctamente").assertIsDisplayed()
+    }
+
+    @Test
+    fun activeExecutionExplainsWhyDeleteIsUnavailable() {
+        val routine = userRoutine("personal-1", "Mi rutina")
+        val execution = RoutineExecution(
+            id = "execution-1", profileId = "profile-1", userRoutineId = routine.id,
+            routineName = routine.name, startedAtEpochMillis = 1L,
+            finishedAtEpochMillis = null, status = ExecutionStatus.IN_PROGRESS,
+            totalSteps = 1, completedSteps = 0, skippedSteps = 0,
+            currentStepPosition = 1, steps = emptyList(),
+        )
+        val deletes = AtomicInteger(0)
+        composeRule.setContent {
+            RutinaGoTheme {
+                RoutinesScreen(
+                    appMode = AppMode.SIMPLE,
+                    catalogState = CatalogUiState.Ready(testCatalog(activityCount = 1)),
+                    activeProfileName = "Pruebas", userRoutines = listOf(routine),
+                    activeExecution = execution,
+                    onOpenRoutine = {}, onUseTemplate = {}, onEditUserRoutine = {},
+                    onStartUserRoutine = {}, onResumeExecution = {}, onArchiveUserRoutine = {},
+                    onDeleteUserRoutine = { deletes.incrementAndGet() },
+                )
+            }
+        }
+        composeRule.onNodeWithText("Más opciones").performScrollTo().performClick()
+        composeRule.onNodeWithTag("delete-routine-personal-1").performClick()
+        composeRule.onNodeWithText(
+            "No puedes eliminar esta rutina mientras tiene una ejecución en curso.",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithTag("confirm-delete-routine").assertIsNotEnabled()
+        assertEquals(0, deletes.get())
+    }
 
     @Test
     fun manualArasaacSelectionIsPreviewOnlyAndDoesNotEnterSavedRoutine() {
@@ -130,6 +261,7 @@ class RoutineInteractionAndSaveActionTest {
                     },
                     onResumeExecution = {},
                     onArchiveUserRoutine = {},
+                    onDeleteUserRoutine = {},
                 )
             }
         }

@@ -34,3 +34,7 @@ data class UserRoutineDraftStep(
 )
 
 class UserRoutineValidationException(message: String) : IllegalArgumentException(message)
+
+class UserRoutineDeletionBlockedException : IllegalStateException(
+    "No puedes eliminar esta rutina mientras tiene una ejecución en curso.",
+)

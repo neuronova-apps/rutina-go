@@ -45,6 +45,13 @@ interface RoutineExecutionDao {
     )
     suspend fun getByIdForProfile(executionId: String, profileId: String): RoutineExecutionWithSteps?
 
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM routine_executions " +
+            "WHERE profile_id = :profileId AND user_routine_id = :routineId " +
+            "AND status = 'IN_PROGRESS')",
+    )
+    suspend fun hasInProgressForRoutine(profileId: String, routineId: String): Boolean
+
     @Insert
     suspend fun insertExecution(execution: RoutineExecutionEntity)
 

@@ -121,6 +121,7 @@ class RoutineSaveNavigationTest {
                     progress = ProfileProgress(),
                     onSaveUserRoutine = onSave,
                     onArchiveUserRoutine = {},
+                    onDeleteUserRoutine = {},
                     onStartExecution = { error("No se espera iniciar una ejecución") },
                     onLoadExecution = { null },
                     onCompleteExecutionStep = { _, _ -> error("No se espera ejecutar") },

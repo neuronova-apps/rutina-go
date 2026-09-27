@@ -10,11 +10,21 @@ import com.neuronovaapps.rutinago.data.catalog.importer.MasterCatalogImporter
 import com.neuronovaapps.rutinago.data.catalog.local.RutinaGoDatabase
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
 import com.neuronovaapps.rutinago.data.preferences.AppMode
+import com.neuronovaapps.rutinago.data.execution.repository.RoomRoutineExecutionRepository
 import com.neuronovaapps.rutinago.data.user.repository.RoomUserRoutineRepository
+import com.neuronovaapps.rutinago.domain.execution.ExecutionStatus
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraftStep
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDeletionBlockedException
 import com.neuronovaapps.rutinago.domain.user.UserRoutineValidationException
 import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -127,6 +137,87 @@ class UserRoutineRoomTest {
         assertEquals("Después", preferences.preferences.first().profiles.first { it.id == PROFILE_A }.name)
         assertEquals(AppMode.SIMPLE, preferences.preferences.first().appMode)
         assertEquals("routine-a", repository.activeRoutines(PROFILE_A).first().single().id)
+    }
+
+    @Test
+    fun deletingOwnedRoutineCascadesItsStepsAndFlowUpdatesWithoutTouchingOthers() = runBlocking {
+        repository.save(PROFILE_A, UserRoutineDraft(
+            "delete-me", null, "Rutina temporal",
+            steps = listOf(UserRoutineDraftStep("ACT-001"), UserRoutineDraftStep("ACT-002")),
+        ))
+        repository.save(PROFILE_A, draft("keep-a", "ACT-003"))
+        repository.save(PROFILE_B, draft("keep-b", "ACT-004"))
+        val counts = mutableListOf<Int>()
+        val collector = launch {
+            repository.activeRoutines(PROFILE_A).map { it.size }
+                .distinctUntilChanged().take(2).collect { counts += it }
+        }
+        withTimeout(5_000) { while (counts.isEmpty()) yield() }
+        assertEquals(2, database.userRoutineDao().stepCount("delete-me"))
+
+        repository.delete(PROFILE_A, "delete-me")
+        withTimeout(5_000) { collector.join() }
+
+        assertEquals(listOf(2, 1), counts)
+        assertEquals(0, database.userRoutineDao().stepCount("delete-me"))
+        assertEquals(listOf("keep-a"), repository.activeRoutines(PROFILE_A).first().map { it.id })
+        assertEquals(listOf("keep-b"), repository.activeRoutines(PROFILE_B).first().map { it.id })
+        assertEquals(52, database.catalogWriteDao().routineCount())
+        assertEquals(203, database.catalogWriteDao().activityCount())
+    }
+
+    @Test
+    fun completedSnapshotSurvivesDeletingItsOriginalRoutine() = runBlocking {
+        repository.save(PROFILE_A, draft("historical", "ACT-001"))
+        val executions = RoomRoutineExecutionRepository(database)
+        val started = executions.start(PROFILE_A, "historical")
+        executions.completeStep(PROFILE_A, started.id, 1)
+
+        repository.delete(PROFILE_A, "historical")
+
+        assertEquals(0, database.userRoutineDao().routineCount(PROFILE_A))
+        assertEquals(0, database.userRoutineDao().stepCount("historical"))
+        val snapshot = executions.execution(started.id).first()
+        assertEquals(ExecutionStatus.COMPLETED, snapshot?.status)
+        assertEquals("ACT-001", snapshot?.steps?.single()?.activityId)
+        assertEquals(1, executions.progress(PROFILE_A).first().history.size)
+    }
+
+    @Test
+    fun activeExecutionBlocksDeletionUntilItFinishes() = runBlocking {
+        repository.save(PROFILE_A, draft("active", "ACT-001"))
+        repository.save(PROFILE_A, draft("unrelated", "ACT-002"))
+        val executions = RoomRoutineExecutionRepository(database)
+        val started = executions.start(PROFILE_A, "active")
+
+        try {
+            repository.delete(PROFILE_A, "active")
+            throw AssertionError("Expected UserRoutineDeletionBlockedException")
+        } catch (error: UserRoutineDeletionBlockedException) {
+            assertTrue(error.message.orEmpty().contains("ejecución en curso"))
+        }
+        assertEquals(1, database.userRoutineDao().stepCount("active"))
+        repository.delete(PROFILE_A, "unrelated")
+        assertEquals(listOf("active"), repository.activeRoutines(PROFILE_A).first().map { it.id })
+
+        executions.completeStep(PROFILE_A, started.id, 1)
+        repository.delete(PROFILE_A, "active")
+        assertTrue(repository.activeRoutines(PROFILE_A).first().isEmpty())
+        assertEquals(1, executions.progress(PROFILE_A).first().history.size)
+    }
+
+    @Test
+    fun wrongProfileAndMasterTemplateCannotBeDeleted() = runBlocking {
+        repository.save(PROFILE_A, draft("private-a", "ACT-001"))
+        repository.save(PROFILE_B, draft("private-b", "ACT-002"))
+
+        captureValidationFailure { repository.delete(PROFILE_B, "private-a") }
+        captureValidationFailure { repository.delete(PROFILE_A, "RUT-001") }
+
+        assertEquals(1, database.userRoutineDao().stepCount("private-a"))
+        assertEquals(listOf("private-a"), repository.activeRoutines(PROFILE_A).first().map { it.id })
+        assertEquals(listOf("private-b"), repository.activeRoutines(PROFILE_B).first().map { it.id })
+        assertEquals(52, database.catalogWriteDao().routineCount())
     }
 
     @Test

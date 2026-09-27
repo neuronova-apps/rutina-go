@@ -7,6 +7,7 @@ import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineStepEntity
 import com.neuronovaapps.rutinago.data.user.local.entity.UserRoutineWithSteps
 import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
+import com.neuronovaapps.rutinago.domain.user.UserRoutineDeletionBlockedException
 import com.neuronovaapps.rutinago.domain.user.UserRoutineRepository
 import com.neuronovaapps.rutinago.domain.user.UserRoutineStep
 import com.neuronovaapps.rutinago.domain.user.UserRoutineValidationException
@@ -89,6 +90,23 @@ class RoomUserRoutineRepository(
         requireProfileId(profileId)
         if (dao.archive(routineId, profileId, clock()) != 1) {
             throw UserRoutineValidationException("No se encontró la rutina en el perfil activo.")
+        }
+    }
+
+    override suspend fun delete(profileId: String, routineId: String) {
+        requireProfileId(profileId)
+        if (routineId.isBlank()) {
+            throw UserRoutineValidationException("No se encontró la rutina en el perfil activo.")
+        }
+        database.withTransaction {
+            if (database.routineExecutionDao().hasInProgressForRoutine(profileId, routineId)) {
+                throw UserRoutineDeletionBlockedException()
+            }
+            if (dao.deleteOwned(routineId, profileId) != 1) {
+                throw UserRoutineValidationException("No se encontró la rutina en el perfil activo.")
+            }
+            // Room's existing CASCADE removes only this definition's personal steps.
+            // Execution snapshots have no FK to user_routines and remain in history.
         }
     }
 
