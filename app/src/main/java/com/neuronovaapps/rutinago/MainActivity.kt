@@ -92,7 +92,9 @@ class MainActivity : ComponentActivity() {
                         val profileId = requireNotNull(preferences.activeProfile?.id) {
                             "Selecciona un perfil antes de guardar."
                         }
-                        catalogContainer.userRoutines.save(profileId, draft)
+                        catalogContainer.userRoutines.save(profileId, draft).also { stored ->
+                            (application as RutinaGoApplication).schedulePictogramsAfterSave(stored)
+                        }
                     },
                     onArchiveUserRoutine = { routineId ->
                         val profileId = requireNotNull(preferences.activeProfile?.id) {

@@ -8,6 +8,10 @@ import com.neuronovaapps.rutinago.data.catalog.repository.CatalogImportStateRepo
 import com.neuronovaapps.rutinago.data.catalog.repository.RoomCatalogRepository
 import com.neuronovaapps.rutinago.data.user.repository.RoomUserRoutineRepository
 import com.neuronovaapps.rutinago.data.execution.repository.RoomRoutineExecutionRepository
+import com.neuronovaapps.rutinago.data.arasaac.offline.PictogramFileStore
+import com.neuronovaapps.rutinago.data.arasaac.offline.PictogramReferenceRepository
+import com.neuronovaapps.rutinago.data.arasaac.offline.PictogramWorkScheduler
+import com.neuronovaapps.rutinago.data.arasaac.offline.WorkManagerPictogramQueue
 import com.neuronovaapps.rutinago.domain.catalog.CatalogRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogUiState
 import com.neuronovaapps.rutinago.domain.catalog.observeCatalogUiState
@@ -24,6 +28,12 @@ class CatalogContainer(context: Context) {
     val repository: CatalogRepository = RoomCatalogRepository(database.catalogReadDao())
     val userRoutines: UserRoutineRepository = RoomUserRoutineRepository(database)
     val executions: RoutineExecutionRepository = RoomRoutineExecutionRepository(database)
+    private val pictogramReferences = PictogramReferenceRepository(database)
+    val offlinePictograms = PictogramWorkScheduler(
+        pictogramReferences::allReferencedIds,
+        PictogramFileStore.fromFilesDir(context.filesDir),
+        WorkManagerPictogramQueue(context),
+    )
     val importState = CatalogImportStateRepository(
         database.catalogImportMetadataDao(),
         PACKAGED_CATALOG_VERSION,

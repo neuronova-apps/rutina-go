@@ -68,7 +68,7 @@ import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
 import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacSearchDialog
-import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacPictogramImage
+import com.neuronovaapps.rutinago.ui.components.ArasaacPictogramImage
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageResolution
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageUrls
 import java.util.UUID
@@ -616,6 +616,7 @@ private fun SelectedStepCard(
                     ArasaacImageUrls.forPictogram(visual.pictogramId, ArasaacImageResolution.THUMBNAIL),
                     activity.name,
                     72,
+                    offlineId = visual.pictogramId,
                 )
                 Text("${visual.label} · ARASAAC", style = MaterialTheme.typography.bodySmall)
             }

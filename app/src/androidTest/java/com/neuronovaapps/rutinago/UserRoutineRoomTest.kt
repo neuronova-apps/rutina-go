@@ -11,6 +11,7 @@ import com.neuronovaapps.rutinago.data.catalog.local.RutinaGoDatabase
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
 import com.neuronovaapps.rutinago.data.preferences.AppMode
 import com.neuronovaapps.rutinago.data.execution.repository.RoomRoutineExecutionRepository
+import com.neuronovaapps.rutinago.data.arasaac.offline.PictogramReferenceRepository
 import com.neuronovaapps.rutinago.data.user.repository.RoomUserRoutineRepository
 import com.neuronovaapps.rutinago.domain.execution.ExecutionStatus
 import com.neuronovaapps.rutinago.domain.user.UserRoutineDraft
@@ -325,6 +326,28 @@ class UserRoutineRoomTest {
             ?.steps?.first()?.futureVisualReference?.let(RoutineStepVisualCodec::decode)?.pictogramId)
         repository.delete(PROFILE_A, "routine-a")
         assertEquals(0, database.userRoutineDao().stepCount("routine-a"))
+    }
+
+    @Test
+    fun offlineReferenceLookupIncludesOtherProfilesArchivedStepsAndHistoricalSnapshots() = runBlocking {
+        val lookup = PictogramReferenceRepository(database)
+        repository.save(PROFILE_A, UserRoutineDraft("offline-a", null, "Rutina A", steps = listOf(
+            UserRoutineDraftStep("ACT-001", futureVisualReference = visual(10384, "lavar")),
+        )))
+        repository.save(PROFILE_B, UserRoutineDraft("offline-b", null, "Rutina B", steps = listOf(
+            UserRoutineDraftStep("ACT-002", futureVisualReference = visual(6456, "comer")),
+        )))
+        assertEquals(setOf(10384L, 6456L), lookup.allReferencedIds())
+        val executions = RoomRoutineExecutionRepository(database)
+        val started = executions.start(PROFILE_A, "offline-a")
+        executions.completeStep(PROFILE_A, started.id, 1)
+        repository.archive(PROFILE_B, "offline-b")
+        assertTrue(lookup.isPictogramReferenced(6456))
+        repository.delete(PROFILE_A, "offline-a")
+        assertTrue(lookup.isPictogramReferenced(10384)) // historical execution
+        repository.delete(PROFILE_B, "offline-b")
+        assertEquals(setOf(10384L), lookup.allReferencedIds())
+        assertTrue(!lookup.isPictogramReferenced(6456))
     }
 
     @Test

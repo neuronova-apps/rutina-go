@@ -32,8 +32,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -43,9 +41,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil3.compose.AsyncImage
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacApiException
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacFailureKind
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageResolution
@@ -54,6 +49,7 @@ import com.neuronovaapps.rutinago.domain.arasaac.ArasaacPictogramCandidate
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacRepository
 import com.neuronovaapps.rutinago.domain.catalog.CatalogActivity
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
+import com.neuronovaapps.rutinago.ui.components.ArasaacPictogramImage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -234,35 +230,6 @@ private fun CandidateCard(candidate: ArasaacPictogramCandidate, onClick: () -> U
                 candidate.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 Text("ID ${candidate.id} · ARASAAC", style = MaterialTheme.typography.bodySmall)
             }
-        }
-    }
-}
-
-@Composable
-fun ArasaacPictogramImage(url: String, label: String, size: Int) {
-    var failed by remember(url) { mutableStateOf(false) }
-    val context = LocalContext.current
-    val request = remember(url, context) {
-        ImageRequest.Builder(context).data(url).diskCachePolicy(CachePolicy.DISABLED).build()
-    }
-    Surface(
-        modifier = Modifier.size(size.dp),
-        color = Color.White,
-        border = BorderStroke(
-            if (LocalHighContrast.current) 2.dp else 1.dp,
-            MaterialTheme.colorScheme.outline,
-        ),
-    ) {
-        if (failed) {
-            Text("Pictograma no disponible", modifier = Modifier.padding(8.dp),
-                color = Color.Black, style = MaterialTheme.typography.bodySmall)
-        } else {
-            AsyncImage(
-                model = request,
-                contentDescription = "Pictograma de $label",
-                onError = { failed = true },
-                modifier = Modifier.fillMaxSize().padding(4.dp),
-            )
         }
     }
 }

@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RoutineExecutionDao {
+    @Query("SELECT DISTINCT visual_reference FROM execution_steps " +
+        "WHERE visual_reference IS NOT NULL")
+    suspend fun allVisualReferences(): List<String>
+
     @Transaction
     @Query(
         "SELECT * FROM routine_executions " +

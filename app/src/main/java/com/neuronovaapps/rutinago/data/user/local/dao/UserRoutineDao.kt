@@ -13,6 +13,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserRoutineDao {
+    @Query("SELECT DISTINCT future_visual_reference FROM user_routine_steps " +
+        "WHERE future_visual_reference IS NOT NULL")
+    suspend fun allVisualReferences(): List<String>
+
     @Transaction
     @Query(
         "SELECT * FROM user_routines " +

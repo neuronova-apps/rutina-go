@@ -3,6 +3,7 @@ package com.neuronovaapps.rutinago
 import android.app.Application
 import android.util.Log
 import com.neuronovaapps.rutinago.data.catalog.CatalogContainer
+import com.neuronovaapps.rutinago.domain.user.UserRoutine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +22,17 @@ class RutinaGoApplication : Application() {
                 .onFailure { error ->
                     Log.e(TAG, "Master catalog import failed.", error)
                 }
+        }
+        applicationScope.launch {
+            runCatching { catalogContainer.offlinePictograms.reconcilePersistedReferences() }
+                .onFailure { error -> Log.w(TAG, "Pictogram reconciliation failed: ${error.javaClass.simpleName}") }
+        }
+    }
+
+    fun schedulePictogramsAfterSave(routine: UserRoutine) {
+        applicationScope.launch {
+            runCatching { catalogContainer.offlinePictograms.enqueueAfterSave(routine) }
+                .onFailure { error -> Log.w(TAG, "Pictogram scheduling failed: ${error.javaClass.simpleName}") }
         }
     }
 

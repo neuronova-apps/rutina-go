@@ -40,7 +40,7 @@ import com.neuronovaapps.rutinago.ui.components.InfoCallout
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
 import com.neuronovaapps.rutinago.ui.components.StatusPill
 import com.neuronovaapps.rutinago.ui.components.VisualPlaceholder
-import com.neuronovaapps.rutinago.ui.screens.arasaac.ArasaacPictogramImage
+import com.neuronovaapps.rutinago.ui.components.ArasaacPictogramImage
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageResolution
 import com.neuronovaapps.rutinago.domain.arasaac.ArasaacImageUrls
 import kotlinx.coroutines.launch
@@ -163,6 +163,7 @@ fun RoutineExecutionScreen(
                                     ),
                                     step.activityName,
                                     240,
+                                    offlineId = visual.pictogramId,
                                 )
                             }
                             Text(
