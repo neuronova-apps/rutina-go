@@ -123,7 +123,7 @@ class ModuleSelectorAccessibilityTest {
                         assertTrue("Missing text: $scenario / $text", layouts.isNotEmpty())
                         assertTextFits(layouts, "$scenario / $text")
                     }
-                    listOf("module-rutinago" to "RutinaGo", "module-communication" to "Comunicación")
+                    listOf("module-rutinago" to "RutinaGo", "module-communication" to "ComunicaGo")
                         .forEach { (tag, title) ->
                             val button = composeRule.onNodeWithTag(tag)
                             button.performScrollTo().assertIsDisplayed().assertHasClickAction()

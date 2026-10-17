@@ -72,7 +72,7 @@ fun ModuleSelectorScreen(
                         onClick = onOpenRutinaGo,
                     )
                     ModuleOption(
-                        title = "Comunicación",
+                        title = "ComunicaGo",
                         description = "Un espacio de comunicación en preparación.",
                         tag = "module-communication",
                         onClick = onOpenCommunication,

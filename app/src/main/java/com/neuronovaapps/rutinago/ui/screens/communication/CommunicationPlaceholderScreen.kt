@@ -29,7 +29,7 @@ fun CommunicationPlaceholderScreen(
             ) {
                 Text("Volver al selector", textAlign = TextAlign.Center)
             }
-            SectionHeading("Comunicación")
+            SectionHeading("ComunicaGo")
             Text("Perfil activo: $activeProfileName")
             EmptyState(
                 title = "Próximamente",
