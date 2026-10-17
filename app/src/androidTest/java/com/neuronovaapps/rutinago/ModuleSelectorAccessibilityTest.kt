@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
-import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationPlaceholderScreen
+import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationHomeScreen
 import com.neuronovaapps.rutinago.ui.screens.modules.ModuleSelectorScreen
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import java.io.File
@@ -87,7 +87,7 @@ class ModuleSelectorAccessibilityTest {
                         )) {
                             key(current, communication) {
                                 if (communication) {
-                                    CommunicationPlaceholderScreen("Perfil de prueba") {
+                                    CommunicationHomeScreen("Perfil de prueba") {
                                         communication = false
                                     }
                                 } else {
@@ -143,7 +143,7 @@ class ModuleSelectorAccessibilityTest {
                     composeRule.onNodeWithTag("module-rutinago").performScrollTo().performClick()
                     composeRule.runOnIdle { assertEquals("rutinago", openedModule) }
                     composeRule.onNodeWithTag("module-communication").performScrollTo().performClick()
-                    composeRule.onNodeWithText("Próximamente").performScrollTo().assertIsDisplayed()
+                    composeRule.onNodeWithText("Tu mensaje aparecerá aquí").performScrollTo().assertIsDisplayed()
                     composeRule.onNodeWithTag("communication-back-to-modules")
                         .performScrollTo().assertIsDisplayed().assertHasClickAction().performClick()
                     composeRule.onNodeWithTag("module-selector").assertIsDisplayed()

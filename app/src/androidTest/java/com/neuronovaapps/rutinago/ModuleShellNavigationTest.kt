@@ -30,11 +30,18 @@ class ModuleShellNavigationTest {
             .fetchSemanticsNodes().single().config[androidx.compose.ui.semantics.SemanticsProperties.Text]
             .single().text
         composeRule.onNodeWithTag("module-communication").performClick()
-        composeRule.onNodeWithTag("communication-placeholder").assertIsDisplayed()
+        composeRule.onNodeWithTag("communication-home").assertIsDisplayed()
+        composeRule.onNodeWithText("ComunicaGo").assertIsDisplayed()
         composeRule.onNodeWithText(profileText).assertIsDisplayed()
-        composeRule.onNodeWithText("Próximamente").assertIsDisplayed()
-        composeRule.onNodeWithTag("destination-HOME").assertDoesNotExist()
-        composeRule.onNodeWithText("Volver al selector").performClick()
+        composeRule.onNodeWithTag("communication-message-area").assertIsDisplayed()
+        composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
+        composeRule.onNodeWithTag("communication-vocabulary-area").assertIsDisplayed()
+        composeRule.onNodeWithText("Las palabras y apoyos visuales aparecerán aquí.")
+            .performScrollTo().assertIsDisplayed()
+        listOf("HOME", "ROUTINES", "CREATE", "PROGRESS", "SETTINGS").forEach {
+            composeRule.onNodeWithTag("destination-$it").assertDoesNotExist()
+        }
+        composeRule.onNodeWithText("Volver al selector").performScrollTo().performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
         pressSystemBack()
@@ -72,12 +79,16 @@ class ModuleShellNavigationTest {
     @Test
     fun switchingModulesPreservesRutinaGoDestinationAndSurvivesRecreation() {
         openSelector()
+        val profileText = composeRule.onAllNodesWithText("Perfil activo:", substring = true)
+            .fetchSemanticsNodes().single().config[androidx.compose.ui.semantics.SemanticsProperties.Text]
+            .single().text
         composeRule.enterRutinaGoModule()
         composeRule.onNodeWithTag("destination-SETTINGS").performClick()
         composeRule.onNodeWithText("Cambiar módulo").performScrollTo().performClick()
         composeRule.onNodeWithTag("module-communication").performClick()
         composeRule.activityRule.scenario.recreate()
-        composeRule.onNodeWithTag("communication-placeholder").assertIsDisplayed()
+        composeRule.onNodeWithTag("communication-home").assertIsDisplayed()
+        composeRule.onNodeWithText(profileText).assertIsDisplayed()
         composeRule.onNodeWithText("Volver al selector").performClick()
         composeRule.enterRutinaGoModule()
         composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
