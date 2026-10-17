@@ -62,6 +62,8 @@ import com.neuronovaapps.rutinago.ui.screens.routines.CatalogRoutineDetailScreen
 import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
 import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
+import com.neuronovaapps.rutinago.ui.screens.modules.ModuleSelectorScreen
+import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationPlaceholderScreen
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
@@ -93,6 +95,7 @@ fun RutinaGoApp(
 ) {
     val highContrast = LocalHighContrast.current
     var showWelcome by rememberSaveable { mutableStateOf(true) }
+    var selectedModule by rememberSaveable { mutableStateOf<String?>(null) }
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var selectedCatalogRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -209,6 +212,23 @@ fun RutinaGoApp(
     }
 
     val activeProfileName = preferences.activeProfile?.name.orEmpty()
+
+    if (selectedModule == null) {
+        ModuleSelectorScreen(
+            activeProfileName = activeProfileName,
+            onOpenRutinaGo = { selectedModule = "rutinago" },
+            onOpenCommunication = { selectedModule = "communication" },
+        )
+        return
+    }
+
+    if (selectedModule == "communication") {
+        CommunicationPlaceholderScreen(
+            activeProfileName = activeProfileName,
+            onBackToModules = { selectedModule = null },
+        )
+        return
+    }
 
     if (destination == AppDestination.EXECUTION) {
         val currentExecution = executionSession
@@ -390,6 +410,7 @@ fun RutinaGoApp(
                     activeProfileName = activeProfileName,
                     onManageProfiles = { navigateTo(AppDestination.PROFILES) },
                     onOpenAbout = { navigateTo(AppDestination.ABOUT) },
+                    onChangeModule = { selectedModule = null },
                 )
 
                 AppDestination.PROFILES -> ProfilesScreen(

@@ -75,6 +75,7 @@ class CreateNavigationTest {
             composeRule.onNodeWithText("Nombre del perfil").performTextInput("Navegación")
             composeRule.onNodeWithText("Continuar").performClick()
         }
+        composeRule.enterRutinaGoModule()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("Hoy · Lunes").fetchSemanticsNodes().isNotEmpty()
         }

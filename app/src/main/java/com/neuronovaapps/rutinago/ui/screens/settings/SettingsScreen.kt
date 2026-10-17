@@ -55,6 +55,7 @@ fun SettingsScreen(
     activeProfileName: String,
     onManageProfiles: () -> Unit,
     onOpenAbout: () -> Unit,
+    onChangeModule: () -> Unit,
 ) {
     ScreenColumn {
         SectionHeading("Apariencia")
@@ -169,6 +170,9 @@ fun SettingsScreen(
 
         SectionHeading("Información")
         InformationLinkCard(onClick = onOpenAbout)
+        RutinaGoOutlinedButton(onClick = onChangeModule, modifier = Modifier.fillMaxWidth()) {
+            Text("Cambiar módulo")
+        }
     }
 }
 

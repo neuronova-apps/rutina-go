@@ -139,6 +139,7 @@ class RoutineSaveNavigationTest {
             }
         }
         composeRule.onNodeWithText("Comenzar").performClick()
+        composeRule.enterRutinaGoModule()
     }
 
     private fun catalog() = CatalogSnapshot(
