@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToKey
 import androidx.compose.ui.test.performTextInput
 import org.junit.Rule
 import org.junit.Test
@@ -35,13 +36,20 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithText(profileText).assertIsDisplayed()
         composeRule.onNodeWithTag("communication-message-area").assertIsDisplayed()
         composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
-        composeRule.onNodeWithTag("communication-vocabulary-area").assertIsDisplayed()
-        composeRule.onNodeWithText("Las palabras y apoyos visuales aparecerán aquí.")
-            .performScrollTo().assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            runCatching {
+                composeRule.onNodeWithTag("communication-home").performScrollToKey("count")
+                true
+            }.getOrDefault(false)
+        }
+        composeRule.onNodeWithText("132 palabras").assertIsDisplayed()
+        composeRule.onNodeWithTag("communication-home").performScrollToKey("VOC_001")
+        composeRule.onNodeWithText("Yo").assertIsDisplayed()
         listOf("HOME", "ROUTINES", "CREATE", "PROGRESS", "SETTINGS").forEach {
             composeRule.onNodeWithTag("destination-$it").assertDoesNotExist()
         }
-        composeRule.onNodeWithText("Volver al selector").performScrollTo().performClick()
+        composeRule.onNodeWithTag("communication-home").performScrollToKey("back")
+        composeRule.onNodeWithText("Volver al selector").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
         pressSystemBack()

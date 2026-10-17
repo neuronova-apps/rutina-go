@@ -24,6 +24,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToKey
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
@@ -143,7 +144,9 @@ class ModuleSelectorAccessibilityTest {
                     composeRule.onNodeWithTag("module-rutinago").performScrollTo().performClick()
                     composeRule.runOnIdle { assertEquals("rutinago", openedModule) }
                     composeRule.onNodeWithTag("module-communication").performScrollTo().performClick()
-                    composeRule.onNodeWithText("Tu mensaje aparecerá aquí").performScrollTo().assertIsDisplayed()
+                    composeRule.onNodeWithTag("communication-home").performScrollToKey("message")
+                    composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
+                    composeRule.onNodeWithTag("communication-home").performScrollToKey("back")
                     composeRule.onNodeWithTag("communication-back-to-modules")
                         .performScrollTo().assertIsDisplayed().assertHasClickAction().performClick()
                     composeRule.onNodeWithTag("module-selector").assertIsDisplayed()

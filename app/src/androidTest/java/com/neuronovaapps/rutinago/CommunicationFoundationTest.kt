@@ -13,151 +13,160 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assert
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertHeightIsAtLeast
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
 import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationHomeScreen
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import java.io.File
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 
 class CommunicationFoundationTest {
-    @get:Rule
-    val composeRule = createComposeRule()
+    @get:Rule val composeRule = createComposeRule()
+    private val catalog by lazy {
+        val assets = InstrumentationRegistry.getInstrumentation().targetContext.assets
+        LocalCommunicationCatalogRepository {
+            assets.open(LocalCommunicationCatalogRepository.ASSET_PATH).bufferedReader().use { it.readText() }
+        }
+    }
+    private val grid get() = composeRule.onNodeWithTag("communication-home")
 
-    private data class Appearance(
-        val name: String,
-        val mode: ThemeMode,
-        val systemDark: Boolean = false,
-        val highContrast: Boolean = false,
-    )
+    @Test fun all132WordsAndEveryCategoryRemainBrowsableWithoutMessageActions() {
+        composeRule.setContent { RutinaGoTheme { CommunicationHomeScreen("Perfil catálogo") { } } }
+        awaitCatalog()
+        assertCount(132)
+        catalog.vocabulary.forEach { word ->
+            grid.performScrollToKey(word.vocabId)
+            composeRule.onNodeWithTag("communication-word-${word.vocabId}")
+                .assertIsDisplayed().assertTextEquals(word.text).assertHasNoClickAction()
+        }
+        catalog.categories.forEach { category ->
+            selectCategory(category.id)
+            val expected = catalog.vocabularyForCategory(category.id)
+            composeRule.onNodeWithTag("communication-category-${category.id}").assertIsSelected()
+            assertCount(expected.size)
+            expected.forEach { word ->
+                grid.performScrollToKey(word.vocabId)
+                composeRule.onNodeWithTag("communication-word-${word.vocabId}").assertTextEquals(word.text)
+            }
+            val wrong = catalog.vocabulary.first { it.categoryId != category.id }
+            composeRule.onNodeWithTag("communication-word-${wrong.vocabId}").assertDoesNotExist()
+        }
+        selectCategory(null)
+        assertCount(132)
+        grid.performScrollToKey("profile")
+        composeRule.onNodeWithText("Perfil activo: Perfil catálogo").assertIsDisplayed()
+        grid.performScrollToKey("message")
+        composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
+        listOf("Hablar", "Borrar último", "Limpiar", "Repetir", "Favoritos").forEach {
+            composeRule.onNodeWithText(it).assertDoesNotExist()
+        }
+    }
 
-    private data class Scenario(
-        val appearance: Appearance,
-        val scale: TextScaleMode,
-        val smallScreen: Boolean,
-    )
+    private data class Appearance(val name: String, val mode: ThemeMode,
+        val systemDark: Boolean = false, val highContrast: Boolean = false)
+    private data class Scenario(val appearance: Appearance, val scale: TextScaleMode, val small: Boolean)
 
-    @Test
-    fun emptyFoundationRemainsReadableAndAccessibleAcrossAppearancesAndPortraitSizes() {
-        val appearances = listOf(
-            Appearance("day", ThemeMode.DAY),
-            Appearance("night", ThemeMode.NIGHT),
-            Appearance("system-light", ThemeMode.SYSTEM),
-            Appearance("system-dark", ThemeMode.SYSTEM, systemDark = true),
-            Appearance("contrast", ThemeMode.DAY, highContrast = true),
-        )
+    @Test fun catalogIsReadableAndSelectionAccessibleAcrossAllAppearancesAndTextSizes() {
+        val appearances = listOf(Appearance("day", ThemeMode.DAY), Appearance("night", ThemeMode.NIGHT),
+            Appearance("system-light", ThemeMode.SYSTEM), Appearance("system-dark", ThemeMode.SYSTEM, true),
+            Appearance("contrast", ThemeMode.DAY, highContrast = true))
         var scenario by mutableStateOf(Scenario(appearances.first(), TextScaleMode.NORMAL, false))
         var returns = 0
         composeRule.setContent {
             val density = LocalDensity.current
             val current = scenario
-            CompositionLocalProvider(
-                LocalDensity provides Density(density.density, if (current.smallScreen) 1.6f else 1f),
-            ) {
+            CompositionLocalProvider(LocalDensity provides Density(density.density, if (current.small) 1.6f else 1f)) {
                 RutinaGoTheme(
                     darkTheme = current.appearance.mode.usesDarkTheme(current.appearance.systemDark),
-                    textScale = current.scale.scaleFactor,
-                    highContrast = current.appearance.highContrast,
+                    textScale = current.scale.scaleFactor, highContrast = current.appearance.highContrast,
                 ) {
-                    Box(Modifier.requiredSize(
-                        if (current.smallScreen) 320.dp else 400.dp,
-                        if (current.smallScreen) 480.dp else 760.dp,
-                    )) {
-                        key(current) {
-                            CommunicationHomeScreen("Familia de prueba") { returns++ }
-                        }
+                    Box(Modifier.requiredSize(if (current.small) 320.dp else 400.dp, if (current.small) 480.dp else 760.dp)) {
+                        key(current) { CommunicationHomeScreen("Familia de prueba") { returns++ } }
                     }
                 }
             }
         }
-
         appearances.forEach { appearance ->
             TextScaleMode.entries.forEach { scale ->
-                listOf(false, true).forEach { smallScreen ->
-                    composeRule.runOnIdle { scenario = Scenario(appearance, scale, smallScreen) }
-                    val captureName = "${appearance.name}-${scale.name}-$smallScreen"
-                    saveCapture("$captureName-top")
-                    listOf(
-                        "ComunicaGo",
-                        "Perfil activo: Familia de prueba",
-                        "Mensaje",
-                        "Tu mensaje aparecerá aquí",
-                        "Palabras y apoyos visuales",
-                        "Las palabras y apoyos visuales aparecerán aquí.",
-                        "En la siguiente etapa podrás seleccionar palabras para construir tu mensaje.",
-                    ).forEach { text ->
-                        val node = composeRule.onNodeWithText(text)
-                        node.performScrollTo().assertIsDisplayed()
-                        val layouts = mutableListOf<TextLayoutResult>()
-                        node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-                        assertTrue("Missing text layout: $scenario / $text", layouts.isNotEmpty())
-                        layouts.forEach { layout ->
-                            // Semantics may retain the paragraph's maximum width; inspect actual lines.
-                            val widestLine = (0 until layout.lineCount).maxOfOrNull {
-                                layout.getLineRight(it) - layout.getLineLeft(it)
-                            } ?: 0f
-                            assertTrue(
-                                "Clipped text: $scenario / $text",
-                                !layout.multiParagraph.didExceedMaxLines &&
-                                    layout.multiParagraph.height <= layout.size.height + 1f &&
-                                    widestLine <= layout.size.width + 1f,
-                            )
-                        }
+                listOf(false, true).forEach { small ->
+                    composeRule.runOnIdle { scenario = Scenario(appearance, scale, small) }
+                    awaitCatalog()
+                    listOf("title" to "ComunicaGo", "profile" to "Perfil activo: Familia de prueba",
+                        "message" to "Tu mensaje aparecerá aquí", "categories-title" to "Categorías",
+                        "vocabulary-title" to "Vocabulario").forEach { (key, text) ->
+                        grid.performScrollToKey(key)
+                        assertTextFits(composeRule.onNodeWithText(text), scenario.toString())
                     }
-                    saveCapture("$captureName-bottom")
-                    listOf("ComunicaGo", "Mensaje", "Palabras y apoyos visuales").forEach {
-                        composeRule.onNodeWithText(it)
-                            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+                    catalog.categories.forEach { category ->
+                        selectCategory(category.id)
+                        val node = composeRule.onNodeWithTag("communication-category-${category.id}")
+                        node.assertIsSelected().assertHeightIsAtLeast(48.dp)
+                            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton))
+                            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Seleccionada"))
+                        assertTextFits(composeRule.onNodeWithText(category.name), scenario.toString())
                     }
-                    listOf("communication-message-area", "communication-vocabulary-area").forEach {
-                        composeRule.onNodeWithTag(it).assert(
-                            SemanticsMatcher.expectValue(SemanticsProperties.IsTraversalGroup, true),
-                        )
+                    selectCategory(null)
+                    val words = listOf(catalog.vocabulary.maxBy { it.text.length },
+                        catalog.vocabulary.first { it.visualStrategy == "SOLO_TEXTO" },
+                        catalog.vocabulary.first { it.visualStrategy == "PICTOGRAMA_PENDIENTE" },
+                        catalog.vocabulary.last())
+                    words.forEach { word ->
+                        grid.performScrollToKey(word.vocabId)
+                        assertTextFits(composeRule.onNodeWithText(word.text), scenario.toString())
                     }
-                    // The only available action is returning; no pretend speech or vocabulary controls.
-                    composeRule.onAllNodes(hasClickAction()).assertCountEquals(1)
-                    listOf("Hablar", "Borrar último", "Limpiar", "Repetir", "Favoritos").forEach {
-                        composeRule.onNodeWithText(it).assertDoesNotExist()
-                    }
-                    val expectedReturns = returns + 1
+                    saveCapture("${appearance.name}-${scale.name}-$small")
+                    grid.performScrollToKey("back")
                     composeRule.onNodeWithTag("communication-back-to-modules")
-                        .performScrollTo().assertIsDisplayed().assertIsEnabled()
-                        .assertHeightIsAtLeast(48.dp)
-                        .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
-                        .performClick()
-                    composeRule.runOnIdle { assertEquals(expectedReturns, returns) }
+                        .assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
+                    val expected = appearances.indexOf(appearance) * 6 + TextScaleMode.entries.indexOf(scale) * 2 + (if (small) 2 else 1)
+                    composeRule.runOnIdle { assertEquals(expected, returns) }
                 }
             }
         }
     }
 
+    private fun awaitCatalog() {
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            runCatching { grid.performScrollToKey("categories"); true }.getOrDefault(false)
+        }
+    }
+    private fun selectCategory(id: String?) {
+        grid.performScrollToKey("categories")
+        val key = id ?: "all"
+        composeRule.onNodeWithTag("communication-categories").performScrollToKey(key)
+        composeRule.onNodeWithTag("communication-category-$key").performClick()
+        composeRule.waitForIdle()
+        grid.performScrollToKey("categories")
+    }
+    private fun assertCount(expected: Int) {
+        grid.performScrollToKey("count")
+        composeRule.onNodeWithTag("communication-vocabulary-count").assertTextEquals("$expected palabras")
+    }
+    private fun assertTextFits(node: SemanticsNodeInteraction, scenario: String) {
+        node.assertIsDisplayed()
+        val layouts = mutableListOf<TextLayoutResult>()
+        node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertTrue(layouts.isNotEmpty())
+        layouts.forEach { layout ->
+            val widest = (0 until layout.lineCount).maxOfOrNull { layout.getLineRight(it) - layout.getLineLeft(it) } ?: 0f
+            assertTrue("Clipped: $scenario", !layout.multiParagraph.didExceedMaxLines &&
+                layout.multiParagraph.height <= layout.size.height + 1f && widest <= layout.size.width + 1f)
+        }
+    }
     private fun saveCapture(name: String) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val directory = File(context.getExternalFilesDir(null), "phase32-communication-qa").apply { mkdirs() }
+        val directory = File(context.getExternalFilesDir(null), "phase33-communication-qa").apply { mkdirs() }
         File(directory, "$name.png").outputStream().use {
-            composeRule.onNodeWithTag("communication-home").captureToImage()
-                .asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+            grid.captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
         }
     }
 }
