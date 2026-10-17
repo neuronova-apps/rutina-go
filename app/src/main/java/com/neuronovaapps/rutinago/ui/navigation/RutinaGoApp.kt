@@ -267,9 +267,12 @@ fun RutinaGoApp(
         return
     }
 
-    BackHandler(enabled = !destination.isMain) {
-        destinationName = previousMainName
+    fun backFromRutinaGo() {
+        if (destination.isMain) selectedModule = null
+        else destinationName = previousMainName
     }
+
+    BackHandler(onBack = ::backFromRutinaGo)
 
     Scaffold(
         snackbarHost = {
@@ -285,7 +288,7 @@ fun RutinaGoApp(
                 destination = destination,
                 activeProfileName = activeProfileName,
                 showBack = destination != AppDestination.USER_ROUTINE_EDIT,
-                onBack = { destinationName = previousMainName },
+                onBack = ::backFromRutinaGo,
             )
         },
         bottomBar = {
@@ -480,44 +483,58 @@ private fun AppHeader(
         ),
         shadowElevation = 1.dp,
     ) {
-        Row(
-            modifier = Modifier
-                .statusBarsPadding()
-                .heightIn(min = 64.dp)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (!destination.isMain && showBack) {
-                TextButton(onClick = onBack) { Text("‹ Volver") }
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(destination.title, style = MaterialTheme.typography.titleLarge)
-                Text(
-                    when (destination) {
-                        AppDestination.HOME -> "NeuroNova Apps"
-                        AppDestination.PROGRESS -> "Perfil $activeProfileName · datos guardados"
-                        AppDestination.SETTINGS -> "Preferencias guardadas en este dispositivo"
-                        AppDestination.ABOUT -> "Información de la aplicación"
-                        else -> "RutinaGo"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (destination == AppDestination.HOME || destination == AppDestination.PROGRESS) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        Column {
+            // Keep the module exit on its own row so large text cannot squeeze the title/profile.
+            if (destination == AppDestination.HOME) {
+                TextButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(horizontal = 12.dp)
+                        .testTag("rutinago-back-to-modules"),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    Text("Volver al selector", textAlign = TextAlign.Center)
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .then(if (destination == AppDestination.HOME) Modifier else Modifier.statusBarsPadding())
+                    .heightIn(min = 64.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (!destination.isMain && showBack) {
+                    TextButton(onClick = onBack) { Text("‹ Volver") }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(destination.title, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        when (destination) {
+                            AppDestination.HOME -> "NeuroNova Apps"
+                            AppDestination.PROGRESS -> "Perfil $activeProfileName · datos guardados"
+                            AppDestination.SETTINGS -> "Preferencias guardadas en este dispositivo"
+                            AppDestination.ABOUT -> "Información de la aplicación"
+                            else -> "RutinaGo"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (destination == AppDestination.HOME || destination == AppDestination.PROGRESS) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     ) {
-                        Text("Perfil", style = MaterialTheme.typography.labelSmall)
-                        Text(activeProfileName, style = MaterialTheme.typography.labelLarge)
+                        Column(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text("Perfil", style = MaterialTheme.typography.labelSmall)
+                            Text(activeProfileName, style = MaterialTheme.typography.labelLarge)
+                        }
                     }
                 }
             }

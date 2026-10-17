@@ -4,9 +4,14 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import org.junit.Rule
@@ -49,7 +54,7 @@ class CreateNavigationTest {
 
     @Test
     fun savedRoutineAppearsInMyRoutinesAndOpensForEditing() {
-        val routineName = "Rutina persistente de navegación"
+        val routineName = "Rutina de navegación ${System.nanoTime()}"
         openCreateOrigin()
         composeRule.onNodeWithText("Crear desde cero").performClick()
         composeRule.onNodeWithText("Nombre de la rutina").performTextInput(routineName)
@@ -64,8 +69,12 @@ class CreateNavigationTest {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(routineName).fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("Editar").performClick()
-        composeRule.onNodeWithText("Editar rutina").assertIsDisplayed()
+        val cardTag = composeRule.onNodeWithText(routineName).fetchSemanticsNode()
+            .config[SemanticsProperties.TestTag]
+        composeRule.onNode(hasText("Editar") and hasAnyAncestor(hasTestTag(cardTag)))
+            .performScrollTo().performClick()
+        composeRule.onNodeWithText("Nombre de la rutina").assertIsDisplayed()
+        composeRule.onNodeWithText(routineName).assertIsDisplayed()
     }
 
     private fun openCreateOrigin() {
@@ -76,14 +85,13 @@ class CreateNavigationTest {
             composeRule.onNodeWithText("Continuar").performClick()
         }
         composeRule.enterRutinaGoModule()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("Hoy · Lunes").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.onNodeWithTag("rutinago-back-to-modules").assertIsDisplayed()
         composeRule.onNodeWithText("Crear").performClick()
         composeRule.onNodeWithText("Elegir origen").performClick()
     }
 
     private fun pressSystemBack() {
+        composeRule.waitForIdle()
         composeRule.activityRule.scenario.onActivity { activity ->
             activity.onBackPressedDispatcher.onBackPressed()
         }

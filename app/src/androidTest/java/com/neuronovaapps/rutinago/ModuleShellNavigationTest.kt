@@ -37,9 +37,35 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithText("Volver al selector").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
-        composeRule.activityRule.scenario.onActivity {
-            it.onBackPressedDispatcher.onBackPressed()
+        pressSystemBack()
+        composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
+    }
+
+    @Test
+    fun rutinaGoEntryOffersVisibleReturnAndSystemBackFromEveryMainTab() {
+        openSelector()
+        composeRule.enterRutinaGoModule()
+        composeRule.onNodeWithTag("rutinago-back-to-modules").assertIsDisplayed().performClick()
+        composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
+
+        listOf("HOME", "ROUTINES", "CREATE", "PROGRESS", "SETTINGS").forEach { destination ->
+            composeRule.enterRutinaGoModule()
+            composeRule.onNodeWithTag("destination-$destination").performClick()
+            pressSystemBack()
+            composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         }
+    }
+
+    @Test
+    fun internalBackReturnsToRutinaGoBeforeLeavingTheModule() {
+        openSelector()
+        composeRule.enterRutinaGoModule()
+        composeRule.onNodeWithTag("destination-SETTINGS").performClick()
+        composeRule.onNodeWithText("Gestionar perfiles").performScrollTo().performClick()
+        pressSystemBack()
+        composeRule.onNodeWithText("Apariencia").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("module-selector").assertDoesNotExist()
+        pressSystemBack()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
     }
 
@@ -60,7 +86,15 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithText("Crear una rutina").assertIsDisplayed()
         composeRule.onNodeWithTag("destination-PROGRESS").performClick()
         composeRule.onNodeWithTag("destination-HOME").performClick()
-        composeRule.onNodeWithText("Hoy · Lunes").assertIsDisplayed()
+        composeRule.onNodeWithTag("rutinago-back-to-modules").assertIsDisplayed()
+    }
+
+    private fun pressSystemBack() {
+        composeRule.waitForIdle()
+        composeRule.activityRule.scenario.onActivity {
+            it.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.waitForIdle()
     }
 
     private fun openSelector() {

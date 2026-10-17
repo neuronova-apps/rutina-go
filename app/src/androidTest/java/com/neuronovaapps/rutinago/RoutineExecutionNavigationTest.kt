@@ -24,6 +24,9 @@ class RoutineExecutionNavigationTest {
     fun exitConfirmationCanContinueAtSameStepAndExitWithoutResult() {
         startPersonalRoutine()
         composeRule.onNodeWithText("Completar paso").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Paso 2 de 2").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithText("Paso 2 de 2").assertIsDisplayed()
 
         composeRule.onNodeWithText("Salir").performClick()
@@ -115,6 +118,7 @@ class RoutineExecutionNavigationTest {
     }
 
     private fun pressSystemBack() {
+        composeRule.waitForIdle()
         composeRule.activityRule.scenario.onActivity { activity ->
             activity.onBackPressedDispatcher.onBackPressed()
         }

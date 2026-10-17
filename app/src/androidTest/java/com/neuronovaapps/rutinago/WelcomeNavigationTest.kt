@@ -3,10 +3,16 @@ package com.neuronovaapps.rutinago
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.hasAnyChild
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -20,11 +26,14 @@ class WelcomeNavigationTest {
         composeRule.onNodeWithText("RUTINAGO").assertIsDisplayed()
         startAndEnsureProfile()
 
-        composeRule.onNodeWithText("Hoy · Lunes").assertIsDisplayed()
+        composeRule.onNodeWithTag("rutinago-back-to-modules").assertIsDisplayed()
         composeRule.onNodeWithText("Rutinas").assertIsDisplayed()
         composeRule.onNodeWithText("Configuración").performClick()
         composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
-        composeRule.onNodeWithText("Muy grande").performScrollTo().assertIsDisplayed()
+        composeRule.onNode(hasScrollAction() and hasAnyChild(hasText("Normal")))
+            .performScrollTo()
+            .performScrollToNode(hasText("Muy grande"))
+        composeRule.onNodeWithText("Muy grande").assertIsDisplayed()
         composeRule.onNodeWithText("Alto contraste").performScrollTo().assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Comenzar").fetchSemanticsNodes().isEmpty())
     }
@@ -75,7 +84,7 @@ class WelcomeNavigationTest {
         }
         composeRule.enterRutinaGoModule()
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("Hoy · Lunes").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithTag("rutinago-back-to-modules").fetchSemanticsNodes().isNotEmpty()
         }
     }
 }
