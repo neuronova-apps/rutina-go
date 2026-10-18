@@ -35,6 +35,10 @@ fun CommunicationHomeScreen(
     presentationMode: CommunicationPresentationMode = CommunicationPresentationMode.GUIDED,
     presentationControls: (@Composable () -> Unit)? = null,
     visibleVocabularyIds: Set<String>? = null,
+    homeVocabularyIds: Set<String>? = null,
+    homeSaving: Boolean = false,
+    homeError: String? = null,
+    onSetHomeWord: ((String, Boolean) -> Unit)? = null,
     onVocabulary: (() -> Unit)? = null,
     profileSetup: CommunicationProfileSetup? = null,
     navigation: CommunicationNavigationState? = null,
@@ -88,42 +92,54 @@ fun CommunicationHomeScreen(
         select(CommunicationDestination.HOME)
         onBackToModules()
     }
-    BackHandler { exit() }
+    fun back() { currentNavigation.back()?.let(::navigate) ?: exit() }
+    fun organizeHome() { focus.clearFocus(); navigate(currentNavigation.organizeHome()) }
+    BackHandler { back() }
     Scaffold(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            CommunicationBottomBar(destination, ::select)
+            if (currentNavigation.homeOrganizationOrigin == null) CommunicationBottomBar(destination, ::select)
         },
     ) { padding ->
         Surface(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
             color = MaterialTheme.colorScheme.background) {
-            tabs.SaveableStateProvider(destination.name) {
-                when (destination) {
-                    CommunicationDestination.HOME, CommunicationDestination.CATEGORIES -> {
-                        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                            if (destination == CommunicationDestination.CATEGORIES) {
-                                CompactCommunicationMessage(state.messageItems) {
-                                    select(CommunicationDestination.HOME)
+            tabs.SaveableStateProvider(if (currentNavigation.homeOrganizationOrigin != null) "home-organization" else destination.name) {
+                if (currentNavigation.homeOrganizationOrigin != null && onSetHomeWord != null) {
+                    CommunicationHomeVocabularyScreen(activeProfileName, repository, visibleVocabularyIds, homeVocabularyIds,
+                        homeSaving, homeError, onSetHomeWord,
+                        returnToHome = currentNavigation.homeOrganizationOrigin == CommunicationDestination.HOME, onBack = ::back,
+                        onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) })
+                } else {
+                    when (destination) {
+                        CommunicationDestination.HOME, CommunicationDestination.CATEGORIES -> {
+                            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                                if (destination == CommunicationDestination.CATEGORIES) {
+                                    CompactCommunicationMessage(state.messageItems) {
+                                        select(CommunicationDestination.HOME)
+                                    }
                                 }
+                                CommunicationHomeSaveStatus(homeSaving, homeError)
+                                CommunicationWordGrid(activeProfileName, repository, builder, state,
+                                    onState = { state = it }, presentationMode, visibleVocabularyIds,
+                                    homeVocabularyIds, homeSaving, onSetHomeWord,
+                                    categories = destination == CommunicationDestination.CATEGORIES,
+                                    onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) },
+                                    onOrganizeHome = if (onSetHomeWord != null) ::organizeHome else null)
                             }
-                            CommunicationWordGrid(activeProfileName, repository, builder, state,
-                                onState = { state = it }, presentationMode, visibleVocabularyIds,
-                                categories = destination == CommunicationDestination.CATEGORIES,
-                                onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) })
                         }
-                    }
-                    CommunicationDestination.MY_VOCABULARY -> {
-                        if (vocabularyContent != null) vocabularyContent(repository)
-                        else ScreenColumn(Modifier.safeDrawingPadding()) {
-                            SectionHeading("Mi vocabulario")
-                            Text("Perfil activo: $activeProfileName")
-                            Text("Administración de las palabras visibles del perfil.")
-                            if (onVocabulary != null) Button(onClick = onVocabulary) { Text("Administrar vocabulario") }
+                        CommunicationDestination.MY_VOCABULARY -> {
+                            if (vocabularyContent != null) vocabularyContent(repository)
+                            else ScreenColumn(Modifier.safeDrawingPadding()) {
+                                SectionHeading("Mi vocabulario")
+                                Text("Perfil activo: $activeProfileName")
+                                Text("Administración de las palabras visibles del perfil.")
+                                if (onVocabulary != null) Button(onClick = onVocabulary) { Text("Administrar vocabulario") }
+                            }
                         }
+                        CommunicationDestination.SETTINGS -> CommunicationSettingsScreen(
+                            activeProfileName, profileSetup, onPersonalize, presentationControls, ::exit)
                     }
-                    CommunicationDestination.SETTINGS -> CommunicationSettingsScreen(
-                        activeProfileName, profileSetup, onPersonalize, presentationControls, ::exit)
                 }
             }
         }
@@ -139,13 +155,18 @@ private fun CommunicationWordGrid(
     onState: (CommunicationUiState) -> Unit,
     presentationMode: CommunicationPresentationMode,
     visibleIds: Set<String>?,
+    homeIds: Set<String>?,
+    homeSaving: Boolean,
+    onSetHomeWord: ((String, Boolean) -> Unit)?,
     categories: Boolean,
     onVocabulary: () -> Unit,
+    onOrganizeHome: (() -> Unit)?,
 ) {
     val layout = presentationLayout(presentationMode)
     val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
-    val words = CommunicationPersonalVocabulary.visibleWords(
-        if (categories) builder.visibleVocabulary(state) else builder.coreVocabulary, visibleIds)
+    val words = if (categories) CommunicationPersonalVocabulary.visibleWords(builder.visibleVocabulary(state), visibleIds)
+        else CommunicationHomeVocabulary.words(repository, homeIds, visibleIds)
+    val assigned = CommunicationHomeVocabulary.assignedIds(homeIds, visibleIds)
     Box(contentAlignment = Alignment.TopCenter) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive((layout.minimumCardWidth * textFactor.coerceAtLeast(1f)).dp),
@@ -165,8 +186,15 @@ private fun CommunicationWordGrid(
                         { onState(builder.removeLast(state)) }, { onState(builder.clear(state)) },
                         { onState(builder.undoClear(state)) })
                 }
-                item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Acceso rápido") }
+                item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Palabras de Inicio") }
+                if (onOrganizeHome != null) item(key = "organize-home", span = { GridItemSpan(maxLineSpan) }) {
+                    OutlinedButton(onClick = onOrganizeHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("communication-organize-home")) { Text("Organizar palabras de Inicio") }
+                }
             } else {
+                item(key = "use-explanation", span = { GridItemSpan(maxLineSpan) }) {
+                    Text("Toca una palabra para comunicarla. Usa Añadir a Inicio para tenerla siempre a mano.")
+                }
                 item(key = "categories", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationCategorySelector(repository.categories.filter { it.active }, state.selectedCategoryId) {
                         onState(builder.selectCategory(state, it))
@@ -180,15 +208,22 @@ private fun CommunicationWordGrid(
                 }
             }
             if (words.isEmpty()) item(key = "empty-vocabulary", span = { GridItemSpan(maxLineSpan) }) {
-                EmptyState("No hay palabras visibles${if (categories) " en esta categoría" else " en Acceso rápido"}",
+                if (categories) EmptyState("No hay palabras visibles en esta categoría",
                     "Abre Mi vocabulario para agregar o recuperar palabras.", "Mi vocabulario", onVocabulary)
+                else EmptyState("No hay palabras visibles en Inicio",
+                    "Puedes elegir palabras disponibles o recuperarlas en Mi vocabulario.",
+                    "Agregar palabras a Inicio", onOrganizeHome ?: onVocabulary)
             }
             items(words, key = { if (categories) it.vocabId else "core-${it.vocabId}" }) {
-                CommunicationVocabularyCard(it, { id -> onState(builder.add(state, id)) },
-                    tag = if (categories) "communication-word-${it.vocabId}" else "communication-core-${it.vocabId}",
-                    minimumHeight = (if (categories) layout.wordHeight else layout.quickAccessHeight).dp,
-                    contentPadding = layout.cardPadding.dp,
-                    emphasized = !categories && presentationMode == CommunicationPresentationMode.GUIDED)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CommunicationVocabularyCard(it, { id -> onState(builder.add(state, id)) },
+                        tag = if (categories) "communication-word-${it.vocabId}" else "communication-core-${it.vocabId}",
+                        minimumHeight = (if (categories) layout.wordHeight else layout.quickAccessHeight).dp,
+                        contentPadding = layout.cardPadding.dp,
+                        emphasized = !categories && presentationMode == CommunicationPresentationMode.GUIDED)
+                    if (categories && onSetHomeWord != null) CommunicationHomeAssignmentControl(it,
+                        it.vocabId in assigned, !homeSaving, onSetHomeWord)
+                }
             }
         }
     }

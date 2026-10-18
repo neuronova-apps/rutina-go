@@ -25,6 +25,7 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationHomeVocabularyRepository
 import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
 
 enum class ThemeMode(val storageValue: String) {
@@ -78,7 +79,7 @@ data class UserPreferences(
 // Profiles are small app preferences here; routines and activities deliberately stay out of DataStore.
 private val Context.userPreferencesDataStore by preferencesDataStore(name = "appearance_preferences")
 
-class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository {
+class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository, CommunicationHomeVocabularyRepository {
     private val appContext = context.applicationContext
     private val communicationCatalog by lazy {
         LocalCommunicationCatalogRepository {
@@ -110,6 +111,9 @@ class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRep
 
     override fun setupForProfile(profileId: String) = communicationSetups.setupForProfile(profileId)
     override fun vocabularyForProfile(profileId: String) = communicationSetups.vocabularyForProfile(profileId)
+    override fun homeVocabularyForProfile(profileId: String) = communicationSetups.homeVocabularyForProfile(profileId)
+    override suspend fun setHomeWord(profileId: String, vocabularyId: String, inHome: Boolean) =
+        communicationSetups.setHomeWord(profileId, vocabularyId, inHome)
     override suspend fun saveVocabulary(profileId: String, visibleIds: Set<String>) =
         communicationSetups.saveVocabulary(profileId, visibleIds)
     override suspend fun saveSetup(setup: CommunicationProfileSetup) = communicationSetups.saveSetup(setup)

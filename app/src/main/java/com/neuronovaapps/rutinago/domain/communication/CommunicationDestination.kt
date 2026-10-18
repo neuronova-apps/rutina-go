@@ -9,9 +9,15 @@ enum class CommunicationDestination(val label: String) {
 data class CommunicationNavigationState(
     val destination: CommunicationDestination = CommunicationDestination.HOME,
     val personalizing: Boolean = false,
+    val homeOrganizationOrigin: CommunicationDestination? = null,
 ) {
-    fun select(destination: CommunicationDestination) = copy(destination = destination, personalizing = false)
+    fun select(destination: CommunicationDestination) = copy(destination = destination, personalizing = false, homeOrganizationOrigin = null)
     fun personalize() = copy(personalizing = true)
+    fun organizeHome() = copy(destination = CommunicationDestination.MY_VOCABULARY, homeOrganizationOrigin = destination)
     /** null exits to the module selector; an editor returns to its original tab. */
-    fun back(): CommunicationNavigationState? = if (personalizing) copy(personalizing = false) else null
+    fun back(): CommunicationNavigationState? = when {
+        homeOrganizationOrigin != null -> CommunicationNavigationState(homeOrganizationOrigin)
+        personalizing -> copy(personalizing = false)
+        else -> null
+    }
 }

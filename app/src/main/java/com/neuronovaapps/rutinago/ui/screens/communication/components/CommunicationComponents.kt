@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
@@ -197,7 +198,7 @@ fun CommunicationVocabularyCard(
     Surface(
         onClick = { onSelect(item.vocabId) },
         modifier = Modifier.fillMaxWidth().heightIn(min = minimumHeight)
-            .testTag(tag).semantics { role = Role.Button },
+            .testTag(tag).semantics { role = Role.Button; contentDescription = "Usar palabra: ${item.text}" },
         shape = MaterialTheme.shapes.medium,
         color = if (emphasized) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         border = BorderStroke(if (LocalHighContrast.current) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),

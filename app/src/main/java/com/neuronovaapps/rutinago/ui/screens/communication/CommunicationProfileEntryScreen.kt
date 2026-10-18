@@ -31,6 +31,7 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentation
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPolicy
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationHomeVocabularyRepository
 import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationPresentationSelector
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import kotlinx.coroutines.CancellationException
@@ -40,7 +41,7 @@ import kotlinx.coroutines.flow.combine
 private sealed interface SetupLoadState {
     data object Loading : SetupLoadState
     data class Ready(val setup: CommunicationProfileSetup?,
-        val presentation: CommunicationPresentationPreferences, val visibleIds: Set<String>?) : SetupLoadState
+        val presentation: CommunicationPresentationPreferences, val visibleIds: Set<String>?, val homeIds: Set<String>?) : SetupLoadState
     data object Failed : SetupLoadState
 }
 
@@ -51,6 +52,7 @@ fun CommunicationProfileEntryScreen(
     setupRepository: CommunicationProfileSetupRepository? = null,
     presentationRepository: CommunicationPresentationRepository? = null,
     vocabularyRepository: CommunicationPersonalVocabularyRepository? = null,
+    homeVocabularyRepository: CommunicationHomeVocabularyRepository? = null,
     onBackToModules: () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
@@ -58,8 +60,9 @@ fun CommunicationProfileEntryScreen(
     val repository = setupRepository ?: defaultRepository
     val presentation = presentationRepository ?: defaultRepository
     val vocabulary = vocabularyRepository ?: defaultRepository
+    val homeVocabulary = homeVocabularyRepository ?: defaultRepository
     key(profileId) {
-        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, vocabulary, onBackToModules)
+        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, vocabulary, homeVocabulary, onBackToModules)
     }
 }
 
@@ -70,12 +73,15 @@ private fun CommunicationProfileEntryContent(
     repository: CommunicationProfileSetupRepository,
     presentationRepository: CommunicationPresentationRepository,
     vocabularyRepository: CommunicationPersonalVocabularyRepository,
+    homeVocabularyRepository: CommunicationHomeVocabularyRepository,
     onBackToModules: () -> Unit,
 ) {
     var retry by remember { mutableIntStateOf(0) }
     var navigation by rememberSaveable(stateSaver = CommunicationNavigationSaver) { mutableStateOf(CommunicationNavigationState()) }
     var vocabularySaving by remember { mutableStateOf(false) }
     var vocabularyError by remember { mutableStateOf<String?>(null) }
+    var homeSaving by remember { mutableStateOf(false) }
+    var homeError by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var presentationSaving by remember { mutableStateOf(false) }
@@ -84,17 +90,33 @@ private fun CommunicationProfileEntryContent(
     var introductionVisible by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()
     val messageSession = rememberSaveableStateHolder()
-    val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, presentationRepository, vocabularyRepository, profileId, retry) {
+    val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, presentationRepository, vocabularyRepository, homeVocabularyRepository, profileId, retry) {
         value = SetupLoadState.Loading
         try {
             combine(repository.setupForProfile(profileId), presentationRepository.presentationForProfile(profileId),
-                vocabularyRepository.vocabularyForProfile(profileId)) {
-                setup, presentation, ids -> SetupLoadState.Ready(setup, presentation, ids)
+                vocabularyRepository.vocabularyForProfile(profileId), homeVocabularyRepository.homeVocabularyForProfile(profileId)) {
+                setup, presentation, ids, homeIds -> SetupLoadState.Ready(setup, presentation, ids, homeIds)
             }.collect { value = it }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
             value = SetupLoadState.Failed
+        }
+    }
+    fun setHomeWord(id: String, inHome: Boolean) {
+        if (homeSaving) return
+        homeSaving = true
+        homeError = null
+        scope.launch {
+            try {
+                homeVocabularyRepository.setHomeWord(profileId, id, inHome)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                homeError = "No se pudo guardar la selección de Inicio. Reintenta la acción."
+            } finally {
+                homeSaving = false
+            }
         }
     }
     fun saveVocabulary(ids: Set<String>) {
@@ -159,11 +181,17 @@ private fun CommunicationProfileEntryContent(
                     navigation = navigation,
                     onNavigate = { navigation = it },
                     visibleVocabularyIds = current.visibleIds,
+                    homeVocabularyIds = current.homeIds,
+                    homeSaving = homeSaving,
+                    homeError = homeError,
+                    onSetHomeWord = ::setHomeWord,
                     profileSetup = initial,
                     vocabularyContent = { catalog ->
                         CommunicationVocabularyContent(activeProfileName, catalog, current.visibleIds,
                             vocabularySaving, vocabularyError,
-                            onSave = ::saveVocabulary, onBack = onBackToModules, showBack = false)
+                            onSave = ::saveVocabulary, onBack = onBackToModules, showBack = false,
+                            homeIds = current.homeIds,
+                            onOrganizeHome = { navigation = navigation.organizeHome() })
                     },
                     presentationMode = CommunicationPresentationPolicy.resolve(initial, current.presentation),
                     presentationControls = {

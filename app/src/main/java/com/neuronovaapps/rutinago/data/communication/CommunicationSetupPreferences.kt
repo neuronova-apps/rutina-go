@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationHomeVocabularyRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationHomeVocabulary
 import com.neuronovaapps.rutinago.domain.communication.CommunicationCatalogRepository
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -46,6 +48,7 @@ class CommunicationSetupPreferences(private val store: DataStore<Preferences>) {
             it.remove(key(profileId))
             it.remove(presentationKey(profileId))
             it.remove(vocabularyKey(profileId))
+            it.remove(homeVocabularyKey(profileId))
         }
     }
 
@@ -63,6 +66,27 @@ class CommunicationSetupPreferences(private val store: DataStore<Preferences>) {
     }
 
     private fun vocabularyKey(profileId: String) = stringSetPreferencesKey("vocabulary_visible_v1:$profileId")
+
+    fun observeHomeVocabulary(profileId: String): Flow<Set<String>?> {
+        require(profileId.isNotBlank())
+        return store.data.map { stored -> stored[homeVocabularyKey(profileId)]?.let {
+            java.util.Collections.unmodifiableSet(HashSet(it))
+        } }.distinctUntilChanged()
+    }
+
+    /** Read-modify-write in one DataStore transaction; hiding never removes assigned IDs. */
+    suspend fun setHomeWord(profileId: String, vocabularyId: String, inHome: Boolean, knownIds: Set<String>) {
+        require(profileId.isNotBlank())
+        store.edit { stored ->
+            val available = stored[vocabularyKey(profileId)]
+            require(available != null) { "Configure available vocabulary first" }
+            require(!inHome || vocabularyId in available) { "Home words must be available" }
+            val assigned = CommunicationHomeVocabulary.assignedIds(stored[homeVocabularyKey(profileId)], available).intersect(knownIds)
+            stored[homeVocabularyKey(profileId)] = if (inHome) assigned + vocabularyId else assigned - vocabularyId
+        }
+    }
+
+    private fun homeVocabularyKey(profileId: String) = stringSetPreferencesKey("home_vocabulary_v1:$profileId")
 
     fun observePresentation(profileId: String): Flow<CommunicationPresentationPreferences> {
         require(profileId.isNotBlank())
@@ -139,7 +163,17 @@ class CommunicationProfileSetupManager(
     private val store: CommunicationSetupPreferences,
     private val profiles: CommunicationProfileRegistry,
     private val catalog: (() -> CommunicationCatalogRepository)? = null,
-) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository {
+) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository, CommunicationHomeVocabularyRepository {
+    override fun homeVocabularyForProfile(profileId: String) = store.observeHomeVocabulary(profileId)
+
+    override suspend fun setHomeWord(profileId: String, vocabularyId: String, inHome: Boolean) = mutationMutex.withLock {
+        require(profiles.exists(profileId)) { "Unknown profile" }
+        val knownIds = requireNotNull(catalog) { "Vocabulary catalog required" }().vocabulary.map { it.vocabId }.toSet()
+        require(vocabularyId in knownIds) {
+            "Unknown vocabulary ID"
+        }
+        store.setHomeWord(profileId, vocabularyId, inHome, knownIds)
+    }
     override fun vocabularyForProfile(profileId: String) = store.observeVocabulary(profileId)
 
     override suspend fun saveVocabulary(profileId: String, visibleIds: Set<String>) {

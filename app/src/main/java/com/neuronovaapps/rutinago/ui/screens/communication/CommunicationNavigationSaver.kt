@@ -5,6 +5,7 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationDestination
 import com.neuronovaapps.rutinago.domain.communication.CommunicationNavigationState
 
 internal val CommunicationNavigationSaver = listSaver<CommunicationNavigationState, String>(
-    save = { listOf(it.destination.name, it.personalizing.toString()) },
-    restore = { CommunicationNavigationState(CommunicationDestination.valueOf(it[0]), it[1].toBooleanStrict()) },
+    save = { listOf(it.destination.name, it.personalizing.toString(), it.homeOrganizationOrigin?.name.orEmpty()) },
+    restore = { CommunicationNavigationState(CommunicationDestination.valueOf(it[0]), it[1].toBooleanStrict(),
+        it.getOrNull(2)?.takeIf(String::isNotEmpty)?.let(CommunicationDestination::valueOf)) },
 )
