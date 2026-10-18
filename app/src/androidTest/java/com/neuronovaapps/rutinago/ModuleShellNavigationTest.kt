@@ -24,7 +24,7 @@ internal fun ComposeContentTestRule.enterRutinaGoModule() {
 internal fun ComposeContentTestRule.awaitCommunicationCatalog() {
     // Existing communicator cases explicitly choose the full bank on first setup.
     waitUntil(timeoutMillis = 10_000) {
-        onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty() ||
+        onAllNodesWithTag("communication-bottom-bar").fetchSemanticsNodes().isNotEmpty() ||
             onAllNodesWithTag("vocabulary-start-all").fetchSemanticsNodes().isNotEmpty()
     }
     if (onAllNodesWithTag("vocabulary-start-all").fetchSemanticsNodes().isNotEmpty()) {
@@ -32,12 +32,12 @@ internal fun ComposeContentTestRule.awaitCommunicationCatalog() {
         onNodeWithTag("vocabulary-confirm-initial").performScrollTo().performClick()
     }
     waitUntil(timeoutMillis = 10_000) {
-        onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty()
+        onAllNodesWithTag("communication-bottom-bar").fetchSemanticsNodes().isNotEmpty()
     }
 }
 
 internal fun ComposeContentTestRule.openCommunicationCategories() {
-    onNodeWithTag("communication-home").performScrollToKey("categories")
+    scrollCommunicationTo("categories")
     if (onAllNodesWithTag("communication-category-all").fetchSemanticsNodes().isEmpty()) {
         onNodeWithTag("communication-category-toggle").performScrollTo().performClick()
     }
@@ -52,7 +52,7 @@ internal fun ComposeContentTestRule.selectCommunicationCategory(id: String?) {
 /** Legacy navigation cases explicitly decline optional answers during test preparation. */
 internal fun ComposeContentTestRule.completeCommunicationSetupIfNeeded() {
     waitUntil(timeoutMillis = 10_000) {
-        onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty() ||
+        onAllNodesWithTag("communication-bottom-bar").fetchSemanticsNodes().isNotEmpty() ||
             onAllNodesWithTag("personal-vocabulary").fetchSemanticsNodes().isNotEmpty() ||
             onAllNodesWithTag("communication-profile-setup").fetchSemanticsNodes().isNotEmpty()
     }
@@ -60,6 +60,27 @@ internal fun ComposeContentTestRule.completeCommunicationSetupIfNeeded() {
         onNodeWithTag("communication-age-NOT_SPECIFIED").performScrollTo().performClick()
         onNodeWithTag("communication-oral-NOT_SPECIFIED").performScrollTo().performClick()
         onNodeWithTag("communication-setup-save").performScrollTo().performClick()
+    }
+}
+
+/** Follow the visible public tabs; use the existing lazy content keys inside each tab. */
+internal fun ComposeContentTestRule.scrollCommunicationTo(key: Any) {
+    val value = key.toString()
+    val destination = when {
+        value in listOf("personalize", "presentation", "back") -> "SETTINGS"
+        value in listOf("categories", "vocabulary-title", "count") || value.startsWith("VOC_") -> "CATEGORIES"
+        else -> "HOME"
+    }
+    onNodeWithTag("communication-destination-$destination").performClick()
+    waitForIdle()
+    when (destination) {
+        "SETTINGS" -> when (value) {
+            "personalize" -> onNodeWithTag("communication-personalize").performScrollTo()
+            "presentation" -> onNodeWithTag("communication-presentation-GUIDED").performScrollTo()
+            else -> onNodeWithTag("communication-back-to-modules").performScrollTo()
+        }
+        else -> onNodeWithTag(if (destination == "HOME") "communication-home" else "communication-category-grid")
+            .performScrollToKey(key)
     }
 }
 
@@ -81,20 +102,15 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithText(profileText).assertIsDisplayed()
         composeRule.onNodeWithTag("communication-message-area").assertIsDisplayed()
         composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            runCatching {
-                composeRule.onNodeWithTag("communication-home").performScrollToKey("count")
-                true
-            }.getOrDefault(false)
-        }
+        composeRule.scrollCommunicationTo("count")
         composeRule.onNodeWithText("132 palabras").assertIsDisplayed()
-        composeRule.onNodeWithTag("communication-home").performScrollToKey("VOC_001")
+        composeRule.scrollCommunicationTo("VOC_001")
         composeRule.onNodeWithText("Yo").assertIsDisplayed()
         listOf("HOME", "ROUTINES", "CREATE", "PROGRESS", "SETTINGS").forEach {
             composeRule.onNodeWithTag("destination-$it").assertDoesNotExist()
         }
-        composeRule.onNodeWithTag("communication-home").performScrollToKey("back")
-        composeRule.onNodeWithText("Volver al selector").performClick()
+        composeRule.scrollCommunicationTo("back")
+        composeRule.onNodeWithTag("communication-back-to-modules").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
         composeRule.completeCommunicationSetupIfNeeded()
@@ -147,7 +163,8 @@ class ModuleShellNavigationTest {
         composeRule.awaitCommunicationCatalog()
         composeRule.onNodeWithTag("communication-home").assertIsDisplayed()
         composeRule.onNodeWithText(profileText).assertIsDisplayed()
-        composeRule.onNodeWithText("Volver al selector").performClick()
+        composeRule.scrollCommunicationTo("back")
+        composeRule.onNodeWithTag("communication-back-to-modules").performClick()
         composeRule.enterRutinaGoModule()
         composeRule.onNodeWithText("Apariencia").assertIsDisplayed()
         composeRule.onNodeWithTag("destination-ROUTINES").performClick()

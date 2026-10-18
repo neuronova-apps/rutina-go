@@ -21,7 +21,6 @@ class CommunicationProfileSetupUiTest {
     private lateinit var original: UserPreferences
     private val firstId = "setup-ui-${UUID.randomUUID()}"
     private val secondId = "setup-ui-${UUID.randomUUID()}"
-    private val grid get() = composeRule.onNodeWithTag("communication-home")
 
     @Before fun prepareProfiles() = runBlocking {
         repository = UserPreferencesRepository(composeRule.activity)
@@ -47,9 +46,9 @@ class CommunicationProfileSetupUiTest {
         composeRule.onNodeWithTag("communication-age-YEARS_9_TO_12").assertIsNotSelected()
         saveAnswers("NOT_SPECIFIED", "NOT_SPECIFIED")
         composeRule.awaitCommunicationCatalog()
-        grid.performScrollToKey("core-VOC_006")
+        composeRule.scrollCommunicationTo("core-VOC_006")
         composeRule.onNodeWithTag("communication-core-VOC_006").performClick()
-        grid.performScrollToKey("VOC_015")
+        composeRule.scrollCommunicationTo("VOC_015")
         composeRule.onNodeWithTag("communication-word-VOC_015").performClick()
         openEditor()
         composeRule.onNodeWithTag("communication-age-NOT_SPECIFIED").performScrollTo().assertIsSelected()
@@ -73,7 +72,7 @@ class CommunicationProfileSetupUiTest {
         composeRule.awaitCommunicationCatalog()
         assertMessage()
         assertAllVocabularyAvailable()
-        grid.performScrollToKey("back")
+        composeRule.scrollCommunicationTo("back")
         composeRule.onNodeWithTag("communication-back-to-modules").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
@@ -97,7 +96,7 @@ class CommunicationProfileSetupUiTest {
         openUnconfigured()
         saveAnswers("YEARS_9_TO_12", "EMERGING_SPEECH")
         composeRule.awaitCommunicationCatalog()
-        grid.performScrollToKey("back")
+        composeRule.scrollCommunicationTo("back")
         composeRule.onNodeWithTag("communication-back-to-modules").performClick()
         runBlocking { repository.selectProfile(secondId) }
         composeRule.waitUntil(5_000) {
@@ -140,17 +139,17 @@ class CommunicationProfileSetupUiTest {
         composeRule.onNodeWithTag("communication-setup-save").performScrollTo().assertIsEnabled().performClick()
     }
     private fun openEditor() {
-        grid.performScrollToKey("personalize")
+        composeRule.scrollCommunicationTo("personalize")
         composeRule.onNodeWithTag("communication-personalize").performClick()
         awaitSetup()
     }
     private fun assertMessage() {
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         composeRule.onNodeWithTag("communication-message-item-1").assertTextEquals("Quiero")
         composeRule.onNodeWithTag("communication-message-item-2").assertTextEquals("Agua")
     }
     private fun assertAllVocabularyAvailable() {
-        grid.performScrollToKey("count")
+        composeRule.scrollCommunicationTo("count")
         composeRule.onNodeWithText("132 palabras").assertIsDisplayed()
         listOf("HOME", "ROUTINES", "CREATE", "PROGRESS", "SETTINGS").forEach {
             composeRule.onNodeWithTag("destination-$it").assertDoesNotExist()

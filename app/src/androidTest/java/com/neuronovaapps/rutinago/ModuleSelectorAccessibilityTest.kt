@@ -147,7 +147,7 @@ class ModuleSelectorAccessibilityTest {
                     composeRule.awaitCommunicationCatalog()
                     composeRule.onNodeWithTag("communication-home").performScrollToKey("message")
                     composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
-                    composeRule.onNodeWithTag("communication-home").performScrollToKey("back")
+                    composeRule.scrollCommunicationTo("back")
                     composeRule.onNodeWithTag("communication-back-to-modules")
                         .performScrollTo().assertIsDisplayed().assertHasClickAction().performClick()
                     composeRule.onNodeWithTag("module-selector").assertIsDisplayed()

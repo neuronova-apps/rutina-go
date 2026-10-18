@@ -7,11 +7,10 @@ import org.junit.Test
 
 class CommunicationMessageBuilderUiTest {
     @get:Rule val composeRule = createAndroidComposeRule<MainActivity>()
-    private val grid get() = composeRule.onNodeWithTag("communication-home")
 
     @Test fun flexibleMessageSupportsQuickAccessCategoriesRepetitionAndReturningThroughRutinaGo() {
         val profile = openCommunication()
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
         composeRule.onNodeWithTag("communication-remove-last").assertIsNotEnabled()
         composeRule.onNodeWithTag("communication-clear").assertIsNotEnabled()
@@ -37,11 +36,11 @@ class CommunicationMessageBuilderUiTest {
         composeRule.onNodeWithTag("communication-undo-clear").assertDoesNotExist()
 
         listOf("VOC_001", "VOC_006", "VOC_007", "VOC_063", "VOC_053", "VOC_014").forEach { id ->
-            grid.performScrollToKey("core-$id")
+            composeRule.scrollCommunicationTo("core-$id")
             composeRule.onNodeWithTag("communication-core-$id").assertIsDisplayed().assertHasClickAction()
         }
         assertNoRutinaGoBarOrSpeech()
-        grid.performScrollToKey("back")
+        composeRule.scrollCommunicationTo("back")
         composeRule.onNodeWithTag("communication-back-to-modules").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.enterRutinaGoModule()
@@ -50,7 +49,7 @@ class CommunicationMessageBuilderUiTest {
         composeRule.onNodeWithTag("module-communication").performClick()
         composeRule.awaitCommunicationCatalog()
         assertMessage(3 to "Quiero", 4 to "Quiero", 5 to "Yo")
-        grid.performScrollToKey("profile")
+        composeRule.scrollCommunicationTo("profile")
         composeRule.onNodeWithText(profile).assertIsDisplayed()
         assertNoRutinaGoBarOrSpeech()
         systemBack()
@@ -97,24 +96,24 @@ class CommunicationMessageBuilderUiTest {
         return profile
     }
     private fun clickCore(id: String) {
-        grid.performScrollToKey("core-$id")
+        composeRule.scrollCommunicationTo("core-$id")
         composeRule.onNodeWithTag("communication-core-$id").performClick()
     }
     private fun clickWord(id: String) {
-        grid.performScrollToKey(id)
+        composeRule.scrollCommunicationTo(id)
         composeRule.onNodeWithTag("communication-word-$id").performClick()
     }
     private fun selectCategory(id: String) {
         composeRule.selectCommunicationCategory(id)
     }
     private fun assertMessage(vararg words: Pair<Int, String>) {
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         words.forEach { (selectionId, text) ->
             composeRule.onNodeWithTag("communication-message-item-$selectionId").assertIsDisplayed().assertTextEquals(text)
         }
     }
     private fun messageAction(tag: String) {
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         composeRule.onNodeWithTag(tag).performScrollTo().performClick()
     }
     private fun assertNoRutinaGoBarOrSpeech() {

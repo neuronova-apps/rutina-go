@@ -20,7 +20,6 @@ class CommunicationPersonalVocabularyUiTest {
     private lateinit var original: UserPreferences
     private val a = "vocabulary-ui-${UUID.randomUUID()}"
     private val b = "vocabulary-ui-${UUID.randomUUID()}"
-    private val grid get() = rule.onNodeWithTag("communication-home")
     private val admin get() = rule.onNodeWithTag("personal-vocabulary")
     @Before fun prepare() = runBlocking {
         repository = UserPreferencesRepository(rule.activity)
@@ -53,10 +52,12 @@ class CommunicationPersonalVocabularyUiTest {
         rule.onNodeWithTag("vocabulary-confirm-initial").performScrollTo().performClick()
         rule.awaitCommunicationCatalog()
         runBlocking { assertTrue("VOC_132" in requireNotNull(repository.vocabularyForProfile(a).first())) }
-        grid.performScrollToKey("core-VOC_014")
+        rule.scrollCommunicationTo("core-VOC_014")
         rule.onNodeWithTag("communication-core-VOC_014").performClick()
         openAdmin()
         search("VOC_014")
+        admin.performScrollToKey("filters")
+        rule.onNodeWithTag("vocabulary-filter-ALL").performScrollTo().performClick()
         admin.performScrollToKey("VOC_014")
         rule.onNodeWithTag("vocabulary-toggle-VOC_014").performClick()
         rule.onNodeWithText("Cancelar").performClick()
@@ -65,13 +66,13 @@ class CommunicationPersonalVocabularyUiTest {
         rule.onNodeWithTag("vocabulary-confirm-hide").performClick()
         awaitSaved(a, "VOC_014", false)
         backFromAdmin()
-        grid.performScrollToKey("message")
+        rule.scrollCommunicationTo("message")
         rule.onNodeWithTag("communication-message-item-1").assertTextEquals("Ayuda")
-        grid.performScrollToKey("core-title")
+        rule.scrollCommunicationTo("core-title")
         rule.onNodeWithTag("communication-core-VOC_014").assertDoesNotExist()
-        grid.performScrollToKey("presentation")
+        rule.scrollCommunicationTo("presentation")
         rule.onNodeWithTag("communication-presentation-FULL").performScrollTo().performClick()
-        grid.performScrollToKey("message")
+        rule.scrollCommunicationTo("message")
         rule.onNodeWithTag("communication-clear").performScrollTo().performClick()
         openAdmin()
         search("VOC_014")
@@ -81,7 +82,7 @@ class CommunicationPersonalVocabularyUiTest {
         rule.onNodeWithText("Recuperar Ayuda").performClick()
         awaitSaved(a, "VOC_014", true)
         backFromAdmin()
-        grid.performScrollToKey("message")
+        rule.scrollCommunicationTo("message")
         rule.onNodeWithTag("communication-undo-clear").performScrollTo().performClick()
         rule.onNodeWithTag("communication-message-item-1").assertTextEquals("Ayuda")
         openAdmin()
@@ -95,7 +96,7 @@ class CommunicationPersonalVocabularyUiTest {
         backFromAdmin()
         rule.activityRule.scenario.recreate()
         rule.awaitCommunicationCatalog()
-        grid.performScrollToKey("message")
+        rule.scrollCommunicationTo("message")
         rule.onNodeWithTag("communication-message-item-1").assertTextEquals("Ayuda")
         systemBack()
         rule.onNodeWithTag("module-selector").assertIsDisplayed()
@@ -109,15 +110,14 @@ class CommunicationPersonalVocabularyUiTest {
     }
 
     private fun openAdmin() {
-        grid.performScrollToKey("my-vocabulary")
-        rule.onNodeWithTag("communication-my-vocabulary").performClick()
+        rule.onNodeWithTag("communication-destination-MY_VOCABULARY").performClick()
         rule.waitUntil(10_000) { rule.onAllNodesWithTag("vocabulary-search").fetchSemanticsNodes().isNotEmpty() }
     }
     private fun search(value: String) {
         admin.performScrollToKey("search")
         rule.onNodeWithTag("vocabulary-search").performTextReplacement(value)
     }
-    private fun backFromAdmin() { systemBack(); rule.awaitCommunicationCatalog() }
+    private fun backFromAdmin() { rule.onNodeWithTag("communication-destination-HOME").performClick(); rule.awaitCommunicationCatalog() }
     private fun systemBack() { rule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }; rule.waitForIdle() }
     private fun awaitSaved(id: String, word: String, visible: Boolean) {
         rule.waitUntil(10_000) { runBlocking { (word in requireNotNull(repository.vocabularyForProfile(id).first())) == visible } }

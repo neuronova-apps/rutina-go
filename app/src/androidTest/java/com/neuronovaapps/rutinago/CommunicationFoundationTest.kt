@@ -47,7 +47,7 @@ class CommunicationFoundationTest {
         awaitCatalog()
         assertCount(132)
         catalog.vocabulary.forEach { word ->
-            grid.performScrollToKey(word.vocabId)
+            composeRule.scrollCommunicationTo(word.vocabId)
             composeRule.onNodeWithTag("communication-word-${word.vocabId}")
                 .assertIsDisplayed().assertTextEquals(word.text).assertHasClickAction()
         }
@@ -57,7 +57,7 @@ class CommunicationFoundationTest {
             composeRule.onNodeWithTag("communication-category-${category.id}").assertIsSelected()
             assertCount(expected.size)
             expected.forEach { word ->
-                grid.performScrollToKey(word.vocabId)
+                composeRule.scrollCommunicationTo(word.vocabId)
                 composeRule.onNodeWithTag("communication-word-${word.vocabId}").assertTextEquals(word.text)
             }
             val wrong = catalog.vocabulary.first { it.categoryId != category.id }
@@ -65,9 +65,9 @@ class CommunicationFoundationTest {
         }
         selectCategory(null)
         assertCount(132)
-        grid.performScrollToKey("profile")
+        composeRule.scrollCommunicationTo("profile")
         composeRule.onNodeWithText("Perfil activo: Perfil catálogo").assertIsDisplayed()
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
         composeRule.onNodeWithTag("communication-remove-last").assertIsNotEnabled()
         composeRule.onNodeWithTag("communication-clear").assertIsNotEnabled()
@@ -114,16 +114,15 @@ class CommunicationFoundationTest {
                 listOf(false, true).forEach { small ->
                     composeRule.runOnIdle { scenario = Scenario(appearance, scale, small, mode) }
                     awaitCatalog()
-                    grid.performScrollToKey("presentation")
+                    composeRule.scrollCommunicationTo("presentation")
                     composeRule.onNodeWithTag("communication-presentation-${mode.name}").performScrollTo()
                         .assertIsSelected().assertHeightIsAtLeast(48.dp)
                         .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton))
                     assertTextFits(composeRule.onNodeWithText(if (mode == CommunicationPresentationMode.GUIDED)
                         "Vista guiada" else "Vista completa"), scenario.toString())
                     listOf("title" to "ComunicaGo", "profile" to "Perfil activo: Familia de prueba",
-                        "message" to "Tu mensaje aparecerá aquí", "categories-title" to "Categorías",
-                        "vocabulary-title" to "Vocabulario").forEach { (key, text) ->
-                        grid.performScrollToKey(key)
+                        "message" to "Tu mensaje aparecerá aquí", "vocabulary-title" to "Vocabulario").forEach { (key, text) ->
+                        composeRule.scrollCommunicationTo(key)
                         assertTextFits(composeRule.onNodeWithText(text), scenario.toString())
                     }
                     catalog.categories.forEach { category ->
@@ -140,15 +139,15 @@ class CommunicationFoundationTest {
                         catalog.vocabulary.first { it.visualStrategy == "PICTOGRAMA_PENDIENTE" },
                         catalog.vocabulary.last())
                     words.forEach { word ->
-                        grid.performScrollToKey(word.vocabId)
+                        composeRule.scrollCommunicationTo(word.vocabId)
                         assertTextFits(composeRule.onNodeWithText(word.text), scenario.toString())
                     }
-                    grid.performScrollToKey("core-VOC_006")
+                    composeRule.scrollCommunicationTo("core-VOC_006")
                     composeRule.onNodeWithTag("communication-core-VOC_006").assertHeightIsAtLeast(48.dp).performClick()
                     selectCategory("CAT_003")
-                    grid.performScrollToKey("VOC_015")
+                    composeRule.scrollCommunicationTo("VOC_015")
                     composeRule.onNodeWithTag("communication-word-VOC_015").performClick()
-                    grid.performScrollToKey("message")
+                    composeRule.scrollCommunicationTo("message")
                     assertTextFits(composeRule.onNodeWithTag("communication-message-item-1"), scenario.toString())
                     assertTextFits(composeRule.onNodeWithTag("communication-message-item-2"), scenario.toString())
                     composeRule.onNodeWithTag("communication-clear").performScrollTo().performClick()
@@ -156,7 +155,7 @@ class CommunicationFoundationTest {
                     composeRule.onNodeWithTag("communication-remove-last").performScrollTo().performClick()
                     composeRule.onNodeWithTag("communication-message-item-2").assertDoesNotExist()
                     saveCapture("${mode.name}-${appearance.name}-${scale.name}-$small")
-                    grid.performScrollToKey("back")
+                    composeRule.scrollCommunicationTo("back")
                     composeRule.onNodeWithTag("communication-back-to-modules")
                         .assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
                     expectedReturns++
@@ -169,7 +168,7 @@ class CommunicationFoundationTest {
 
     private fun awaitCatalog() {
         composeRule.waitUntil(timeoutMillis = 10_000) {
-            runCatching { grid.performScrollToKey("categories"); true }.getOrDefault(false)
+            composeRule.onAllNodesWithTag("communication-bottom-bar").fetchSemanticsNodes().isNotEmpty()
         }
     }
     private fun selectCategory(id: String?) {
@@ -178,7 +177,7 @@ class CommunicationFoundationTest {
         composeRule.onNodeWithTag("communication-category-${id ?: "all"}").performScrollTo()
     }
     private fun assertCount(expected: Int) {
-        grid.performScrollToKey("count")
+        composeRule.scrollCommunicationTo("count")
         composeRule.onNodeWithTag("communication-vocabulary-count").assertTextEquals("$expected palabras")
     }
     private fun assertTextFits(node: SemanticsNodeInteraction, scenario: String) {

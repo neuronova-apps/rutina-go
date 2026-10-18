@@ -21,7 +21,6 @@ class CommunicationPresentationUiTest {
     private lateinit var original: UserPreferences
     private val firstId = "presentation-ui-${UUID.randomUUID()}"
     private val secondId = "presentation-ui-${UUID.randomUUID()}"
-    private val grid get() = composeRule.onNodeWithTag("communication-home")
 
     @Before fun prepareProfiles() = runBlocking {
         repository = UserPreferencesRepository(composeRule.activity)
@@ -49,7 +48,7 @@ class CommunicationPresentationUiTest {
         composeRule.onNodeWithTag("module-communication").performClick()
         saveAnswers("YEARS_9_TO_12", "EMERGING_SPEECH")
         composeRule.awaitCommunicationCatalog()
-        grid.performScrollToKey("presentation")
+        composeRule.scrollCommunicationTo("presentation")
         composeRule.onNodeWithTag("communication-presentation-GUIDED").assertIsSelected()
         composeRule.onNodeWithTag("communication-presentation-introduction").performScrollTo().assertIsDisplayed()
         selectMode(CommunicationPresentationMode.FULL)
@@ -57,14 +56,14 @@ class CommunicationPresentationUiTest {
         clickCore("VOC_001")
         clickCore("VOC_006")
         composeRule.selectCommunicationCategory("CAT_003")
-        grid.performScrollToKey("VOC_015")
+        composeRule.scrollCommunicationTo("VOC_015")
         composeRule.onNodeWithTag("communication-word-VOC_015").performClick()
         assertMessage()
         selectMode(CommunicationPresentationMode.GUIDED)
         assertMessage()
         assertCategory("CAT_003")
         clickCore("VOC_006")
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         composeRule.onNodeWithTag("communication-message-item-4").assertTextEquals("Quiero")
         messageAction("communication-remove-last")
         assertMessage()
@@ -74,7 +73,7 @@ class CommunicationPresentationUiTest {
         assertMessage()
         composeRule.selectCommunicationCategory("CAT_004")
         assertMessage()
-        grid.performScrollToKey("personalize")
+        composeRule.scrollCommunicationTo("personalize")
         composeRule.onNodeWithTag("communication-personalize").performClick()
         saveAnswers("YEARS_3_TO_5", "NO_CURRENT_SPEECH")
         composeRule.awaitCommunicationCatalog()
@@ -131,7 +130,7 @@ class CommunicationPresentationUiTest {
         composeRule.onNodeWithTag("communication-setup-save").performScrollTo().performClick()
     }
     private fun selectMode(mode: CommunicationPresentationMode) {
-        grid.performScrollToKey("presentation")
+        composeRule.scrollCommunicationTo("presentation")
         val option = composeRule.onNodeWithTag("communication-presentation-${mode.name}")
         option.performScrollTo().assertIsEnabled().performClick()
         composeRule.waitUntil(5_000) {
@@ -141,7 +140,7 @@ class CommunicationPresentationUiTest {
         assertMode(mode)
     }
     private fun assertMode(mode: CommunicationPresentationMode) {
-        grid.performScrollToKey("presentation")
+        composeRule.scrollCommunicationTo("presentation")
         composeRule.onNodeWithTag("communication-presentation-${mode.name}").performScrollTo().assertIsSelected()
     }
     private fun assertCategory(id: String) {
@@ -151,7 +150,7 @@ class CommunicationPresentationUiTest {
     }
     private fun assertCompleteCatalog() {
         composeRule.selectCommunicationCategory(null)
-        grid.performScrollToKey("count")
+        composeRule.scrollCommunicationTo("count")
         composeRule.onNodeWithTag("communication-vocabulary-count").assertTextEquals("132 palabras")
         composeRule.openCommunicationCategories()
         composeRule.onAllNodes(SemanticsMatcher("Las 18 categorías originales") {
@@ -164,21 +163,21 @@ class CommunicationPresentationUiTest {
         listOf("Hablar", "Repetir").forEach { composeRule.onNodeWithText(it).assertDoesNotExist() }
     }
     private fun clickCore(id: String) {
-        grid.performScrollToKey("core-$id")
+        composeRule.scrollCommunicationTo("core-$id")
         composeRule.onNodeWithTag("communication-core-$id").performClick()
     }
     private fun assertMessage() {
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         listOf("Yo", "Quiero", "Agua").forEachIndexed { index, word ->
             composeRule.onNodeWithTag("communication-message-item-${index + 1}").assertTextEquals(word)
         }
     }
     private fun messageAction(tag: String) {
-        grid.performScrollToKey("message")
+        composeRule.scrollCommunicationTo("message")
         composeRule.onNodeWithTag(tag).performScrollTo().performClick()
     }
     private fun returnToSelector() {
-        grid.performScrollToKey("back")
+        composeRule.scrollCommunicationTo("back")
         composeRule.onNodeWithTag("communication-back-to-modules").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
     }

@@ -1,58 +1,33 @@
 package com.neuronovaapps.rutinago.ui.screens.communication
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
 import com.neuronovaapps.rutinago.data.communication.CommunicationStateCodec
-import com.neuronovaapps.rutinago.domain.communication.CommunicationCatalogRepository
-import com.neuronovaapps.rutinago.domain.communication.CommunicationMessageBuilder
-import com.neuronovaapps.rutinago.domain.communication.CommunicationUiState
-import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
-import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabulary
+import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
+import com.neuronovaapps.rutinago.domain.communication.*
 import com.neuronovaapps.rutinago.ui.components.EmptyState
-import com.neuronovaapps.rutinago.ui.screens.communication.components.presentationLayout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
-import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationCategorySelector
-import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationMessageBar
-import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationVocabularyCard
-import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
+import com.neuronovaapps.rutinago.ui.screens.communication.components.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/** One catalog and one transient builder above the four independently saved tab contents. */
 @Composable
 fun CommunicationHomeScreen(
     activeProfileName: String,
@@ -61,50 +36,32 @@ fun CommunicationHomeScreen(
     presentationControls: (@Composable () -> Unit)? = null,
     visibleVocabularyIds: Set<String>? = null,
     onVocabulary: (() -> Unit)? = null,
+    profileSetup: CommunicationProfileSetup? = null,
+    navigation: CommunicationNavigationState? = null,
+    onNavigate: ((CommunicationNavigationState) -> Unit)? = null,
+    vocabularyContent: (@Composable (CommunicationCatalogRepository) -> Unit)? = null,
     onBackToModules: () -> Unit,
 ) {
     val assets = LocalContext.current.applicationContext.assets
     val catalog by produceState<Result<CommunicationCatalogRepository>?>(null, assets) {
-        value = withContext(Dispatchers.IO) {
-            runCatching {
-                LocalCommunicationCatalogRepository {
-                    assets.open(LocalCommunicationCatalogRepository.ASSET_PATH)
-                        .bufferedReader(Charsets.UTF_8).use { it.readText() }
-                }
+        value = withContext(Dispatchers.IO) { runCatching {
+            LocalCommunicationCatalogRepository {
+                assets.open(LocalCommunicationCatalogRepository.ASSET_PATH)
+                    .bufferedReader(Charsets.UTF_8).use { it.readText() }
             }
-        }
+        } }
     }
     val repository = catalog?.getOrNull()
-    BackHandler(onBack = onBackToModules)
     if (repository == null) {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            ScreenColumn(Modifier.safeDrawingPadding().testTag("communication-loading")) {
-                OutlinedButton(onClick = onBackToModules, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text("Volver al selector")
-                }
-                SectionHeading("ComunicaGo")
-                Text("Perfil activo: $activeProfileName")
-                Text(if (catalog == null) "Cargando catálogo…"
-                    else "No se pudo cargar el catálogo local. Vuelve al selector e inténtalo de nuevo.")
-            }
+        BackHandler(onBack = onBackToModules)
+        ScreenColumn(Modifier.safeDrawingPadding().testTag("communication-loading")) {
+            OutlinedButton(onClick = onBackToModules) { Text("Volver al selector") }
+            SectionHeading("ComunicaGo")
+            Text("Perfil activo: $activeProfileName")
+            Text(if (catalog == null) "Cargando catálogo…" else "No se pudo cargar el catálogo local. Vuelve al selector e inténtalo de nuevo.")
         }
-    } else {
-        CommunicationBuilderScreen(activeProfileName, repository, onPersonalize,
-            presentationMode, presentationControls, visibleVocabularyIds, onVocabulary, onBackToModules)
+        return
     }
-}
-
-@Composable
-private fun CommunicationBuilderScreen(
-    activeProfileName: String,
-    repository: CommunicationCatalogRepository,
-    onPersonalize: (() -> Unit)?,
-    presentationMode: CommunicationPresentationMode,
-    presentationControls: (@Composable () -> Unit)?,
-    visibleVocabularyIds: Set<String>?,
-    onVocabulary: (() -> Unit)?,
-    onBackToModules: () -> Unit,
-) {
     val builder = remember(repository) { CommunicationMessageBuilder(repository) }
     val saver = remember(builder) {
         Saver<CommunicationUiState, String>(
@@ -113,73 +70,106 @@ private fun CommunicationBuilderScreen(
         )
     }
     var state by rememberSaveable(stateSaver = saver) { mutableStateOf(builder.emptyState()) }
-    val words = CommunicationPersonalVocabulary.visibleWords(builder.visibleVocabulary(state), visibleVocabularyIds)
-    val coreWords = CommunicationPersonalVocabulary.visibleWords(builder.coreVocabulary, visibleVocabularyIds)
-    val highContrast = LocalHighContrast.current
-    val gridState = rememberLazyGridState()
+    // Standalone previews/tests own navigation here; the profile entry owns it in the app.
+    var localNavigation by rememberSaveable(stateSaver = CommunicationNavigationSaver) { mutableStateOf(CommunicationNavigationState()) }
+    val currentNavigation = navigation ?: localNavigation
+    val destination = currentNavigation.destination
+    val focus = LocalFocusManager.current
+    fun navigate(next: CommunicationNavigationState) {
+        if (onNavigate != null) onNavigate(next) else localNavigation = next
+    }
+    fun select(target: CommunicationDestination) {
+        focus.clearFocus()
+        navigate(currentNavigation.select(target))
+    }
+    val tabs = rememberSaveableStateHolder()
+    fun exit() {
+        // A new module visit opens Home; its message and saved tab contents remain in the session.
+        select(CommunicationDestination.HOME)
+        onBackToModules()
+    }
+    BackHandler { exit() }
+    Scaffold(
+        modifier = Modifier.imePadding(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        bottomBar = {
+            CommunicationBottomBar(destination, ::select)
+        },
+    ) { padding ->
+        Surface(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+            color = MaterialTheme.colorScheme.background) {
+            tabs.SaveableStateProvider(destination.name) {
+                when (destination) {
+                    CommunicationDestination.HOME, CommunicationDestination.CATEGORIES -> {
+                        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                            if (destination == CommunicationDestination.CATEGORIES) {
+                                CompactCommunicationMessage(state.messageItems) {
+                                    select(CommunicationDestination.HOME)
+                                }
+                            }
+                            CommunicationWordGrid(activeProfileName, repository, builder, state,
+                                onState = { state = it }, presentationMode, visibleVocabularyIds,
+                                categories = destination == CommunicationDestination.CATEGORIES,
+                                onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) })
+                        }
+                    }
+                    CommunicationDestination.MY_VOCABULARY -> {
+                        if (vocabularyContent != null) vocabularyContent(repository)
+                        else ScreenColumn(Modifier.safeDrawingPadding()) {
+                            SectionHeading("Mi vocabulario")
+                            Text("Perfil activo: $activeProfileName")
+                            Text("Administración de las palabras visibles del perfil.")
+                            if (onVocabulary != null) Button(onClick = onVocabulary) { Text("Administrar vocabulario") }
+                        }
+                    }
+                    CommunicationDestination.SETTINGS -> CommunicationSettingsScreen(
+                        activeProfileName, profileSetup, onPersonalize, presentationControls, ::exit)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CommunicationWordGrid(
+    activeProfileName: String,
+    repository: CommunicationCatalogRepository,
+    builder: CommunicationMessageBuilder,
+    state: CommunicationUiState,
+    onState: (CommunicationUiState) -> Unit,
+    presentationMode: CommunicationPresentationMode,
+    visibleIds: Set<String>?,
+    categories: Boolean,
+    onVocabulary: () -> Unit,
+) {
     val layout = presentationLayout(presentationMode)
     val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(contentAlignment = Alignment.TopCenter) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive((layout.minimumCardWidth * textFactor.coerceAtLeast(1f)).dp),
-                state = gridState,
-                modifier = Modifier.widthIn(max = 720.dp).fillMaxSize().safeDrawingPadding()
-                    .testTag("communication-home"),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp),
-                horizontalArrangement = Arrangement.spacedBy(layout.spacing.dp),
-                verticalArrangement = Arrangement.spacedBy(layout.spacing.dp),
-            ) {
-                item(key = "back", span = { GridItemSpan(maxLineSpan) }) {
-                    OutlinedButton(
-                        onClick = onBackToModules,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                            .testTag("communication-back-to-modules"),
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = if (highContrast) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.primary,
-                        ),
-                        border = BorderStroke(if (highContrast) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),
-                    ) { Text("Volver al selector", textAlign = TextAlign.Center) }
-                }
-                item(key = "title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("ComunicaGo") }
-                item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
-                if (onVocabulary != null) item(key = "my-vocabulary", span = { GridItemSpan(maxLineSpan) }) {
-                    OutlinedButton(onClick = onVocabulary, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                        .testTag("communication-my-vocabulary")) { Text("Mi vocabulario") }
-                }
-                if (onPersonalize != null) {
-                    item(key = "personalize", span = { GridItemSpan(maxLineSpan) }) {
-                        OutlinedButton(onClick = onPersonalize,
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("communication-personalize"),
-                            shape = MaterialTheme.shapes.medium) { Text("Personalizar ComunicaGo", textAlign = TextAlign.Center) }
-                    }
-                }
+    val words = CommunicationPersonalVocabulary.visibleWords(
+        if (categories) builder.visibleVocabulary(state) else builder.coreVocabulary, visibleIds)
+    Box(contentAlignment = Alignment.TopCenter) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive((layout.minimumCardWidth * textFactor.coerceAtLeast(1f)).dp),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxSize()
+                .testTag(if (categories) "communication-category-grid" else "communication-home"),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(layout.spacing.dp),
+            verticalArrangement = Arrangement.spacedBy(layout.spacing.dp),
+        ) {
+            item(key = "title", span = { GridItemSpan(maxLineSpan) }) {
+                SectionHeading(if (categories) "Categorías" else "ComunicaGo")
+            }
+            item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
+            if (!categories) {
                 item(key = "message", span = { GridItemSpan(maxLineSpan) }) {
-                    CommunicationMessageBar(
-                        items = state.messageItems,
-                        canUndoClear = state.clearedItems.isNotEmpty(),
-                        onRemoveLast = { state = builder.removeLast(state) },
-                        onClear = { state = builder.clear(state) },
-                        onUndoClear = { state = builder.undoClear(state) },
-                    )
-                }
-                if (presentationControls != null) {
-                    item(key = "presentation", span = { GridItemSpan(maxLineSpan) }) { presentationControls() }
+                    CommunicationMessageBar(state.messageItems, state.clearedItems.isNotEmpty(),
+                        { onState(builder.removeLast(state)) }, { onState(builder.clear(state)) },
+                        { onState(builder.undoClear(state)) })
                 }
                 item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Acceso rápido") }
-                items(coreWords, key = { "core-${it.vocabId}" }) {
-                    CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },
-                        tag = "communication-core-${it.vocabId}", minimumHeight = layout.quickAccessHeight.dp,
-                        contentPadding = layout.cardPadding.dp,
-                        emphasized = presentationMode == CommunicationPresentationMode.GUIDED)
-                }
-                item(key = "categories-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Categorías") }
+            } else {
                 item(key = "categories", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationCategorySelector(repository.categories.filter { it.active }, state.selectedCategoryId) {
-                        state = builder.selectCategory(state, it)
+                        onState(builder.selectCategory(state, it))
                     }
                 }
                 item(key = "vocabulary-title", span = { GridItemSpan(maxLineSpan) }) {
@@ -188,16 +178,35 @@ private fun CommunicationBuilderScreen(
                 item(key = "count", span = { GridItemSpan(maxLineSpan) }) {
                     Text("${words.size} palabras", Modifier.testTag("communication-vocabulary-count"))
                 }
-                if (words.isEmpty()) item(key = "empty-vocabulary", span = { GridItemSpan(maxLineSpan) }) {
-                    EmptyState("No hay palabras visibles en esta categoría",
-                        "Abre Mi vocabulario para agregar o recuperar palabras.",
-                        actionLabel = if (onVocabulary != null) "Mi vocabulario" else null, onAction = onVocabulary)
-                }
-                items(words, key = { it.vocabId }) {
-                    CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },
-                        minimumHeight = layout.wordHeight.dp, contentPadding = layout.cardPadding.dp)
-                }
             }
+            if (words.isEmpty()) item(key = "empty-vocabulary", span = { GridItemSpan(maxLineSpan) }) {
+                EmptyState("No hay palabras visibles${if (categories) " en esta categoría" else " en Acceso rápido"}",
+                    "Abre Mi vocabulario para agregar o recuperar palabras.", "Mi vocabulario", onVocabulary)
+            }
+            items(words, key = { if (categories) it.vocabId else "core-${it.vocabId}" }) {
+                CommunicationVocabularyCard(it, { id -> onState(builder.add(state, id)) },
+                    tag = if (categories) "communication-word-${it.vocabId}" else "communication-core-${it.vocabId}",
+                    minimumHeight = (if (categories) layout.wordHeight else layout.quickAccessHeight).dp,
+                    contentPadding = layout.cardPadding.dp,
+                    emphasized = !categories && presentationMode == CommunicationPresentationMode.GUIDED)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactCommunicationMessage(items: List<CommunicationMessageItem>, onHome: () -> Unit) {
+    val message = items.joinToString(" · ") { it.text }.ifEmpty { "Tu mensaje aparecerá aquí" }
+    Surface(color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text("Mensaje: $message", style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("communication-compact-message").semantics {
+                    liveRegion = LiveRegionMode.Polite
+                })
+            TextButton(onClick = onHome, modifier = Modifier.heightIn(min = 48.dp)
+                .testTag("communication-view-full-message")) { Text("Ver en Inicio") }
         }
     }
 }

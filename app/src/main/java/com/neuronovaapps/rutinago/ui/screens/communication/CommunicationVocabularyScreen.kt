@@ -68,6 +68,7 @@ internal fun CommunicationVocabularyContent(
     error: String?,
     onSave: (Set<String>) -> Unit,
     onBack: () -> Unit,
+    showBack: Boolean = true,
 ) {
     val firstSetup = visibleIds == null
     var draft by rememberSaveable { mutableStateOf<List<String>?>(null) }
@@ -89,7 +90,7 @@ internal fun CommunicationVocabularyContent(
         Box(contentAlignment = Alignment.TopCenter) {
             LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().safeDrawingPadding().imePadding().testTag("personal-vocabulary"),
                 contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                item(key = "back") {
+                if (showBack) item(key = "back") {
                     RutinaGoOutlinedButton(onClick = onBack, enabled = !saving,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("vocabulary-back")) {
                         Text(if (firstSetup) "Volver al selector" else "Volver a ComunicaGo")

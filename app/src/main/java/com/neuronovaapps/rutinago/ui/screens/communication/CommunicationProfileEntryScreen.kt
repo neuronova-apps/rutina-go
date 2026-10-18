@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationNavigationState
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetupRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPreferences
@@ -72,8 +73,7 @@ private fun CommunicationProfileEntryContent(
     onBackToModules: () -> Unit,
 ) {
     var retry by remember { mutableIntStateOf(0) }
-    var editing by rememberSaveable { mutableStateOf(false) }
-    var editingVocabulary by rememberSaveable { mutableStateOf(false) }
+    var navigation by rememberSaveable(stateSaver = CommunicationNavigationSaver) { mutableStateOf(CommunicationNavigationState()) }
     var vocabularySaving by remember { mutableStateOf(false) }
     var vocabularyError by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
@@ -97,13 +97,29 @@ private fun CommunicationProfileEntryContent(
             value = SetupLoadState.Failed
         }
     }
+    fun saveVocabulary(ids: Set<String>) {
+        if (vocabularySaving) return
+        vocabularySaving = true
+        vocabularyError = null
+        scope.launch {
+            try {
+                vocabularyRepository.saveVocabulary(profileId, ids)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                vocabularyError = "No se pudo guardar el vocabulario. La selección guardada no cambió. Reintenta la acción."
+            } finally {
+                vocabularySaving = false
+            }
+        }
+    }
     BackHandler { if (!saving) onBackToModules() }
     val current = loaded
     if (current is SetupLoadState.Ready) {
         val initial = current.setup
-        if (initial?.setupCompleted != true || editing) {
+        if (initial?.setupCompleted != true || navigation.personalizing) {
             CommunicationProfileSetupScreen(
-                profileId, activeProfileName, initial, editing, saving, saveError,
+                profileId, activeProfileName, initial, navigation.personalizing, saving, saveError,
                 onSave = { age, oral ->
                     if (!saving) {
                         saving = true
@@ -111,7 +127,7 @@ private fun CommunicationProfileEntryContent(
                         scope.launch {
                             try {
                                 repository.saveSetup(CommunicationProfileSetup(profileId, age, oral))
-                                editing = false
+                                navigation = navigation.back() ?: CommunicationNavigationState()
                             } catch (cancelled: CancellationException) {
                                 throw cancelled
                             } catch (_: Exception) {
@@ -124,40 +140,31 @@ private fun CommunicationProfileEntryContent(
                 },
                 onBack = {
                     saveError = null
-                    if (editing && initial?.setupCompleted == true) editing = false else onBackToModules()
+                    navigation.back()?.let { navigation = it } ?: onBackToModules()
                 },
             )
-        } else if (current.visibleIds == null || editingVocabulary) {
+        } else if (current.visibleIds == null) {
             CommunicationVocabularyScreen(activeProfileName, current.visibleIds, vocabularySaving, vocabularyError,
-                onSave = { ids ->
-                    if (!vocabularySaving) {
-                        vocabularySaving = true
-                        vocabularyError = null
-                        scope.launch {
-                            try {
-                                vocabularyRepository.saveVocabulary(profileId, ids)
-                            } catch (cancelled: CancellationException) {
-                                throw cancelled
-                            } catch (_: Exception) {
-                                vocabularyError = "No se pudo guardar el vocabulario. La selección guardada no cambió. Reintenta la acción."
-                            } finally {
-                                vocabularySaving = false
-                            }
-                        }
-                    }
-                },
+                onSave = ::saveVocabulary,
                 onBack = {
                     vocabularyError = null
-                    if (current.visibleIds == null) onBackToModules() else editingVocabulary = false
+                    onBackToModules()
                 },
             )
         } else {
             messageSession.SaveableStateProvider("builder") {
                 CommunicationHomeScreen(
                     activeProfileName = activeProfileName,
-                    onPersonalize = { editing = true },
-                    onVocabulary = { editingVocabulary = true },
+                    onPersonalize = { navigation = navigation.personalize() },
+                    navigation = navigation,
+                    onNavigate = { navigation = it },
                     visibleVocabularyIds = current.visibleIds,
+                    profileSetup = initial,
+                    vocabularyContent = { catalog ->
+                        CommunicationVocabularyContent(activeProfileName, catalog, current.visibleIds,
+                            vocabularySaving, vocabularyError,
+                            onSave = ::saveVocabulary, onBack = onBackToModules, showBack = false)
+                    },
                     presentationMode = CommunicationPresentationPolicy.resolve(initial, current.presentation),
                     presentationControls = {
                         CommunicationPresentationSelector(
