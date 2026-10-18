@@ -26,13 +26,19 @@ import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.preferences.UserPreferencesRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetupRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPreferences
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPolicy
+import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationPresentationSelector
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
 
 private sealed interface SetupLoadState {
     data object Loading : SetupLoadState
-    data class Ready(val setup: CommunicationProfileSetup?) : SetupLoadState
+    data class Ready(val setup: CommunicationProfileSetup?,
+        val presentation: CommunicationPresentationPreferences) : SetupLoadState
     data object Failed : SetupLoadState
 }
 
@@ -41,12 +47,15 @@ fun CommunicationProfileEntryScreen(
     profileId: String,
     activeProfileName: String,
     setupRepository: CommunicationProfileSetupRepository? = null,
+    presentationRepository: CommunicationPresentationRepository? = null,
     onBackToModules: () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
-    val repository = remember(context, setupRepository) { setupRepository ?: UserPreferencesRepository(context) }
+    val defaultRepository = remember(context) { UserPreferencesRepository(context) }
+    val repository = setupRepository ?: defaultRepository
+    val presentation = presentationRepository ?: defaultRepository
     key(profileId) {
-        CommunicationProfileEntryContent(profileId, activeProfileName, repository, onBackToModules)
+        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, onBackToModules)
     }
 }
 
@@ -55,18 +64,25 @@ private fun CommunicationProfileEntryContent(
     profileId: String,
     activeProfileName: String,
     repository: CommunicationProfileSetupRepository,
+    presentationRepository: CommunicationPresentationRepository,
     onBackToModules: () -> Unit,
 ) {
     var retry by remember { mutableIntStateOf(0) }
     var editing by rememberSaveable { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
+    var presentationSaving by remember { mutableStateOf(false) }
+    var presentationError by remember { mutableStateOf<String?>(null) }
+    // A visible first-visit explanation survives recomposition, but not another module visit.
+    var introductionVisible by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()
     val messageSession = rememberSaveableStateHolder()
-    val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, profileId, retry) {
+    val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, presentationRepository, profileId, retry) {
         value = SetupLoadState.Loading
         try {
-            repository.setupForProfile(profileId).collect { value = SetupLoadState.Ready(it) }
+            combine(repository.setupForProfile(profileId), presentationRepository.presentationForProfile(profileId)) {
+                setup, presentation -> SetupLoadState.Ready(setup, presentation)
+            }.collect { value = it }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -108,6 +124,49 @@ private fun CommunicationProfileEntryContent(
                 CommunicationHomeScreen(
                     activeProfileName = activeProfileName,
                     onPersonalize = { editing = true },
+                    presentationMode = CommunicationPresentationPolicy.resolve(initial, current.presentation),
+                    presentationControls = {
+                        CommunicationPresentationSelector(
+                            selected = CommunicationPresentationPolicy.resolve(initial, current.presentation),
+                            saving = presentationSaving,
+                            error = presentationError,
+                            showIntroduction = introductionVisible ?: !current.presentation.introductionSeen,
+                            suggestionReason = CommunicationPresentationPolicy.suggest(initial).reason,
+                            onSelect = { mode ->
+                                if (!presentationSaving) {
+                                    presentationSaving = true
+                                    presentationError = null
+                                    introductionVisible = false
+                                    scope.launch {
+                                        try {
+                                            presentationRepository.setPresentationMode(profileId, mode)
+                                        } catch (cancelled: CancellationException) {
+                                            throw cancelled
+                                        } catch (_: Exception) {
+                                            presentationError = "No se pudo guardar la presentación. Vuelve a seleccionarla para reintentar."
+                                        } finally {
+                                            presentationSaving = false
+                                        }
+                                    }
+                                }
+                            },
+                            onIntroductionShown = {
+                                if (introductionVisible == null) {
+                                    introductionVisible = true
+                                    scope.launch {
+                                        try {
+                                            presentationRepository.markPresentationIntroductionSeen(profileId)
+                                        } catch (cancelled: CancellationException) {
+                                            throw cancelled
+                                        } catch (_: Exception) {
+                                            presentationError = "No se pudo guardar la presentación."
+                                        }
+                                    }
+                                }
+                            },
+                            onDismissIntroduction = { introductionVisible = false },
+                        )
+                    },
                     onBackToModules = onBackToModules,
                 )
             }

@@ -22,6 +22,8 @@ import com.neuronovaapps.rutinago.data.communication.CommunicationProfileSetupMa
 import com.neuronovaapps.rutinago.data.communication.CommunicationSetupStorage
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetupRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationRepository
 
 enum class ThemeMode(val storageValue: String) {
     DAY("day"), NIGHT("night"), SYSTEM("system");
@@ -74,7 +76,7 @@ data class UserPreferences(
 // Profiles are small app preferences here; routines and activities deliberately stay out of DataStore.
 private val Context.userPreferencesDataStore by preferencesDataStore(name = "appearance_preferences")
 
-class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository {
+class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository, CommunicationPresentationRepository {
     private val appContext = context.applicationContext
     private val communicationSetups by lazy {
         CommunicationProfileSetupManager(CommunicationSetupStorage.get(appContext),
@@ -99,6 +101,11 @@ class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRep
 
     override fun setupForProfile(profileId: String) = communicationSetups.setupForProfile(profileId)
     override suspend fun saveSetup(setup: CommunicationProfileSetup) = communicationSetups.saveSetup(setup)
+    override fun presentationForProfile(profileId: String) = communicationSetups.presentationForProfile(profileId)
+    override suspend fun setPresentationMode(profileId: String, mode: CommunicationPresentationMode) =
+        communicationSetups.setPresentationMode(profileId, mode)
+    override suspend fun markPresentationIntroductionSeen(profileId: String) =
+        communicationSetups.markPresentationIntroductionSeen(profileId)
 
     /** No deletion UI is introduced; every caller must use this cleanup-aware entry point. */
     suspend fun deleteProfile(profileId: String) = communicationSetups.deleteProfile(profileId)

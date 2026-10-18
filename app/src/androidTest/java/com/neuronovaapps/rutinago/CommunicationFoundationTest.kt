@@ -22,7 +22,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
 import com.neuronovaapps.rutinago.data.preferences.TextScaleMode
 import com.neuronovaapps.rutinago.data.preferences.ThemeMode
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSuggestionReason
 import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationHomeScreen
+import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationPresentationSelector
 import com.neuronovaapps.rutinago.ui.theme.RutinaGoTheme
 import java.io.File
 import org.junit.Assert.*
@@ -75,7 +78,8 @@ class CommunicationFoundationTest {
 
     private data class Appearance(val name: String, val mode: ThemeMode,
         val systemDark: Boolean = false, val highContrast: Boolean = false)
-    private data class Scenario(val appearance: Appearance, val scale: TextScaleMode, val small: Boolean)
+    private data class Scenario(val appearance: Appearance, val scale: TextScaleMode, val small: Boolean,
+        val mode: CommunicationPresentationMode = CommunicationPresentationMode.GUIDED)
 
     @Test fun catalogIsReadableAndSelectionAccessibleAcrossAllAppearancesAndTextSizes() {
         val appearances = listOf(Appearance("day", ThemeMode.DAY), Appearance("night", ThemeMode.NIGHT),
@@ -92,16 +96,30 @@ class CommunicationFoundationTest {
                     textScale = current.scale.scaleFactor, highContrast = current.appearance.highContrast,
                 ) {
                     Box(Modifier.requiredSize(if (current.small) 320.dp else 400.dp, if (current.small) 480.dp else 760.dp)) {
-                        key(current) { CommunicationHomeScreen("Familia de prueba") { returns++ } }
+                        key(current) {
+                            CommunicationHomeScreen("Familia de prueba", presentationMode = current.mode,
+                                presentationControls = {
+                                    CommunicationPresentationSelector(current.mode, false, null, false,
+                                        CommunicationSuggestionReason.GENERAL_START, {}, {}, {})
+                                }) { returns++ }
+                        }
                     }
                 }
             }
         }
+        var expectedReturns = 0
+        CommunicationPresentationMode.entries.forEach { mode ->
         appearances.forEach { appearance ->
             TextScaleMode.entries.forEach { scale ->
                 listOf(false, true).forEach { small ->
-                    composeRule.runOnIdle { scenario = Scenario(appearance, scale, small) }
+                    composeRule.runOnIdle { scenario = Scenario(appearance, scale, small, mode) }
                     awaitCatalog()
+                    grid.performScrollToKey("presentation")
+                    composeRule.onNodeWithTag("communication-presentation-${mode.name}").performScrollTo()
+                        .assertIsSelected().assertHeightIsAtLeast(48.dp)
+                        .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton))
+                    assertTextFits(composeRule.onNodeWithText(if (mode == CommunicationPresentationMode.GUIDED)
+                        "Vista guiada" else "Vista completa"), scenario.toString())
                     listOf("title" to "ComunicaGo", "profile" to "Perfil activo: Familia de prueba",
                         "message" to "Tu mensaje aparecerá aquí", "categories-title" to "Categorías",
                         "vocabulary-title" to "Vocabulario").forEach { (key, text) ->
@@ -137,14 +155,15 @@ class CommunicationFoundationTest {
                     composeRule.onNodeWithTag("communication-undo-clear").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
                     composeRule.onNodeWithTag("communication-remove-last").performScrollTo().performClick()
                     composeRule.onNodeWithTag("communication-message-item-2").assertDoesNotExist()
-                    saveCapture("${appearance.name}-${scale.name}-$small")
+                    saveCapture("${mode.name}-${appearance.name}-${scale.name}-$small")
                     grid.performScrollToKey("back")
                     composeRule.onNodeWithTag("communication-back-to-modules")
                         .assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
-                    val expected = appearances.indexOf(appearance) * 6 + TextScaleMode.entries.indexOf(scale) * 2 + (if (small) 2 else 1)
-                    composeRule.runOnIdle { assertEquals(expected, returns) }
+                    expectedReturns++
+                    composeRule.runOnIdle { assertEquals(expectedReturns, returns) }
                 }
             }
+        }
         }
     }
 
@@ -154,12 +173,9 @@ class CommunicationFoundationTest {
         }
     }
     private fun selectCategory(id: String?) {
-        grid.performScrollToKey("categories")
-        val key = id ?: "all"
-        composeRule.onNodeWithTag("communication-categories").performScrollToKey(key)
-        composeRule.onNodeWithTag("communication-category-$key").performClick()
-        composeRule.waitForIdle()
-        grid.performScrollToKey("categories")
+        composeRule.selectCommunicationCategory(id)
+        composeRule.openCommunicationCategories()
+        composeRule.onNodeWithTag("communication-category-${id ?: "all"}").performScrollTo()
     }
     private fun assertCount(expected: Int) {
         grid.performScrollToKey("count")

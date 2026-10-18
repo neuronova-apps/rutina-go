@@ -40,6 +40,8 @@ import com.neuronovaapps.rutinago.data.communication.CommunicationStateCodec
 import com.neuronovaapps.rutinago.domain.communication.CommunicationCatalogRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationMessageBuilder
 import com.neuronovaapps.rutinago.domain.communication.CommunicationUiState
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
+import com.neuronovaapps.rutinago.ui.screens.communication.components.presentationLayout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationCategorySelector
@@ -53,6 +55,8 @@ import kotlinx.coroutines.withContext
 fun CommunicationHomeScreen(
     activeProfileName: String,
     onPersonalize: (() -> Unit)? = null,
+    presentationMode: CommunicationPresentationMode = CommunicationPresentationMode.GUIDED,
+    presentationControls: (@Composable () -> Unit)? = null,
     onBackToModules: () -> Unit,
 ) {
     val assets = LocalContext.current.applicationContext.assets
@@ -81,7 +85,8 @@ fun CommunicationHomeScreen(
             }
         }
     } else {
-        CommunicationBuilderScreen(activeProfileName, repository, onPersonalize, onBackToModules)
+        CommunicationBuilderScreen(activeProfileName, repository, onPersonalize,
+            presentationMode, presentationControls, onBackToModules)
     }
 }
 
@@ -90,6 +95,8 @@ private fun CommunicationBuilderScreen(
     activeProfileName: String,
     repository: CommunicationCatalogRepository,
     onPersonalize: (() -> Unit)?,
+    presentationMode: CommunicationPresentationMode,
+    presentationControls: (@Composable () -> Unit)?,
     onBackToModules: () -> Unit,
 ) {
     val builder = remember(repository) { CommunicationMessageBuilder(repository) }
@@ -103,17 +110,18 @@ private fun CommunicationBuilderScreen(
     val words = builder.visibleVocabulary(state)
     val highContrast = LocalHighContrast.current
     val gridState = rememberLazyGridState()
+    val layout = presentationLayout(presentationMode)
     val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(contentAlignment = Alignment.TopCenter) {
             LazyVerticalGrid(
-                columns = GridCells.Adaptive((144f * textFactor.coerceAtLeast(1f)).dp),
+                columns = GridCells.Adaptive((layout.minimumCardWidth * textFactor.coerceAtLeast(1f)).dp),
                 state = gridState,
                 modifier = Modifier.widthIn(max = 720.dp).fillMaxSize().safeDrawingPadding()
                     .testTag("communication-home"),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(layout.spacing.dp),
+                verticalArrangement = Arrangement.spacedBy(layout.spacing.dp),
             ) {
                 item(key = "back", span = { GridItemSpan(maxLineSpan) }) {
                     OutlinedButton(
@@ -147,10 +155,15 @@ private fun CommunicationBuilderScreen(
                         onUndoClear = { state = builder.undoClear(state) },
                     )
                 }
+                if (presentationControls != null) {
+                    item(key = "presentation", span = { GridItemSpan(maxLineSpan) }) { presentationControls() }
+                }
                 item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Acceso rápido") }
                 items(builder.coreVocabulary, key = { "core-${it.vocabId}" }) {
                     CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },
-                        tag = "communication-core-${it.vocabId}")
+                        tag = "communication-core-${it.vocabId}", minimumHeight = layout.quickAccessHeight.dp,
+                        contentPadding = layout.cardPadding.dp,
+                        emphasized = presentationMode == CommunicationPresentationMode.GUIDED)
                 }
                 item(key = "categories-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Categorías") }
                 item(key = "categories", span = { GridItemSpan(maxLineSpan) }) {
@@ -165,7 +178,8 @@ private fun CommunicationBuilderScreen(
                     Text("${words.size} palabras", Modifier.testTag("communication-vocabulary-count"))
                 }
                 items(words, key = { it.vocabId }) {
-                    CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) })
+                    CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },
+                        minimumHeight = layout.wordHeight.dp, contentPadding = layout.cardPadding.dp)
                 }
             }
         }

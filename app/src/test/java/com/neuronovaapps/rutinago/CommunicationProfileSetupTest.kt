@@ -12,6 +12,11 @@ import com.neuronovaapps.rutinago.data.communication.CommunicationSetupPreferenc
 import com.neuronovaapps.rutinago.domain.communication.CommunicationAgeRange
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.OralCommunication
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPreferences
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPolicy
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
@@ -194,6 +199,106 @@ class CommunicationProfileSetupTest {
         }
         assertTrue(File(root, "app/src/main/java/com/neuronovaapps/rutinago/data/communication/CommunicationSetupStorage.kt")
             .readText().contains("appContext.noBackupFilesDir"))
+    }
+
+    @Test fun missingPresentationIsAReadableGuidedSuggestionWithoutCreatingAChoice() = runBlocking {
+        val preference = manager.presentationForProfile("profile-a").first()
+        assertEquals(CommunicationPresentationPreferences("profile-a"), preference)
+        assertEquals(CommunicationPresentationMode.GUIDED, CommunicationPresentationPolicy.resolve(null, preference))
+        assertTrue(dataStore.data.first().asMap().isEmpty())
+    }
+
+    @Test fun presentationChoicePersistsAfterClosingAndReopeningDataStore() = runBlocking {
+        manager.saveSetup(answers())
+        manager.setPresentationMode("profile-a", CommunicationPresentationMode.FULL)
+        scope.coroutineContext[Job]!!.cancelAndJoin()
+        openStore()
+        assertEquals(CommunicationPresentationMode.FULL, manager.presentationForProfile("profile-a").first().selectedMode)
+        assertEquals(answers(), manager.setupForProfile("profile-a").first())
+    }
+
+    @Test fun presentationChoicesRemainIndependentDespiteSameProfileNamesAndSwitching() = runBlocking {
+        manager.setPresentationMode("profile-a", CommunicationPresentationMode.GUIDED)
+        manager.setPresentationMode("profile-b", CommunicationPresentationMode.FULL)
+        listOf("profile-a", "profile-b", "profile-a").forEach { id ->
+            assertEquals(if (id == "profile-a") CommunicationPresentationMode.GUIDED else CommunicationPresentationMode.FULL,
+                manager.presentationForProfile(id).first().selectedMode)
+        }
+        profiles["profile-a"] = "Renombrado"
+        assertEquals(CommunicationPresentationMode.GUIDED, manager.presentationForProfile("profile-a").first().selectedMode)
+    }
+
+    @Test fun choosingAViewNeverChangesTheStoredAgeOrOralCharacteristics() = runBlocking {
+        manager.saveSetup(answers())
+        val original = dataStore.data.first()[stringPreferencesKey("profile:profile-a")]
+        CommunicationPresentationMode.entries.forEach { mode ->
+            manager.setPresentationMode("profile-a", mode)
+            assertEquals(original, dataStore.data.first()[stringPreferencesKey("profile:profile-a")])
+            assertEquals(answers(), manager.setupForProfile("profile-a").first())
+        }
+    }
+
+    @Test fun editingAgeAndOralCharacteristicsPreservesTheExplicitPresentation() = runBlocking {
+        manager.setPresentationMode("profile-a", CommunicationPresentationMode.FULL)
+        val presentation = manager.presentationForProfile("profile-a").first()
+        manager.saveSetup(answers().copy(ageRange = CommunicationAgeRange.YEARS_3_TO_5))
+        assertEquals(presentation, manager.presentationForProfile("profile-a").first())
+        manager.saveSetup(answers().copy(oralCommunication = OralCommunication.NO_CURRENT_SPEECH))
+        assertEquals(presentation, manager.presentationForProfile("profile-a").first())
+        assertEquals(CommunicationPresentationMode.FULL,
+            CommunicationPresentationPolicy.resolve(manager.setupForProfile("profile-a").first(), presentation))
+    }
+
+    @Test fun introductionAcknowledgementPersistsWithoutInferringAChoice() = runBlocking {
+        manager.markPresentationIntroductionSeen("profile-a")
+        scope.coroutineContext[Job]!!.cancelAndJoin()
+        openStore()
+        val preference = manager.presentationForProfile("profile-a").first()
+        assertTrue(preference.introductionSeen)
+        assertNull(preference.selectedMode)
+        manager.setPresentationMode("profile-a", CommunicationPresentationMode.FULL)
+        manager.markPresentationIntroductionSeen("profile-a")
+        assertEquals(CommunicationPresentationMode.FULL, manager.presentationForProfile("profile-a").first().selectedMode)
+    }
+
+    @Test fun concurrentIntroductionAndSelectionKeepTheExplicitChoice() = runBlocking {
+        coroutineScope {
+            launch { manager.markPresentationIntroductionSeen("profile-a") }
+            launch { manager.setPresentationMode("profile-a", CommunicationPresentationMode.FULL) }
+        }
+        val preference = manager.presentationForProfile("profile-a").first()
+        assertEquals(CommunicationPresentationMode.FULL, preference.selectedMode)
+        assertTrue(preference.introductionSeen)
+    }
+
+    @Test fun profileDeletionAtomicallyRemovesItsCharacteristicsAndPresentationOnly() = runBlocking {
+        manager.saveSetup(answers())
+        manager.setPresentationMode("profile-a", CommunicationPresentationMode.FULL)
+        manager.saveSetup(answers("profile-b"))
+        manager.setPresentationMode("profile-b", CommunicationPresentationMode.GUIDED)
+        val other = manager.presentationForProfile("profile-b").first()
+        manager.deleteProfile("profile-a")
+        assertFalse(dataStore.data.first().asMap().keys.any { it.name.endsWith(":profile-a") })
+        assertEquals(CommunicationPresentationPreferences("profile-a"), manager.presentationForProfile("profile-a").first())
+        assertEquals(other, manager.presentationForProfile("profile-b").first())
+        assertEquals(answers("profile-b"), manager.setupForProfile("profile-b").first())
+        expectFailure { manager.setPresentationMode("profile-a", CommunicationPresentationMode.FULL) }
+        expectFailure { manager.markPresentationIntroductionSeen("profile-a") }
+    }
+
+    @Test fun damagedOrFuturePresentationRecordsUseASafeFallbackWithoutChangingCharacteristics() = runBlocking {
+        manager.saveSetup(answers())
+        manager.setPresentationMode("profile-b", CommunicationPresentationMode.FULL)
+        val original = dataStore.data.first()[stringPreferencesKey("profile:profile-a")]
+        listOf("{", """{"schemaVersion":2,"presentationMode":"FULL","introductionSeen":true}""",
+            """{"schemaVersion":1,"presentationMode":"UNKNOWN","introductionSeen":true}""").forEach { record ->
+            dataStore.edit { it[stringPreferencesKey("presentation:profile-a")] = record }
+            val preference = manager.presentationForProfile("profile-a").first()
+            assertEquals(CommunicationPresentationMode.GUIDED, CommunicationPresentationPolicy.resolve(answers(), preference))
+            assertEquals(record, dataStore.data.first()[stringPreferencesKey("presentation:profile-a")])
+            assertEquals(original, dataStore.data.first()[stringPreferencesKey("profile:profile-a")])
+            assertEquals(CommunicationPresentationMode.FULL, manager.presentationForProfile("profile-b").first().selectedMode)
+        }
     }
 
     private suspend fun expectFailure(action: suspend () -> Unit) {

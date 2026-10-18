@@ -65,9 +65,8 @@ class CommunicationMessageBuilderUiTest {
         composeRule.activityRule.scenario.recreate()
         composeRule.awaitCommunicationCatalog()
         assertMessage(1 to "Necesito", 2 to "Ayuda")
-        grid.performScrollToKey("categories")
-        composeRule.onNodeWithTag("communication-categories").performScrollToKey("CAT_004")
-        composeRule.onNodeWithTag("communication-category-CAT_004").assertIsSelected()
+        composeRule.openCommunicationCategories()
+        composeRule.onNodeWithTag("communication-category-CAT_004").performScrollTo().assertIsSelected()
         messageAction("communication-clear")
         composeRule.activityRule.scenario.recreate()
         composeRule.awaitCommunicationCatalog()
@@ -106,9 +105,7 @@ class CommunicationMessageBuilderUiTest {
         composeRule.onNodeWithTag("communication-word-$id").performClick()
     }
     private fun selectCategory(id: String) {
-        grid.performScrollToKey("categories")
-        composeRule.onNodeWithTag("communication-categories").performScrollToKey(id)
-        composeRule.onNodeWithTag("communication-category-$id").performClick()
+        composeRule.selectCommunicationCategory(id)
     }
     private fun assertMessage(vararg words: Pair<Int, String>) {
         grid.performScrollToKey("message")

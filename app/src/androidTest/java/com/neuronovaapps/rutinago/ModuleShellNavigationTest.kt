@@ -27,6 +27,19 @@ internal fun ComposeContentTestRule.awaitCommunicationCatalog() {
     }
 }
 
+internal fun ComposeContentTestRule.openCommunicationCategories() {
+    onNodeWithTag("communication-home").performScrollToKey("categories")
+    if (onAllNodesWithTag("communication-category-all").fetchSemanticsNodes().isEmpty()) {
+        onNodeWithTag("communication-category-toggle").performScrollTo().performClick()
+    }
+}
+
+internal fun ComposeContentTestRule.selectCommunicationCategory(id: String?) {
+    openCommunicationCategories()
+    onNodeWithTag("communication-category-${id ?: "all"}").performScrollTo().performClick()
+    waitForIdle()
+}
+
 /** Legacy navigation cases explicitly decline optional answers during test preparation. */
 internal fun ComposeContentTestRule.completeCommunicationSetupIfNeeded() {
     waitUntil(timeoutMillis = 10_000) {

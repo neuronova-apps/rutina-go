@@ -10,6 +10,9 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationAgeRange
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetupRepository
 import com.neuronovaapps.rutinago.domain.communication.OralCommunication
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPreferences
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -36,7 +39,56 @@ class CommunicationSetupPreferences(private val store: DataStore<Preferences>) {
 
     suspend fun remove(profileId: String) {
         require(profileId.isNotBlank())
-        store.edit { it.remove(key(profileId)) }
+        store.edit {
+            it.remove(key(profileId))
+            it.remove(presentationKey(profileId))
+        }
+    }
+
+    fun observePresentation(profileId: String): Flow<CommunicationPresentationPreferences> {
+        require(profileId.isNotBlank())
+        return store.data.map { decodePresentation(profileId, it[presentationKey(profileId)]) }.distinctUntilChanged()
+    }
+
+    suspend fun setPresentationMode(profileId: String, mode: CommunicationPresentationMode) {
+        require(profileId.isNotBlank())
+        store.edit { stored ->
+            val current = decodePresentation(profileId, stored[presentationKey(profileId)])
+            stored[presentationKey(profileId)] = encodePresentation(current.copy(selectedMode = mode, introductionSeen = true))
+        }
+    }
+
+    suspend fun markIntroductionSeen(profileId: String) {
+        require(profileId.isNotBlank())
+        store.edit { stored ->
+            val current = decodePresentation(profileId, stored[presentationKey(profileId)])
+            stored[presentationKey(profileId)] = encodePresentation(current.copy(introductionSeen = true))
+        }
+    }
+
+    private fun presentationKey(profileId: String) = stringPreferencesKey("presentation:$profileId")
+
+    private fun encodePresentation(preferences: CommunicationPresentationPreferences) = JsonObject().apply {
+        addProperty("schemaVersion", 1)
+        addProperty("presentationMode", preferences.selectedMode?.name)
+        addProperty("introductionSeen", preferences.introductionSeen)
+    }.toString()
+
+    private fun decodePresentation(profileId: String, value: String?): CommunicationPresentationPreferences {
+        if (value == null) return CommunicationPresentationPreferences(profileId)
+        // A damaged/future presentation record must never prevent access to communication.
+        // Reading the fallback does not overwrite that record or the profile's characteristics.
+        return runCatching {
+            val record = JsonParser.parseString(value).asJsonObject
+            require(record.keySet() == setOf("schemaVersion", "presentationMode", "introductionSeen"))
+            require(record["schemaVersion"].toString() == "1")
+            require(record["introductionSeen"].isJsonPrimitive && record["introductionSeen"].asJsonPrimitive.isBoolean)
+            val mode = record["presentationMode"].takeUnless { it.isJsonNull }?.let {
+                require(it.isJsonPrimitive && it.asJsonPrimitive.isString)
+                CommunicationPresentationMode.valueOf(it.asString)
+            }
+            CommunicationPresentationPreferences(profileId, mode, record["introductionSeen"].asBoolean)
+        }.getOrDefault(CommunicationPresentationPreferences(profileId))
     }
 
     private fun key(profileId: String) = stringPreferencesKey("profile:$profileId")
@@ -67,8 +119,20 @@ interface CommunicationProfileRegistry {
 class CommunicationProfileSetupManager(
     private val store: CommunicationSetupPreferences,
     private val profiles: CommunicationProfileRegistry,
-) : CommunicationProfileSetupRepository {
+) : CommunicationProfileSetupRepository, CommunicationPresentationRepository {
     override fun setupForProfile(profileId: String) = store.observe(profileId)
+    override fun presentationForProfile(profileId: String) = store.observePresentation(profileId)
+
+    override suspend fun setPresentationMode(profileId: String, mode: CommunicationPresentationMode) =
+        mutationMutex.withLock {
+            require(profiles.exists(profileId)) { "Unknown profile" }
+            store.setPresentationMode(profileId, mode)
+        }
+
+    override suspend fun markPresentationIntroductionSeen(profileId: String) = mutationMutex.withLock {
+        require(profiles.exists(profileId)) { "Unknown profile" }
+        store.markIntroductionSeen(profileId)
+    }
 
     override suspend fun saveSetup(setup: CommunicationProfileSetup) = mutationMutex.withLock {
         require(setup.setupCompleted) { "Only completed setup is persisted" }
