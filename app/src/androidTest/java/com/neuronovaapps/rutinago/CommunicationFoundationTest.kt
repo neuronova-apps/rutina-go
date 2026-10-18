@@ -39,14 +39,14 @@ class CommunicationFoundationTest {
     }
     private val grid get() = composeRule.onNodeWithTag("communication-home")
 
-    @Test fun all132WordsAndEveryCategoryRemainBrowsableWithoutMessageActions() {
+    @Test fun all132WordsAndEveryCategoryRemainBrowsableAndSelectableWithoutSpeech() {
         composeRule.setContent { RutinaGoTheme { CommunicationHomeScreen("Perfil catálogo") { } } }
         awaitCatalog()
         assertCount(132)
         catalog.vocabulary.forEach { word ->
             grid.performScrollToKey(word.vocabId)
             composeRule.onNodeWithTag("communication-word-${word.vocabId}")
-                .assertIsDisplayed().assertTextEquals(word.text).assertHasNoClickAction()
+                .assertIsDisplayed().assertTextEquals(word.text).assertHasClickAction()
         }
         catalog.categories.forEach { category ->
             selectCategory(category.id)
@@ -66,7 +66,9 @@ class CommunicationFoundationTest {
         composeRule.onNodeWithText("Perfil activo: Perfil catálogo").assertIsDisplayed()
         grid.performScrollToKey("message")
         composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
-        listOf("Hablar", "Borrar último", "Limpiar", "Repetir", "Favoritos").forEach {
+        composeRule.onNodeWithTag("communication-remove-last").assertIsNotEnabled()
+        composeRule.onNodeWithTag("communication-clear").assertIsNotEnabled()
+        listOf("Hablar", "Repetir", "Favoritos").forEach {
             composeRule.onNodeWithText(it).assertDoesNotExist()
         }
     }
@@ -123,6 +125,18 @@ class CommunicationFoundationTest {
                         grid.performScrollToKey(word.vocabId)
                         assertTextFits(composeRule.onNodeWithText(word.text), scenario.toString())
                     }
+                    grid.performScrollToKey("core-VOC_006")
+                    composeRule.onNodeWithTag("communication-core-VOC_006").assertHeightIsAtLeast(48.dp).performClick()
+                    selectCategory("CAT_003")
+                    grid.performScrollToKey("VOC_015")
+                    composeRule.onNodeWithTag("communication-word-VOC_015").performClick()
+                    grid.performScrollToKey("message")
+                    assertTextFits(composeRule.onNodeWithTag("communication-message-item-1"), scenario.toString())
+                    assertTextFits(composeRule.onNodeWithTag("communication-message-item-2"), scenario.toString())
+                    composeRule.onNodeWithTag("communication-clear").performScrollTo().performClick()
+                    composeRule.onNodeWithTag("communication-undo-clear").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
+                    composeRule.onNodeWithTag("communication-remove-last").performScrollTo().performClick()
+                    composeRule.onNodeWithTag("communication-message-item-2").assertDoesNotExist()
                     saveCapture("${appearance.name}-${scale.name}-$small")
                     grid.performScrollToKey("back")
                     composeRule.onNodeWithTag("communication-back-to-modules")
@@ -164,7 +178,7 @@ class CommunicationFoundationTest {
     }
     private fun saveCapture(name: String) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val directory = File(context.getExternalFilesDir(null), "phase33-communication-qa").apply { mkdirs() }
+        val directory = File(context.getExternalFilesDir(null), "phase34-communication-qa").apply { mkdirs() }
         File(directory, "$name.png").outputStream().use {
             grid.captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
         }

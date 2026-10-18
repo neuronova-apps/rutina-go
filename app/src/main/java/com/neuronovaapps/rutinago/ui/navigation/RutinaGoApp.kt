@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -96,6 +97,7 @@ fun RutinaGoApp(
     val highContrast = LocalHighContrast.current
     var showWelcome by rememberSaveable { mutableStateOf(true) }
     var selectedModule by rememberSaveable { mutableStateOf<String?>(null) }
+    val communicationSession = rememberSaveableStateHolder()
     var destinationName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var previousMainName by rememberSaveable { mutableStateOf(AppDestination.HOME.name) }
     var selectedCatalogRoutineId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -223,10 +225,12 @@ fun RutinaGoApp(
     }
 
     if (selectedModule == "communication") {
-        CommunicationHomeScreen(
-            activeProfileName = activeProfileName,
-            onBackToModules = { selectedModule = null },
-        )
+        communicationSession.SaveableStateProvider("communication:${preferences.activeProfile?.id}") {
+            CommunicationHomeScreen(
+                activeProfileName = activeProfileName,
+                onBackToModules = { selectedModule = null },
+            )
+        }
         return
     }
 

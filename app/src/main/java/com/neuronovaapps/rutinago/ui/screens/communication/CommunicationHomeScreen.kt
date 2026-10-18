@@ -21,11 +21,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +36,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
+import com.neuronovaapps.rutinago.data.communication.CommunicationStateCodec
 import com.neuronovaapps.rutinago.domain.communication.CommunicationCatalogRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationMessageBuilder
+import com.neuronovaapps.rutinago.domain.communication.CommunicationUiState
+import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationCategorySelector
 import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationMessageBar
@@ -60,14 +65,43 @@ fun CommunicationHomeScreen(
             }
         }
     }
-    val highContrast = LocalHighContrast.current
-    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     val repository = catalog?.getOrNull()
-    val words = repository?.vocabularyForCategory(selectedCategory).orEmpty()
-    val gridState = rememberLazyGridState()
-    LaunchedEffect(selectedCategory) { gridState.scrollToItem(0) }
-    val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
     BackHandler(onBack = onBackToModules)
+    if (repository == null) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            ScreenColumn(Modifier.safeDrawingPadding().testTag("communication-loading")) {
+                OutlinedButton(onClick = onBackToModules, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text("Volver al selector")
+                }
+                SectionHeading("ComunicaGo")
+                Text("Perfil activo: $activeProfileName")
+                Text(if (catalog == null) "Cargando catálogo…"
+                    else "No se pudo cargar el catálogo local. Vuelve al selector e inténtalo de nuevo.")
+            }
+        }
+    } else {
+        CommunicationBuilderScreen(activeProfileName, repository, onBackToModules)
+    }
+}
+
+@Composable
+private fun CommunicationBuilderScreen(
+    activeProfileName: String,
+    repository: CommunicationCatalogRepository,
+    onBackToModules: () -> Unit,
+) {
+    val builder = remember(repository) { CommunicationMessageBuilder(repository) }
+    val saver = remember(builder) {
+        Saver<CommunicationUiState, String>(
+            save = { CommunicationStateCodec.encode(it) },
+            restore = { runCatching { CommunicationStateCodec.decode(it, builder) }.getOrNull() },
+        )
+    }
+    var state by rememberSaveable(stateSaver = saver) { mutableStateOf(builder.emptyState()) }
+    val words = builder.visibleVocabulary(state)
+    val highContrast = LocalHighContrast.current
+    val gridState = rememberLazyGridState()
+    val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(contentAlignment = Alignment.TopCenter) {
             LazyVerticalGrid(
@@ -95,27 +129,34 @@ fun CommunicationHomeScreen(
                 }
                 item(key = "title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("ComunicaGo") }
                 item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
-                item(key = "message", span = { GridItemSpan(maxLineSpan) }) { CommunicationMessageBar() }
-                if (repository != null) {
-                    item(key = "categories-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Categorías") }
-                    item(key = "categories", span = { GridItemSpan(maxLineSpan) }) {
-                        CommunicationCategorySelector(repository.categories.filter { it.active }, selectedCategory) {
-                            selectedCategory = it
-                        }
+                item(key = "message", span = { GridItemSpan(maxLineSpan) }) {
+                    CommunicationMessageBar(
+                        items = state.messageItems,
+                        canUndoClear = state.clearedItems.isNotEmpty(),
+                        onRemoveLast = { state = builder.removeLast(state) },
+                        onClear = { state = builder.clear(state) },
+                        onUndoClear = { state = builder.undoClear(state) },
+                    )
+                }
+                item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Acceso rápido") }
+                items(builder.coreVocabulary, key = { "core-${it.vocabId}" }) {
+                    CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },
+                        tag = "communication-core-${it.vocabId}")
+                }
+                item(key = "categories-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Categorías") }
+                item(key = "categories", span = { GridItemSpan(maxLineSpan) }) {
+                    CommunicationCategorySelector(repository.categories.filter { it.active }, state.selectedCategoryId) {
+                        state = builder.selectCategory(state, it)
                     }
-                    item(key = "vocabulary-title", span = { GridItemSpan(maxLineSpan) }) {
-                        SectionHeading("Vocabulario", Modifier.testTag("communication-vocabulary-area"))
-                    }
-                    item(key = "count", span = { GridItemSpan(maxLineSpan) }) {
-                        Text("${words.size} palabras", Modifier.testTag("communication-vocabulary-count"))
-                    }
-                    items(words, key = { it.vocabId }) { CommunicationVocabularyCard(it) }
-                } else {
-                    item(key = "catalog-state", span = { GridItemSpan(maxLineSpan) }) {
-                        Text(if (catalog == null) "Cargando catálogo…"
-                            else "No se pudo cargar el catálogo local. Vuelve al selector e inténtalo de nuevo.",
-                            Modifier.testTag("communication-catalog-state"))
-                    }
+                }
+                item(key = "vocabulary-title", span = { GridItemSpan(maxLineSpan) }) {
+                    SectionHeading("Vocabulario", Modifier.testTag("communication-vocabulary-area"))
+                }
+                item(key = "count", span = { GridItemSpan(maxLineSpan) }) {
+                    Text("${words.size} palabras", Modifier.testTag("communication-vocabulary-count"))
+                }
+                items(words, key = { it.vocabId }) {
+                    CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) })
                 }
             }
         }

@@ -3,6 +3,8 @@ package com.neuronovaapps.rutinago.ui.screens.communication.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -12,10 +14,15 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
@@ -24,17 +31,31 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 import com.neuronovaapps.rutinago.domain.communication.CommunicationCategory
 import com.neuronovaapps.rutinago.domain.communication.CommunicationVocabularyItem
+import com.neuronovaapps.rutinago.domain.communication.CommunicationMessageItem
 
-/** Presentation surface only; message composition will be introduced with its own module state. */
 @Composable
-fun CommunicationMessageBar(modifier: Modifier = Modifier) {
+fun CommunicationMessageBar(
+    items: List<CommunicationMessageItem>,
+    canUndoClear: Boolean,
+    onRemoveLast: () -> Unit,
+    onClear: () -> Unit,
+    onUndoClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val highContrast = LocalHighContrast.current
+    val messageScroll = rememberScrollState()
+    LaunchedEffect(items.lastOrNull()?.selectionId, messageScroll.maxValue) {
+        messageScroll.scrollTo(messageScroll.maxValue)
+    }
     Surface(
         modifier = modifier.fillMaxWidth().heightIn(min = 144.dp)
             .testTag("communication-message-area")
@@ -45,13 +66,57 @@ fun CommunicationMessageBar(modifier: Modifier = Modifier) {
         border = BorderStroke(if (highContrast) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SectionHeading("Mensaje")
-            Text("Tu mensaje aparecerá aquí", style = MaterialTheme.typography.bodyLarge)
+            SectionHeading("Mi mensaje")
+            if (items.isEmpty()) {
+                Text("Tu mensaje aparecerá aquí", style = MaterialTheme.typography.bodyLarge)
+            } else {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp)
+                        .verticalScroll(messageScroll).testTag("communication-message-items")
+                        .semantics { liveRegion = LiveRegionMode.Polite },
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items.forEachIndexed { index, item ->
+                        key(item.selectionId) {
+                            Surface(
+                                modifier = Modifier.testTag("communication-message-item-${item.selectionId}")
+                                    .semantics(mergeDescendants = true) { stateDescription = "Palabra ${index + 1} de ${items.size}" },
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                border = BorderStroke(if (highContrast) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),
+                            ) {
+                                Text(item.text, Modifier.padding(12.dp), style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+                }
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                MessageAction("Borrar último", "communication-remove-last", items.isNotEmpty(), onRemoveLast)
+                MessageAction("Limpiar", "communication-clear", items.isNotEmpty(), onClear)
+                if (canUndoClear) {
+                    MessageAction("Deshacer limpieza", "communication-undo-clear", true, onUndoClear)
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun MessageAction(label: String, tag: String, enabled: Boolean, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.heightIn(min = 48.dp).testTag(tag),
+        shape = MaterialTheme.shapes.medium,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+    ) { Text(label, textAlign = TextAlign.Center) }
 }
 
 /** Horizontal scrolling also supports large text in a small viewport. */
@@ -91,12 +156,17 @@ private fun CategoryOption(id: String?, label: String, selected: Boolean, onSele
     }
 }
 
-/** Read-only text card; message and speech interaction belong to a later phase. */
+/** Both quick access and category results select the same catalog record. */
 @Composable
-fun CommunicationVocabularyCard(item: CommunicationVocabularyItem) {
+fun CommunicationVocabularyCard(
+    item: CommunicationVocabularyItem,
+    onSelect: (String) -> Unit,
+    tag: String = "communication-word-${item.vocabId}",
+) {
     Surface(
+        onClick = { onSelect(item.vocabId) },
         modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp)
-            .testTag("communication-word-${item.vocabId}").semantics(mergeDescendants = true) { },
+            .testTag(tag).semantics { role = Role.Button },
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(if (LocalHighContrast.current) 2.dp else 1.dp, MaterialTheme.colorScheme.outline),

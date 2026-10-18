@@ -144,6 +144,7 @@ class ModuleSelectorAccessibilityTest {
                     composeRule.onNodeWithTag("module-rutinago").performScrollTo().performClick()
                     composeRule.runOnIdle { assertEquals("rutinago", openedModule) }
                     composeRule.onNodeWithTag("module-communication").performScrollTo().performClick()
+                    composeRule.awaitCommunicationCatalog()
                     composeRule.onNodeWithTag("communication-home").performScrollToKey("message")
                     composeRule.onNodeWithText("Tu mensaje aparecerá aquí").assertIsDisplayed()
                     composeRule.onNodeWithTag("communication-home").performScrollToKey("back")

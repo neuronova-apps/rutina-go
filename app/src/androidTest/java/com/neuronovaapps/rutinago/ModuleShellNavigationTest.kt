@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -20,6 +21,12 @@ internal fun ComposeContentTestRule.enterRutinaGoModule() {
     onNodeWithTag("module-rutinago").performClick()
 }
 
+internal fun ComposeContentTestRule.awaitCommunicationCatalog() {
+    waitUntil(timeoutMillis = 10_000) {
+        onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty()
+    }
+}
+
 class ModuleShellNavigationTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
@@ -31,6 +38,7 @@ class ModuleShellNavigationTest {
             .fetchSemanticsNodes().single().config[androidx.compose.ui.semantics.SemanticsProperties.Text]
             .single().text
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.awaitCommunicationCatalog()
         composeRule.onNodeWithTag("communication-home").assertIsDisplayed()
         composeRule.onNodeWithText("ComunicaGo").assertIsDisplayed()
         composeRule.onNodeWithText(profileText).assertIsDisplayed()
@@ -52,6 +60,7 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithText("Volver al selector").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.awaitCommunicationCatalog()
         pressSystemBack()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
     }
@@ -94,7 +103,9 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithTag("destination-SETTINGS").performClick()
         composeRule.onNodeWithText("Cambiar módulo").performScrollTo().performClick()
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.awaitCommunicationCatalog()
         composeRule.activityRule.scenario.recreate()
+        composeRule.awaitCommunicationCatalog()
         composeRule.onNodeWithTag("communication-home").assertIsDisplayed()
         composeRule.onNodeWithText(profileText).assertIsDisplayed()
         composeRule.onNodeWithText("Volver al selector").performClick()
