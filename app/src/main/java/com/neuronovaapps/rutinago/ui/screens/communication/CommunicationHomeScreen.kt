@@ -41,6 +41,8 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationCatalogRepos
 import com.neuronovaapps.rutinago.domain.communication.CommunicationMessageBuilder
 import com.neuronovaapps.rutinago.domain.communication.CommunicationUiState
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationMode
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabulary
+import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.screens.communication.components.presentationLayout
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import com.neuronovaapps.rutinago.ui.components.SectionHeading
@@ -57,6 +59,8 @@ fun CommunicationHomeScreen(
     onPersonalize: (() -> Unit)? = null,
     presentationMode: CommunicationPresentationMode = CommunicationPresentationMode.GUIDED,
     presentationControls: (@Composable () -> Unit)? = null,
+    visibleVocabularyIds: Set<String>? = null,
+    onVocabulary: (() -> Unit)? = null,
     onBackToModules: () -> Unit,
 ) {
     val assets = LocalContext.current.applicationContext.assets
@@ -86,7 +90,7 @@ fun CommunicationHomeScreen(
         }
     } else {
         CommunicationBuilderScreen(activeProfileName, repository, onPersonalize,
-            presentationMode, presentationControls, onBackToModules)
+            presentationMode, presentationControls, visibleVocabularyIds, onVocabulary, onBackToModules)
     }
 }
 
@@ -97,6 +101,8 @@ private fun CommunicationBuilderScreen(
     onPersonalize: (() -> Unit)?,
     presentationMode: CommunicationPresentationMode,
     presentationControls: (@Composable () -> Unit)?,
+    visibleVocabularyIds: Set<String>?,
+    onVocabulary: (() -> Unit)?,
     onBackToModules: () -> Unit,
 ) {
     val builder = remember(repository) { CommunicationMessageBuilder(repository) }
@@ -107,7 +113,8 @@ private fun CommunicationBuilderScreen(
         )
     }
     var state by rememberSaveable(stateSaver = saver) { mutableStateOf(builder.emptyState()) }
-    val words = builder.visibleVocabulary(state)
+    val words = CommunicationPersonalVocabulary.visibleWords(builder.visibleVocabulary(state), visibleVocabularyIds)
+    val coreWords = CommunicationPersonalVocabulary.visibleWords(builder.coreVocabulary, visibleVocabularyIds)
     val highContrast = LocalHighContrast.current
     val gridState = rememberLazyGridState()
     val layout = presentationLayout(presentationMode)
@@ -139,6 +146,10 @@ private fun CommunicationBuilderScreen(
                 }
                 item(key = "title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("ComunicaGo") }
                 item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
+                if (onVocabulary != null) item(key = "my-vocabulary", span = { GridItemSpan(maxLineSpan) }) {
+                    OutlinedButton(onClick = onVocabulary, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("communication-my-vocabulary")) { Text("Mi vocabulario") }
+                }
                 if (onPersonalize != null) {
                     item(key = "personalize", span = { GridItemSpan(maxLineSpan) }) {
                         OutlinedButton(onClick = onPersonalize,
@@ -159,7 +170,7 @@ private fun CommunicationBuilderScreen(
                     item(key = "presentation", span = { GridItemSpan(maxLineSpan) }) { presentationControls() }
                 }
                 item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Acceso rápido") }
-                items(builder.coreVocabulary, key = { "core-${it.vocabId}" }) {
+                items(coreWords, key = { "core-${it.vocabId}" }) {
                     CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },
                         tag = "communication-core-${it.vocabId}", minimumHeight = layout.quickAccessHeight.dp,
                         contentPadding = layout.cardPadding.dp,
@@ -176,6 +187,11 @@ private fun CommunicationBuilderScreen(
                 }
                 item(key = "count", span = { GridItemSpan(maxLineSpan) }) {
                     Text("${words.size} palabras", Modifier.testTag("communication-vocabulary-count"))
+                }
+                if (words.isEmpty()) item(key = "empty-vocabulary", span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyState("No hay palabras visibles en esta categoría",
+                        "Abre Mi vocabulario para agregar o recuperar palabras.",
+                        actionLabel = if (onVocabulary != null) "Mi vocabulario" else null, onAction = onVocabulary)
                 }
                 items(words, key = { it.vocabId }) {
                     CommunicationVocabularyCard(it, { id -> state = builder.add(state, id) },

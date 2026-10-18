@@ -67,8 +67,8 @@ fun CommunicationPresentationSelector(
             LaunchedEffect(Unit) { onIntroductionShown() }
             Text(
                 if (suggestionReason == CommunicationSuggestionReason.QUICK_ACCESS_START)
-                    "La Vista guiada destaca palabras de acceso rápido. Puedes cambiar de vista cuando quieras; todas las palabras siguen disponibles."
-                else "Puedes empezar con Vista guiada y cambiar de vista cuando quieras. Ambas incluyen todas las palabras y categorías.",
+                    "La Vista guiada destaca palabras de acceso rápido. Ambas vistas comparten tu vocabulario. Puedes agregar o recuperar palabras en Mi vocabulario."
+                else "Puedes cambiar de vista cuando quieras. Ambas comparten tu vocabulario y todas las categorías. Revisa las palabras en Mi vocabulario.",
                 Modifier.testTag("communication-presentation-introduction"),
             )
             TextButton(onClick = onDismissIntroduction, modifier = Modifier.heightIn(min = 48.dp)) { Text("Entendido") }

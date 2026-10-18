@@ -29,6 +29,7 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPreferences
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPolicy
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
 import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationPresentationSelector
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import kotlinx.coroutines.CancellationException
@@ -38,7 +39,7 @@ import kotlinx.coroutines.flow.combine
 private sealed interface SetupLoadState {
     data object Loading : SetupLoadState
     data class Ready(val setup: CommunicationProfileSetup?,
-        val presentation: CommunicationPresentationPreferences) : SetupLoadState
+        val presentation: CommunicationPresentationPreferences, val visibleIds: Set<String>?) : SetupLoadState
     data object Failed : SetupLoadState
 }
 
@@ -48,14 +49,16 @@ fun CommunicationProfileEntryScreen(
     activeProfileName: String,
     setupRepository: CommunicationProfileSetupRepository? = null,
     presentationRepository: CommunicationPresentationRepository? = null,
+    vocabularyRepository: CommunicationPersonalVocabularyRepository? = null,
     onBackToModules: () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
     val defaultRepository = remember(context) { UserPreferencesRepository(context) }
     val repository = setupRepository ?: defaultRepository
     val presentation = presentationRepository ?: defaultRepository
+    val vocabulary = vocabularyRepository ?: defaultRepository
     key(profileId) {
-        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, onBackToModules)
+        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, vocabulary, onBackToModules)
     }
 }
 
@@ -65,10 +68,14 @@ private fun CommunicationProfileEntryContent(
     activeProfileName: String,
     repository: CommunicationProfileSetupRepository,
     presentationRepository: CommunicationPresentationRepository,
+    vocabularyRepository: CommunicationPersonalVocabularyRepository,
     onBackToModules: () -> Unit,
 ) {
     var retry by remember { mutableIntStateOf(0) }
     var editing by rememberSaveable { mutableStateOf(false) }
+    var editingVocabulary by rememberSaveable { mutableStateOf(false) }
+    var vocabularySaving by remember { mutableStateOf(false) }
+    var vocabularyError by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var presentationSaving by remember { mutableStateOf(false) }
@@ -77,11 +84,12 @@ private fun CommunicationProfileEntryContent(
     var introductionVisible by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()
     val messageSession = rememberSaveableStateHolder()
-    val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, presentationRepository, profileId, retry) {
+    val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, presentationRepository, vocabularyRepository, profileId, retry) {
         value = SetupLoadState.Loading
         try {
-            combine(repository.setupForProfile(profileId), presentationRepository.presentationForProfile(profileId)) {
-                setup, presentation -> SetupLoadState.Ready(setup, presentation)
+            combine(repository.setupForProfile(profileId), presentationRepository.presentationForProfile(profileId),
+                vocabularyRepository.vocabularyForProfile(profileId)) {
+                setup, presentation, ids -> SetupLoadState.Ready(setup, presentation, ids)
             }.collect { value = it }
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -119,11 +127,37 @@ private fun CommunicationProfileEntryContent(
                     if (editing && initial?.setupCompleted == true) editing = false else onBackToModules()
                 },
             )
+        } else if (current.visibleIds == null || editingVocabulary) {
+            CommunicationVocabularyScreen(activeProfileName, current.visibleIds, vocabularySaving, vocabularyError,
+                onSave = { ids ->
+                    if (!vocabularySaving) {
+                        vocabularySaving = true
+                        vocabularyError = null
+                        scope.launch {
+                            try {
+                                vocabularyRepository.saveVocabulary(profileId, ids)
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                vocabularyError = "No se pudo guardar el vocabulario. La selección guardada no cambió. Reintenta la acción."
+                            } finally {
+                                vocabularySaving = false
+                            }
+                        }
+                    }
+                },
+                onBack = {
+                    vocabularyError = null
+                    if (current.visibleIds == null) onBackToModules() else editingVocabulary = false
+                },
+            )
         } else {
             messageSession.SaveableStateProvider("builder") {
                 CommunicationHomeScreen(
                     activeProfileName = activeProfileName,
                     onPersonalize = { editing = true },
+                    onVocabulary = { editingVocabulary = true },
+                    visibleVocabularyIds = current.visibleIds,
                     presentationMode = CommunicationPresentationPolicy.resolve(initial, current.presentation),
                     presentationControls = {
                         CommunicationPresentationSelector(

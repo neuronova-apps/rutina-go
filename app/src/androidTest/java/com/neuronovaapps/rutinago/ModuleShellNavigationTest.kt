@@ -22,6 +22,15 @@ internal fun ComposeContentTestRule.enterRutinaGoModule() {
 }
 
 internal fun ComposeContentTestRule.awaitCommunicationCatalog() {
+    // Existing communicator cases explicitly choose the full bank on first setup.
+    waitUntil(timeoutMillis = 10_000) {
+        onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty() ||
+            onAllNodesWithTag("vocabulary-start-all").fetchSemanticsNodes().isNotEmpty()
+    }
+    if (onAllNodesWithTag("vocabulary-start-all").fetchSemanticsNodes().isNotEmpty()) {
+        onNodeWithTag("vocabulary-start-all").performScrollTo().performClick()
+        onNodeWithTag("vocabulary-confirm-initial").performScrollTo().performClick()
+    }
     waitUntil(timeoutMillis = 10_000) {
         onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty()
     }
@@ -44,6 +53,7 @@ internal fun ComposeContentTestRule.selectCommunicationCategory(id: String?) {
 internal fun ComposeContentTestRule.completeCommunicationSetupIfNeeded() {
     waitUntil(timeoutMillis = 10_000) {
         onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty() ||
+            onAllNodesWithTag("personal-vocabulary").fetchSemanticsNodes().isNotEmpty() ||
             onAllNodesWithTag("communication-profile-setup").fetchSemanticsNodes().isNotEmpty()
     }
     if (onAllNodesWithTag("communication-profile-setup").fetchSemanticsNodes().isNotEmpty()) {

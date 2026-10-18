@@ -4,6 +4,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationCatalogRepository
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.neuronovaapps.rutinago.domain.communication.CommunicationAgeRange
@@ -42,8 +45,24 @@ class CommunicationSetupPreferences(private val store: DataStore<Preferences>) {
         store.edit {
             it.remove(key(profileId))
             it.remove(presentationKey(profileId))
+            it.remove(vocabularyKey(profileId))
         }
     }
+
+    fun observeVocabulary(profileId: String): Flow<Set<String>?> {
+        require(profileId.isNotBlank())
+        return store.data.map { stored -> stored[vocabularyKey(profileId)]?.let {
+            java.util.Collections.unmodifiableSet(HashSet(it))
+        } }.distinctUntilChanged()
+    }
+
+    suspend fun saveVocabulary(profileId: String, visibleIds: Set<String>) {
+        require(profileId.isNotBlank())
+        val snapshot = visibleIds.toSet()
+        store.edit { it[vocabularyKey(profileId)] = snapshot }
+    }
+
+    private fun vocabularyKey(profileId: String) = stringSetPreferencesKey("vocabulary_visible_v1:$profileId")
 
     fun observePresentation(profileId: String): Flow<CommunicationPresentationPreferences> {
         require(profileId.isNotBlank())
@@ -119,7 +138,19 @@ interface CommunicationProfileRegistry {
 class CommunicationProfileSetupManager(
     private val store: CommunicationSetupPreferences,
     private val profiles: CommunicationProfileRegistry,
-) : CommunicationProfileSetupRepository, CommunicationPresentationRepository {
+    private val catalog: (() -> CommunicationCatalogRepository)? = null,
+) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository {
+    override fun vocabularyForProfile(profileId: String) = store.observeVocabulary(profileId)
+
+    override suspend fun saveVocabulary(profileId: String, visibleIds: Set<String>) {
+        val snapshot = visibleIds.toSet()
+        mutationMutex.withLock {
+            require(profiles.exists(profileId)) { "Unknown profile" }
+            val knownIds = requireNotNull(catalog) { "Vocabulary catalog required" }().vocabulary.map { it.vocabId }.toSet()
+            require(snapshot.all { it in knownIds }) { "Unknown vocabulary ID" }
+            store.saveVocabulary(profileId, snapshot)
+        }
+    }
     override fun setupForProfile(profileId: String) = store.observe(profileId)
     override fun presentationForProfile(profileId: String) = store.observePresentation(profileId)
 
