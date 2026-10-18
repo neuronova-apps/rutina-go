@@ -34,7 +34,7 @@ class CommunicationBottomNavigationUiTest {
         }
         repository.selectProfile(a)
     }
-    @After fun cleanup() = runBlocking {
+    @After fun cleanup(): Unit = runBlocking {
         repository.deleteProfile(a); repository.deleteProfile(b)
         original.activeProfile?.id?.let { repository.selectProfile(it) }
     }
@@ -48,13 +48,13 @@ class CommunicationBottomNavigationUiTest {
         rule.onNodeWithTag("communication-destination-$name").performClick().assertIsSelected()
         rule.onNodeWithTag("communication-bottom-bar").assertIsDisplayed()
     }
-    private fun back() { rule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }; rule.waitForIdle() }
+    private fun back() { rule.waitForIdle(); rule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }; rule.waitForIdle() }
     private fun assertMessage(vararg words: String) {
         rule.scrollCommunicationTo("message")
         words.forEachIndexed { index, word -> rule.onNodeWithTag("communication-message-item-${index + 1}").assertTextEquals(word) }
         rule.onAllNodes(hasTestTag("communication-message-item-${words.size + 1}")).assertCountEquals(0)
     }
-    @Test fun fourTabsBackPolicyAndRutinaGoRemainIndependent() {
+    @Test fun threeTabsBackPolicyAndRutinaGoRemainIndependent() {
         open()
         rule.onNodeWithTag("communication-destination-HOME").assertIsSelected()
         rule.onNodeWithTag("communication-vocabulary-area").assertDoesNotExist()
@@ -87,15 +87,17 @@ class CommunicationBottomNavigationUiTest {
         rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Yo · Agua · Agua")
         rule.activityRule.scenario.recreate()
         rule.awaitCommunicationCatalog()
-        rule.onNodeWithTag("communication-destination-CATEGORIES").assertIsSelected()
+        rule.onNodeWithTag("communication-destination-CATEGORIES").assertDoesNotExist()
+        rule.onNodeWithTag("communication-category-grid").assertIsDisplayed()
         rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Yo · Agua · Agua")
         rule.onNodeWithTag("communication-view-full-message").performClick()
         assertMessage("Yo", "Agua", "Agua")
         tab("MY_VOCABULARY")
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey("search")
         rule.onNodeWithTag("vocabulary-search").performTextReplacement("VOC_001")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey("VOC_001")
-        rule.onNodeWithTag("vocabulary-toggle-VOC_001").performClick()
+        rule.onNodeWithTag("vocabulary-toggle-VOC_001").performScrollTo().performClick()
         rule.waitUntil(10_000) { runBlocking { "VOC_001" !in requireNotNull(repository.vocabularyForProfile(a).first()) } }
         tab("HOME")
         rule.scrollCommunicationTo("core-title")
@@ -105,7 +107,7 @@ class CommunicationBottomNavigationUiTest {
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey("search")
         rule.onNodeWithTag("vocabulary-search").assertTextContains("VOC_001")
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey("VOC_001")
-        rule.onNodeWithTag("vocabulary-toggle-VOC_001").performClick()
+        rule.onNodeWithTag("vocabulary-toggle-VOC_001").performScrollTo().performClick()
         rule.waitUntil(10_000) { runBlocking { "VOC_001" in requireNotNull(repository.vocabularyForProfile(a).first()) } }
         rule.scrollCommunicationTo("presentation")
         rule.onNodeWithTag("communication-presentation-FULL").performScrollTo().performClick()
@@ -118,7 +120,7 @@ class CommunicationBottomNavigationUiTest {
             assertEquals(original.appMode, preferences.appMode)
         }
         assertMessage("Yo", "Agua", "Agua")
-        tab("CATEGORIES")
+        rule.scrollCommunicationTo("categories")
         rule.onNodeWithTag("communication-category-grid").performScrollToKey("categories")
         rule.onNodeWithTag("communication-active-category").assertTextEquals("Categoría activa: Comida y bebida")
     }

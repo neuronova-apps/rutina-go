@@ -71,6 +71,9 @@ internal fun CommunicationVocabularyContent(
     showBack: Boolean = true,
     homeIds: Set<String>? = null,
     onOrganizeHome: (() -> Unit)? = null,
+    homeSaving: Boolean = false,
+    homeError: String? = null,
+    onSetHomeWord: ((String, Boolean) -> Unit)? = null,
 ) {
     val firstSetup = visibleIds == null
     var draft by rememberSaveable { mutableStateOf<List<String>?>(null) }
@@ -85,6 +88,7 @@ internal fun CommunicationVocabularyContent(
     val canEdit = !saving && (!firstSetup || draft != null)
     val words = CommunicationPersonalVocabulary.search(catalog, selected, VocabularyFilter.valueOf(filterName), category, query)
     val categories = remember(catalog) { catalog.categories.associateBy { it.id } }
+    val assigned = CommunicationHomeVocabulary.assignedIds(homeIds, selected)
     fun change(ids: Set<String>) {
         if (firstSetup) draft = ids.toList() else onSave(ids)
     }
@@ -109,7 +113,8 @@ internal fun CommunicationVocabularyContent(
                         }
                         Text("${CommunicationHomeVocabulary.words(catalog, homeIds, selected).size} palabras en Inicio",
                             Modifier.testTag("vocabulary-home-count"))
-                        Text("Elige cuáles tendrás a mano para comunicarte. Quitar de Inicio mantiene la palabra disponible en Categorías; ocultarla del vocabulario la oculta en ambas pantallas.")
+                        Text("Elige cuáles tendrás a mano para comunicarte. Quitar de Inicio mantiene la palabra disponible en Buscar más palabras; ocultarla del vocabulario la oculta en ambas pantallas.")
+                        CommunicationHomeSaveStatus(homeSaving, homeError)
                     }
                 }
                 item(key = "explanation") {
@@ -155,6 +160,7 @@ internal fun CommunicationVocabularyContent(
                     }
                 }
                 item(key = "search") {
+                    SectionHeading("Todas las palabras")
                     OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar palabra o categoría") },
                         modifier = Modifier.fillMaxWidth().testTag("vocabulary-search"))
                 }
@@ -179,6 +185,9 @@ internal fun CommunicationVocabularyContent(
                             Text(word.text, style = MaterialTheme.typography.titleMedium)
                             Text(categories[word.categoryId]?.name.orEmpty())
                             Text(if (visible) "Visible" else "Oculta", Modifier.semantics { stateDescription = if (visible) "Visible" else "Oculta" })
+                            if (!firstSetup && onSetHomeWord != null) CommunicationHomeAssignmentControl(word,
+                                word.vocabId in assigned, !homeSaving && (visible || word.vocabId in assigned), onSetHomeWord,
+                                allowRemoval = true)
                             RutinaGoOutlinedButton(onClick = {
                                 if (visible && CommunicationPersonalVocabulary.needsHideWarning(word.vocabId)) hideId = word.vocabId
                                 else change(if (visible) selected - word.vocabId else selected + word.vocabId)

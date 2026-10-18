@@ -68,10 +68,16 @@ internal fun ComposeContentTestRule.scrollCommunicationTo(key: Any) {
     val value = key.toString()
     val destination = when {
         value in listOf("personalize", "presentation", "back") -> "SETTINGS"
-        value in listOf("categories", "vocabulary-title", "count") || value.startsWith("VOC_") -> "CATEGORIES"
+        value in listOf("categories", "vocabulary-title", "count") || value.startsWith("VOC_") -> "EXPLORER"
         else -> "HOME"
     }
-    onNodeWithTag("communication-destination-$destination").performClick()
+    if (destination == "EXPLORER") {
+        if (onAllNodesWithTag("communication-category-grid").fetchSemanticsNodes().isEmpty()) {
+            onNodeWithTag("communication-destination-HOME").performClick()
+            onNodeWithTag("communication-home").performScrollToKey("explore")
+            onNodeWithTag("communication-explore").performClick()
+        }
+    } else onNodeWithTag("communication-destination-$destination").performClick()
     waitForIdle()
     when (destination) {
         "SETTINGS" -> when (value) {

@@ -191,6 +191,7 @@ private fun CommunicationProfileEntryContent(
                             vocabularySaving, vocabularyError,
                             onSave = ::saveVocabulary, onBack = onBackToModules, showBack = false,
                             homeIds = current.homeIds,
+                            homeSaving = homeSaving, homeError = homeError, onSetHomeWord = ::setHomeWord,
                             onOrganizeHome = { navigation = navigation.organizeHome() })
                     },
                     presentationMode = CommunicationPresentationPolicy.resolve(initial, current.presentation),

@@ -25,7 +25,7 @@ class CommunicationBottomNavigationAccessibilityTest {
     private data class Scenario(val theme: ThemeMode, val systemDark: Boolean,
         val contrast: Boolean, val scale: TextScaleMode, val small: Boolean)
 
-    @Test fun labelsTouchTargetsSelectionAndContentFitAcrossThemesSizesAndAllFourTabs() {
+    @Test fun labelsTouchTargetsSelectionAndContentFitAcrossThemesSizesAndAllThreeTabs() {
         val appearances = listOf(Triple(ThemeMode.DAY, false, false), Triple(ThemeMode.NIGHT, false, false),
             Triple(ThemeMode.SYSTEM, false, false), Triple(ThemeMode.SYSTEM, true, false), Triple(ThemeMode.DAY, false, true))
         var scenario by mutableStateOf(Scenario(ThemeMode.DAY, false, false, TextScaleMode.NORMAL, false))
@@ -56,7 +56,9 @@ class CommunicationBottomNavigationAccessibilityTest {
                         label.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
                         assertTrue(layouts.isNotEmpty())
                         layouts.forEach {
-                            assertFalse("Clipped label in $scenario", it.hasVisualOverflow)
+                            assertFalse("Clipped ${it.layoutInput.text} in $scenario: size=${it.size}, " +
+                                "paragraph=${it.multiParagraph.width}x${it.multiParagraph.height}, " +
+                                "width=${it.didOverflowWidth}, height=${it.didOverflowHeight}", it.hasVisualOverflow)
                         }
                         rule.onNodeWithTag("communication-bottom-bar").assertIsDisplayed()
                     }
@@ -67,7 +69,7 @@ class CommunicationBottomNavigationAccessibilityTest {
                     // Long compact messages retain their full spoken text and stay above category results.
                     rule.scrollCommunicationTo("core-VOC_006")
                     repeat(12) { rule.onNodeWithTag("communication-core-VOC_006").performClick() }
-                    rule.onNodeWithTag("communication-destination-CATEGORIES").performClick()
+                    rule.scrollCommunicationTo("categories")
                     rule.onNodeWithTag("communication-compact-message").assertIsDisplayed()
                         .assertTextEquals("Mensaje: " + List(12) { "Quiero" }.joinToString(" · "))
                         .assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))

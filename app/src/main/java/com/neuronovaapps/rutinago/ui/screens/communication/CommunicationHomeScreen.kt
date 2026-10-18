@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.data.communication.CommunicationStateCodec
 import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
@@ -27,7 +28,7 @@ import com.neuronovaapps.rutinago.ui.screens.communication.components.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** One catalog and one transient builder above the four independently saved tab contents. */
+/** One catalog and transient builder shared by three tabs and their secondary screens. */
 @Composable
 fun CommunicationHomeScreen(
     activeProfileName: String,
@@ -94,6 +95,7 @@ fun CommunicationHomeScreen(
     }
     fun back() { currentNavigation.back()?.let(::navigate) ?: exit() }
     fun organizeHome() { focus.clearFocus(); navigate(currentNavigation.organizeHome()) }
+    fun explore() { focus.clearFocus(); navigate(currentNavigation.explore()) }
     BackHandler { back() }
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -104,7 +106,11 @@ fun CommunicationHomeScreen(
     ) { padding ->
         Surface(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
             color = MaterialTheme.colorScheme.background) {
-            tabs.SaveableStateProvider(if (currentNavigation.homeOrganizationOrigin != null) "home-organization" else destination.name) {
+            tabs.SaveableStateProvider(when {
+                currentNavigation.homeOrganizationOrigin != null -> "home-organization"
+                currentNavigation.exploring -> "explorer"
+                else -> destination.name
+            }) {
                 if (currentNavigation.homeOrganizationOrigin != null && onSetHomeWord != null) {
                     CommunicationHomeVocabularyScreen(activeProfileName, repository, visibleVocabularyIds, homeVocabularyIds,
                         homeSaving, homeError, onSetHomeWord,
@@ -112,9 +118,9 @@ fun CommunicationHomeScreen(
                         onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) })
                 } else {
                     when (destination) {
-                        CommunicationDestination.HOME, CommunicationDestination.CATEGORIES -> {
+                        CommunicationDestination.HOME -> {
                             Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                                if (destination == CommunicationDestination.CATEGORIES) {
+                                if (currentNavigation.exploring) {
                                     CompactCommunicationMessage(state.messageItems) {
                                         select(CommunicationDestination.HOME)
                                     }
@@ -122,10 +128,11 @@ fun CommunicationHomeScreen(
                                 CommunicationHomeSaveStatus(homeSaving, homeError)
                                 CommunicationWordGrid(activeProfileName, repository, builder, state,
                                     onState = { state = it }, presentationMode, visibleVocabularyIds,
-                                    homeVocabularyIds, homeSaving, onSetHomeWord,
-                                    categories = destination == CommunicationDestination.CATEGORIES,
+                                    homeVocabularyIds,
+                                    categories = currentNavigation.exploring,
                                     onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) },
-                                    onOrganizeHome = if (onSetHomeWord != null) ::organizeHome else null)
+                                    onOrganizeHome = if (onSetHomeWord != null) ::organizeHome else null,
+                                    onExplore = ::explore)
                             }
                         }
                         CommunicationDestination.MY_VOCABULARY -> {
@@ -156,17 +163,17 @@ private fun CommunicationWordGrid(
     presentationMode: CommunicationPresentationMode,
     visibleIds: Set<String>?,
     homeIds: Set<String>?,
-    homeSaving: Boolean,
-    onSetHomeWord: ((String, Boolean) -> Unit)?,
     categories: Boolean,
     onVocabulary: () -> Unit,
     onOrganizeHome: (() -> Unit)?,
+    onExplore: () -> Unit,
 ) {
     val layout = presentationLayout(presentationMode)
     val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
-    val words = if (categories) CommunicationPersonalVocabulary.visibleWords(builder.visibleVocabulary(state), visibleIds)
+    var query by rememberSaveable { mutableStateOf("") }
+    val words = if (categories) CommunicationPersonalVocabulary.search(repository,
+        visibleIds ?: repository.vocabulary.map { it.vocabId }.toSet(), VocabularyFilter.VISIBLE, state.selectedCategoryId, query)
         else CommunicationHomeVocabulary.words(repository, homeIds, visibleIds)
-    val assigned = CommunicationHomeVocabulary.assignedIds(homeIds, visibleIds)
     Box(contentAlignment = Alignment.TopCenter) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive((layout.minimumCardWidth * textFactor.coerceAtLeast(1f)).dp),
@@ -177,15 +184,19 @@ private fun CommunicationWordGrid(
             verticalArrangement = Arrangement.spacedBy(layout.spacing.dp),
         ) {
             item(key = "title", span = { GridItemSpan(maxLineSpan) }) {
-                SectionHeading(if (categories) "Categorías" else "ComunicaGo")
+                SectionHeading(if (categories) "Buscar más palabras" else "ComunicaGo")
             }
-            item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
             if (!categories) {
-                // Keep customization discoverable before a tall message pushes it below the fold.
+                // Both actions precede long profile names and the message, including large text.
+                item(key = "explore", span = { GridItemSpan(maxLineSpan) }) {
+                    Button(onClick = onExplore, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("communication-explore")) { Text("Buscar más palabras", Modifier.fillMaxWidth(), textAlign = TextAlign.Center) }
+                }
                 if (onOrganizeHome != null) item(key = "organize-home", span = { GridItemSpan(maxLineSpan) }) {
                     OutlinedButton(onClick = onOrganizeHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                        .testTag("communication-organize-home")) { Text("Organizar palabras de Inicio") }
+                        .testTag("communication-organize-home")) { Text("Organizar palabras de Inicio", Modifier.fillMaxWidth(), textAlign = TextAlign.Center) }
                 }
+                item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
                 item(key = "message", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationMessageBar(state.messageItems, state.clearedItems.isNotEmpty(),
                         { onState(builder.removeLast(state)) }, { onState(builder.clear(state)) },
@@ -194,12 +205,16 @@ private fun CommunicationWordGrid(
                 item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Palabras de Inicio") }
             } else {
                 item(key = "use-explanation", span = { GridItemSpan(maxLineSpan) }) {
-                    Text("Toca una palabra para comunicarla. Usa Añadir a Inicio para tenerla siempre a mano.")
+                    Text("Toca palabras para agregarlas al mensaje. Puedes seguir eligiendo y volver a Inicio cuando quieras.")
                 }
                 item(key = "categories", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationCategorySelector(repository.categories.filter { it.active }, state.selectedCategoryId) {
                         onState(builder.selectCategory(state, it))
                     }
+                }
+                item(key = "search", span = { GridItemSpan(maxLineSpan) }) {
+                    OutlinedTextField(query, { query = it }, label = { Text("Buscar palabra o categoría") },
+                        modifier = Modifier.fillMaxWidth().testTag("communication-explorer-search"))
                 }
                 item(key = "vocabulary-title", span = { GridItemSpan(maxLineSpan) }) {
                     SectionHeading("Vocabulario", Modifier.testTag("communication-vocabulary-area"))
@@ -222,8 +237,6 @@ private fun CommunicationWordGrid(
                         minimumHeight = (if (categories) layout.wordHeight else layout.quickAccessHeight).dp,
                         contentPadding = layout.cardPadding.dp,
                         emphasized = !categories && presentationMode == CommunicationPresentationMode.GUIDED)
-                    if (categories && onSetHomeWord != null) CommunicationHomeAssignmentControl(it,
-                        it.vocabId in assigned, !homeSaving, onSetHomeWord)
                 }
             }
         }
@@ -242,7 +255,7 @@ private fun CompactCommunicationMessage(items: List<CommunicationMessageItem>, o
                     liveRegion = LiveRegionMode.Polite
                 })
             TextButton(onClick = onHome, modifier = Modifier.heightIn(min = 48.dp)
-                .testTag("communication-view-full-message")) { Text("Ver en Inicio") }
+                .testTag("communication-view-full-message")) { Text("Volver a Inicio") }
         }
     }
 }

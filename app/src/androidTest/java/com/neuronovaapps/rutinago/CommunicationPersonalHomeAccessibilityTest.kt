@@ -62,16 +62,8 @@ class CommunicationPersonalHomeAccessibilityTest {
                 rule.onNodeWithTag("communication-category-grid").performScrollToKey("VOC_015")
                 val use = rule.onNodeWithTag("communication-word-VOC_015").performScrollTo().assertHeightIsAtLeast(48.dp)
                 use.assert(SemanticsMatcher.expectValue(SemanticsProperties.ContentDescription, listOf("Usar palabra: Agua")))
-                val add = rule.onNodeWithTag("home-assignment-VOC_015").performScrollTo().assertHeightIsAtLeast(48.dp)
-                assertFits(add)
-                add.assert(SemanticsMatcher.expectValue(SemanticsProperties.ContentDescription, listOf("Añadir a Inicio: Agua")))
-                // These are sibling controls with independent touch surfaces and callbacks.
-                val useBounds = use.fetchSemanticsNode().boundsInRoot
-                val addBounds = add.fetchSemanticsNode().boundsInRoot
-                assertTrue(useBounds.bottom <= addBounds.top + 1)
-                add.performClick()
-                rule.onNodeWithTag("home-assigned-VOC_015").assertTextEquals("En Inicio")
-                rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Tu mensaje aparecerá aquí")
+                rule.onNodeWithTag("home-assignment-VOC_015").assertDoesNotExist()
+                rule.onNodeWithTag("vocabulary-toggle-VOC_015").assertDoesNotExist()
                 rule.onNodeWithTag("communication-word-VOC_015").performScrollTo().performClick()
                 rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Agua")
                 rule.onNodeWithTag("communication-destination-HOME").performClick()
@@ -79,6 +71,10 @@ class CommunicationPersonalHomeAccessibilityTest {
                 rule.onNodeWithTag("communication-organize-home").performClick()
                 val organization = rule.onNodeWithTag("home-vocabulary-organization")
                 organization.performScrollToKey("VOC_015")
+                val add = rule.onNodeWithTag("home-assignment-VOC_015").performScrollTo().assertHeightIsAtLeast(48.dp)
+                assertFits(add)
+                add.assert(SemanticsMatcher.expectValue(SemanticsProperties.ContentDescription, listOf("Añadir a Inicio: Agua")))
+                add.performClick()
                 val remove = rule.onNodeWithTag("home-assignment-VOC_015").performScrollTo().assertHeightIsAtLeast(48.dp)
                 assertFits(remove)
                 remove.assert(SemanticsMatcher.expectValue(SemanticsProperties.ContentDescription, listOf("Quitar de Inicio: Agua")))
@@ -96,6 +92,8 @@ class CommunicationPersonalHomeAccessibilityTest {
         val layouts = mutableListOf<TextLayoutResult>()
         node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         assertTrue(layouts.isNotEmpty())
-        layouts.forEach { assertFalse(it.hasVisualOverflow) }
+        layouts.forEach { assertFalse("Clipped ${it.layoutInput.text}: size=${it.size}, " +
+            "paragraph=${it.multiParagraph.width}x${it.multiParagraph.height}, " +
+            "width=${it.didOverflowWidth}, height=${it.didOverflowHeight}", it.hasVisualOverflow) }
     }
 }

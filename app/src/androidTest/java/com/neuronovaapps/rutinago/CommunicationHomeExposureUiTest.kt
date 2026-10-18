@@ -51,6 +51,9 @@ class CommunicationHomeExposureUiTest {
     }
     private fun capture(name: String) {
         rule.waitForIdle()
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        // Compose semantics can be ready before the display presents its next frame.
+        android.os.SystemClock.sleep(200)
         val folder = File(rule.activity.getExternalFilesDir(null), "home-exposure-evidence").apply { mkdirs() }
         File(folder, "$name.txt").writeText(rule.onRoot(useUnmergedTree = true).printToString())
         // Capture the actual display without PixelCopy's short renderer timeout on an emulator.
@@ -63,6 +66,74 @@ class CommunicationHomeExposureUiTest {
     }
     private fun awaitAssignment(value: Boolean) {
         rule.waitUntil(15_000) { runBlocking { repository.homeVocabularyForProfile(profile).first()?.let { ("VOC_015" in it) == value } == true } }
+    }
+    @Test fun explorerSharesRepeatedMessageAndReturnsHomeWithoutAssigningWords() {
+        openCommunication()
+        rule.onNodeWithTag("communication-explore").assertIsDisplayed().performClick()
+        rule.onNodeWithTag("communication-destination-CATEGORIES").assertDoesNotExist()
+        CommunicationDestination.entries.forEach { rule.onNodeWithTag("communication-destination-${it.name}").assertIsDisplayed() }
+        rule.openCommunicationCategories()
+        (1..18).forEach { rule.onNodeWithTag("communication-category-CAT_${it.toString().padStart(3, '0')}").assertExists() }
+        rule.onNodeWithTag("communication-category-CAT_003").performScrollTo().performClick()
+        rule.onNodeWithTag("communication-category-grid").performScrollToKey("VOC_015")
+        repeat(2) { rule.onNodeWithTag("communication-word-VOC_015").performClick() }
+        rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Agua · Agua")
+        rule.onNodeWithTag("home-assignment-VOC_015").assertDoesNotExist()
+        rule.onNodeWithTag("vocabulary-toggle-VOC_015").assertDoesNotExist()
+        rule.selectCommunicationCategory(null)
+        rule.onNodeWithTag("communication-category-grid").performScrollToKey("search")
+        rule.onNodeWithTag("communication-explorer-search").performTextReplacement("agua")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        rule.onNodeWithTag("communication-category-grid").performScrollToKey("count")
+        rule.onNodeWithTag("communication-vocabulary-count").assertTextEquals("1 palabras")
+        runBlocking { assertNull(repository.homeVocabularyForProfile(profile).first()) }
+        capture("explorer-shared-message")
+        rule.activityRule.scenario.recreate()
+        rule.awaitCommunicationCatalog()
+        rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Agua · Agua")
+        rule.waitForIdle()
+        rule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        rule.onNodeWithTag("communication-home").assertIsDisplayed()
+        rule.scrollCommunicationTo("message")
+        rule.onNodeWithTag("communication-message-item-1").assertTextEquals("Agua")
+        rule.onNodeWithTag("communication-message-item-2").assertTextEquals("Agua")
+    }
+    @Test fun vocabularyCategoryAdministrationKeepsAvailabilityAndMessageSeparate() {
+        openCommunication()
+        rule.onNodeWithTag("communication-destination-MY_VOCABULARY").performClick()
+        rule.onNodeWithTag("vocabulary-organize-home").assertIsDisplayed()
+        val list = rule.onNodeWithTag("personal-vocabulary")
+        list.performScrollToKey("categories")
+        rule.onNodeWithTag("communication-category-toggle").performScrollTo().performClick()
+        rule.onNodeWithTag("communication-category-CAT_003").performScrollTo().performClick()
+        list.performScrollToKey("search")
+        rule.onNodeWithTag("vocabulary-search").performTextReplacement("VOC_015")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        list.performScrollToKey("VOC_015")
+        rule.onNodeWithTag("home-assignment-VOC_015").performScrollTo().performClick()
+        awaitAssignment(true)
+        rule.onNodeWithTag("communication-destination-HOME").performClick()
+        rule.scrollCommunicationTo("message")
+        rule.onNodeWithText("Tu mensaje aparecerá aquí").assertExists()
+        rule.onNodeWithTag("communication-home").performScrollToKey("core-VOC_015")
+        rule.onNodeWithTag("communication-core-VOC_015").performClick()
+        rule.onNodeWithTag("communication-destination-MY_VOCABULARY").performClick()
+        list.performScrollToKey("VOC_015")
+        rule.onNodeWithTag("home-assignment-VOC_015").performScrollTo().performClick()
+        awaitAssignment(false)
+        runBlocking { assertTrue("VOC_015" in requireNotNull(repository.vocabularyForProfile(profile).first())) }
+        rule.onNodeWithTag("vocabulary-toggle-VOC_015").performScrollTo().performClick()
+        rule.onNodeWithTag("vocabulary-confirm-hide").performClick()
+        rule.waitUntil(15_000) { runBlocking { "VOC_015" !in requireNotNull(repository.vocabularyForProfile(profile).first()) } }
+        list.performScrollToKey("filters")
+        rule.onNodeWithTag("vocabulary-filter-HIDDEN").performScrollTo().performClick()
+        list.performScrollToKey("VOC_015")
+        rule.onNodeWithTag("vocabulary-toggle-VOC_015").assertTextContains("Recuperar Agua").performScrollTo().performClick()
+        rule.waitUntil(15_000) { runBlocking { "VOC_015" in requireNotNull(repository.vocabularyForProfile(profile).first()) } }
+        rule.selectCommunicationCategory("CAT_003")
+        rule.onNodeWithTag("communication-category-grid").performScrollToKey("VOC_015")
+        rule.onNodeWithTag("communication-word-VOC_015").assertIsDisplayed()
+        rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Agua")
     }
     @Test fun organizationIsVisibleAtEntryWithoutSearchingOrScrolling() {
         runBlocking { repository.setPresentationMode(profile, CommunicationPresentationMode.GUIDED) }
@@ -124,9 +195,17 @@ class CommunicationHomeExposureUiTest {
         rule.selectCommunicationCategory("CAT_003")
         rule.onNodeWithTag("communication-category-grid").performScrollToKey("VOC_015")
         rule.onNodeWithTag("communication-word-VOC_015").assertIsDisplayed()
+        rule.onNodeWithTag("home-assignment-VOC_015").assertDoesNotExist()
+        rule.onNodeWithTag("communication-destination-MY_VOCABULARY").performClick()
+        rule.onNodeWithTag("personal-vocabulary").performScrollToKey("search")
+        rule.onNodeWithTag("vocabulary-search").performTextReplacement("VOC_015")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        rule.onNodeWithTag("personal-vocabulary").performScrollToKey("VOC_015")
         rule.onNodeWithTag("home-assignment-VOC_015").performScrollTo().performClick()
         awaitAssignment(true)
-        rule.onNodeWithTag("communication-compact-message").assertTextEquals("Mensaje: Agua")
+        rule.onNodeWithTag("communication-destination-HOME").performClick()
+        rule.scrollCommunicationTo("message")
+        rule.onNodeWithTag("communication-message-item-1").assertTextEquals("Agua")
         rule.activityRule.scenario.recreate()
         rule.awaitCommunicationCatalog()
         rule.onNodeWithTag("communication-destination-HOME").performClick()
@@ -142,6 +221,7 @@ class CommunicationHomeExposureUiTest {
             repository.setHighContrast(true)
         }
         openCommunication()
+        rule.onNodeWithTag("communication-organize-home").assertIsDisplayed()
         capture("entry-large-contrast")
         rule.onNodeWithTag("communication-organize-home").assertIsDisplayed().performClick()
         rule.onNodeWithTag("home-vocabulary-organization").assertIsDisplayed()

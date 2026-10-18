@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neuronovaapps.rutinago.domain.communication.*
 import com.neuronovaapps.rutinago.ui.components.RutinaGoOutlinedButton
@@ -71,7 +72,7 @@ internal fun CommunicationHomeVocabularyScreen(
                         Modifier.testTag("home-organization-count").semantics { liveRegion = LiveRegionMode.Polite })
                 }
                 item(key = "explanation") {
-                    Text("Elige las palabras que quieres tener a mano. Quitar de Inicio no oculta la palabra en Categorías ni cambia el mensaje. Puedes decidir con el apoyo de una persona de confianza.")
+                    Text("Elige las palabras que quieres tener a mano. Quitar de Inicio no oculta la palabra en Buscar más palabras ni cambia el mensaje. Puedes decidir con el apoyo de una persona de confianza.")
                 }
                 if (results.isEmpty()) item(key = "empty") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -119,7 +120,9 @@ internal fun CommunicationHomeAssignmentControl(
     } else {
         RutinaGoOutlinedButton(onClick = { onSetHomeWord(word.vocabId, !assigned) }, enabled = enabled,
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("home-assignment-${word.vocabId}")
-                .semantics { contentDescription = "$label: ${word.text}" }) { Text(label) }
+                .semantics { contentDescription = "$label: ${word.text}" }) {
+            Text(label, Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        }
     }
 }
 

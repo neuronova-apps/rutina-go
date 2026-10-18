@@ -212,6 +212,6 @@ class CommunicationHomeVocabularyTest {
             assertEquals(CommunicationDestination.MY_VOCABULARY, original.organizeHome().destination)
             assertNull(original.organizeHome().back()?.back())
         }
-        assertEquals(4, CommunicationDestination.entries.size)
+        assertEquals(3, CommunicationDestination.entries.size)
     }
 }

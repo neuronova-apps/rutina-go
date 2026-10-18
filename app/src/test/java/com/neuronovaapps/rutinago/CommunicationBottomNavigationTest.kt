@@ -15,9 +15,32 @@ class CommunicationBottomNavigationTest {
     }
     private val builder = CommunicationMessageBuilder(catalog)
 
-    @Test fun fourIndependentDestinationsHaveTheRequiredVisibleLabels() {
-        assertEquals(listOf("HOME", "CATEGORIES", "MY_VOCABULARY", "SETTINGS"), CommunicationDestination.entries.map { it.name })
-        assertEquals(listOf("Inicio", "Categorías", "Mi vocabulario", "Configuración"), CommunicationDestination.entries.map { it.label })
+    @Test fun threeIndependentDestinationsHaveTheRequiredVisibleLabels() {
+        assertEquals(listOf("HOME", "MY_VOCABULARY", "SETTINGS"), CommunicationDestination.entries.map { it.name })
+        assertEquals(listOf("Inicio", "Mi vocabulario", "Configuración"), CommunicationDestination.entries.map { it.label })
+    }
+    @Test fun explorerIsSecondaryAndBackReturnsHomeBeforeTheSelector() {
+        val explorer = CommunicationNavigationState().explore()
+        assertEquals(CommunicationDestination.HOME, explorer.destination)
+        assertTrue(explorer.exploring)
+        assertEquals(CommunicationNavigationState(), explorer.back())
+        assertNull(explorer.back()?.back())
+        CommunicationDestination.entries.forEach { assertFalse(explorer.select(it).exploring) }
+    }
+    @Test fun organizerReturnsToItsOriginAndDoesNotReopenExplorer() {
+        for (tab in listOf(CommunicationDestination.HOME, CommunicationDestination.MY_VOCABULARY)) {
+            val origin = CommunicationNavigationState(tab)
+            assertEquals(origin, origin.organizeHome().back())
+        }
+        assertFalse(CommunicationNavigationState().explore().organizeHome().exploring)
+    }
+    @Test fun oldCategorySnapshotRestoresAsSecondaryExplorerWithoutChangingStoredPreferences() {
+        val restored = com.neuronovaapps.rutinago.ui.screens.communication.CommunicationNavigationSaver
+            .restore(listOf("CATEGORIES", "false", ""))
+        assertEquals(CommunicationNavigationState(exploring = true), restored)
+        val current = com.neuronovaapps.rutinago.ui.screens.communication.CommunicationNavigationSaver
+            .restore(listOf("HOME", "false", "", "true"))
+        assertEquals(restored, current)
     }
     @Test fun aNewSessionStartsAtHomeWithoutAnEditor() {
         assertEquals(CommunicationDestination.HOME, CommunicationNavigationState().destination)

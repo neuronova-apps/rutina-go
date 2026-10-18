@@ -28,8 +28,8 @@ internal fun CommunicationBottomBar(selected: CommunicationDestination, onSelect
         // Keep natural text size. At narrow widths/large text, two rows give every label space.
         val longestWord = CommunicationDestination.entries.flatMap { it.label.split(' ') }
             .maxOf { measurer.measure(it, style).size.width }
-        val twoRows = with(density) { longestWord.toDp() } + 24.dp > maxWidth / 4
-        val columns = if (twoRows) 2 else 4
+        val twoRows = with(density) { longestWord.toDp() } + 24.dp > maxWidth / CommunicationDestination.entries.size
+        val columns = if (twoRows) 2 else CommunicationDestination.entries.size
         val labelWidth = with(density) { (maxWidth / columns - 24.dp).roundToPx().coerceAtLeast(1) }
         val labelHeight = CommunicationDestination.entries.maxOf {
             measurer.measure(it.label, style, constraints = Constraints(maxWidth = labelWidth)).size.height
@@ -50,7 +50,8 @@ internal fun CommunicationBottomBar(selected: CommunicationDestination, onSelect
                                 modifier = Modifier.heightIn(min = itemHeight)
                                     .testTag("communication-destination-${destination.name}"),
                                 icon = { Icon(communicationIcons.getValue(destination), null, Modifier.size(24.dp)) },
-                                label = { Text(destination.label, style = style, textAlign = TextAlign.Center) },
+                                label = { Text(destination.label, modifier = Modifier.fillMaxWidth(),
+                                    style = style, textAlign = TextAlign.Center) },
                                 alwaysShowLabel = true,
                                 colors = NavigationBarItemDefaults.colors(
                                     indicatorColor = if (highContrast) MaterialTheme.colorScheme.primary
@@ -78,12 +79,6 @@ private val communicationIcons = mapOf(
         moveTo(3f, 11f); lineTo(12f, 3f); lineTo(21f, 11f); lineTo(19f, 11f)
         lineTo(19f, 21f); lineTo(14f, 21f); lineTo(14f, 14f); lineTo(10f, 14f)
         lineTo(10f, 21f); lineTo(5f, 21f); lineTo(5f, 11f); close()
-    },
-    CommunicationDestination.CATEGORIES to communicationIcon("Cuadrícula") {
-        moveTo(3f, 3f); lineTo(10f, 3f); lineTo(10f, 10f); lineTo(3f, 10f); close()
-        moveTo(14f, 3f); lineTo(21f, 3f); lineTo(21f, 10f); lineTo(14f, 10f); close()
-        moveTo(3f, 14f); lineTo(10f, 14f); lineTo(10f, 21f); lineTo(3f, 21f); close()
-        moveTo(14f, 14f); lineTo(21f, 14f); lineTo(21f, 21f); lineTo(14f, 21f); close()
     },
     CommunicationDestination.MY_VOCABULARY to communicationIcon("Libro") {
         moveTo(12f, 5f); curveTo(8f, 2f, 4f, 3f, 2f, 4f); lineTo(2f, 20f)
