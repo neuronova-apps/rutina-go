@@ -181,16 +181,17 @@ private fun CommunicationWordGrid(
             }
             item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
             if (!categories) {
+                // Keep customization discoverable before a tall message pushes it below the fold.
+                if (onOrganizeHome != null) item(key = "organize-home", span = { GridItemSpan(maxLineSpan) }) {
+                    OutlinedButton(onClick = onOrganizeHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("communication-organize-home")) { Text("Organizar palabras de Inicio") }
+                }
                 item(key = "message", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationMessageBar(state.messageItems, state.clearedItems.isNotEmpty(),
                         { onState(builder.removeLast(state)) }, { onState(builder.clear(state)) },
                         { onState(builder.undoClear(state)) })
                 }
                 item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Palabras de Inicio") }
-                if (onOrganizeHome != null) item(key = "organize-home", span = { GridItemSpan(maxLineSpan) }) {
-                    OutlinedButton(onClick = onOrganizeHome, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                        .testTag("communication-organize-home")) { Text("Organizar palabras de Inicio") }
-                }
             } else {
                 item(key = "use-explanation", span = { GridItemSpan(maxLineSpan) }) {
                     Text("Toca una palabra para comunicarla. Usa Añadir a Inicio para tenerla siempre a mano.")

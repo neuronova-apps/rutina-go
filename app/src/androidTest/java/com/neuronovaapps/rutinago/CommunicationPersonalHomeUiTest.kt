@@ -36,7 +36,7 @@ class CommunicationPersonalHomeUiTest {
         }
         repository.selectProfile(a)
     }
-    @After fun cleanup() = runBlocking {
+    @After fun cleanup(): Unit = runBlocking {
         repository.deleteProfile(a); repository.deleteProfile(b)
         original.activeProfile?.id?.let { repository.selectProfile(it) }
     }
@@ -47,7 +47,7 @@ class CommunicationPersonalHomeUiTest {
     }
     private fun enter() { rule.onNodeWithTag("module-communication").performClick(); rule.awaitCommunicationCatalog() }
     private fun tab(name: String) { rule.onNodeWithTag("communication-destination-$name").performClick().assertIsSelected() }
-    private fun systemBack() { rule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }; rule.waitForIdle() }
+    private fun systemBack() { rule.waitForIdle(); rule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }; rule.waitForIdle() }
     private fun awaitAssigned(id: String, value: Boolean) {
         rule.waitUntil(10_000) { runBlocking {
             repository.homeVocabularyForProfile(a).first()?.let { (id in it) == value } == true
@@ -69,6 +69,7 @@ class CommunicationPersonalHomeUiTest {
         tab("MY_VOCABULARY")
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey("search")
         rule.onNodeWithTag("vocabulary-search").performTextReplacement(id)
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey(id)
     }
     @Test fun useAddRemoveAndOrganizeAreSeparateAndKeepTheSameMessage() {
@@ -107,6 +108,7 @@ class CommunicationPersonalHomeUiTest {
         tab("MY_VOCABULARY")
         rule.onNodeWithTag("personal-vocabulary").performScrollToKey("home-words")
         rule.onNodeWithTag("vocabulary-organize-home").performScrollTo().performClick()
+        rule.onNodeWithTag("home-vocabulary-organization").assertIsDisplayed()
         systemBack()
         rule.onNodeWithTag("communication-destination-MY_VOCABULARY").assertIsSelected()
     }
@@ -116,7 +118,8 @@ class CommunicationPersonalHomeUiTest {
         rule.onNodeWithTag("communication-home").performScrollToKey("core-VOC_015")
         rule.onNodeWithTag("communication-core-VOC_015").performClick()
         searchAdmin("VOC_015")
-        rule.onNodeWithTag("vocabulary-toggle-VOC_015").performClick()
+        rule.onNodeWithTag("vocabulary-toggle-VOC_015").performScrollTo().assertIsEnabled().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithTag("vocabulary-confirm-hide").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithTag("vocabulary-confirm-hide").performClick()
         rule.waitUntil(10_000) { runBlocking { "VOC_015" !in requireNotNull(repository.vocabularyForProfile(a).first()) } }
         tab("HOME")
@@ -126,7 +129,7 @@ class CommunicationPersonalHomeUiTest {
         rule.onNodeWithTag("communication-word-VOC_015").assertDoesNotExist()
         runBlocking { assertTrue("VOC_015" in requireNotNull(repository.homeVocabularyForProfile(a).first())) }
         searchAdmin("VOC_015")
-        rule.onNodeWithTag("vocabulary-toggle-VOC_015").performClick()
+        rule.onNodeWithTag("vocabulary-toggle-VOC_015").performScrollTo().assertIsEnabled().performClick()
         rule.waitUntil(10_000) { runBlocking { "VOC_015" in requireNotNull(repository.vocabularyForProfile(a).first()) } }
         tab("HOME")
         rule.onNodeWithTag("communication-home").performScrollToKey("core-VOC_015")

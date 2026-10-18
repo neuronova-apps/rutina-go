@@ -34,7 +34,8 @@ internal fun CommunicationHomeVocabularyScreen(
     onVocabulary: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    var assignedOnly by rememberSaveable { mutableStateOf(CommunicationHomeVocabulary.assignedIds(homeIds, availableIds).isNotEmpty()) }
+    // New visits expose available words immediately, including profiles with six legacy defaults.
+    var assignedOnly by rememberSaveable { mutableStateOf(false) }
     val assigned = CommunicationHomeVocabulary.assignedIds(homeIds, availableIds)
         .intersect(catalog.vocabulary.map { it.vocabId }.toSet())
     LaunchedEffect(assigned.isEmpty()) { if (assigned.isEmpty()) assignedOnly = false }
@@ -55,13 +56,6 @@ internal fun CommunicationHomeVocabularyScreen(
                 }
                 item(key = "title") { SectionHeading("Palabras de Inicio") }
                 item(key = "profile") { Text("Perfil activo: $profileName") }
-                item(key = "explanation") {
-                    Text("Elige las palabras que quieres tener a mano. Quitar de Inicio no oculta la palabra en Categorías ni cambia el mensaje. Puedes decidir con el apoyo de una persona de confianza.")
-                }
-                item(key = "counts") {
-                    Text("${homeWords.size} palabras en Inicio · ${assigned.size - homeWords.size} asignadas temporalmente ocultas",
-                        Modifier.testTag("home-organization-count").semantics { liveRegion = LiveRegionMode.Polite })
-                }
                 item(key = "search") {
                     OutlinedTextField(query, { query = it }, label = { Text("Buscar palabra o categoría") },
                         modifier = Modifier.fillMaxWidth().testTag("home-organization-search"))
@@ -71,6 +65,13 @@ internal fun CommunicationHomeVocabularyScreen(
                         CommunicationChoiceOption("Asignadas a Inicio", "home-organization-assigned", assignedOnly) { assignedOnly = true }
                         CommunicationChoiceOption("Todas las disponibles", "home-organization-available", !assignedOnly) { assignedOnly = false }
                     }
+                }
+                item(key = "counts") {
+                    Text("${homeWords.size} palabras en Inicio · ${assigned.size - homeWords.size} asignadas temporalmente ocultas",
+                        Modifier.testTag("home-organization-count").semantics { liveRegion = LiveRegionMode.Polite })
+                }
+                item(key = "explanation") {
+                    Text("Elige las palabras que quieres tener a mano. Quitar de Inicio no oculta la palabra en Categorías ni cambia el mensaje. Puedes decidir con el apoyo de una persona de confianza.")
                 }
                 if (results.isEmpty()) item(key = "empty") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

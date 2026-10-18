@@ -99,17 +99,17 @@ internal fun CommunicationVocabularyContent(
                     }
                 }
                 item(key = "title") { SectionHeading("Mi vocabulario") }
-                item(key = "profile") { Text("Personaliza tus palabras con el apoyo que necesites · Perfil: $activeProfileName") }
+                item(key = "profile") { Text("Perfil activo: $activeProfileName") }
                 if (!firstSetup && onOrganizeHome != null) item(key = "home-words") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         SectionHeading("Palabras de Inicio")
-                        Text("${CommunicationHomeVocabulary.words(catalog, homeIds, selected).size} palabras en Inicio",
-                            Modifier.testTag("vocabulary-home-count"))
-                        Text("Elige cuáles tendrás a mano para comunicarte. Quitar de Inicio mantiene la palabra disponible en Categorías; ocultarla del vocabulario la oculta en ambas pantallas.")
                         RutinaGoOutlinedButton(onClick = onOrganizeHome,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("vocabulary-organize-home")) {
                             Text("Organizar palabras de Inicio")
                         }
+                        Text("${CommunicationHomeVocabulary.words(catalog, homeIds, selected).size} palabras en Inicio",
+                            Modifier.testTag("vocabulary-home-count"))
+                        Text("Elige cuáles tendrás a mano para comunicarte. Quitar de Inicio mantiene la palabra disponible en Categorías; ocultarla del vocabulario la oculta en ambas pantallas.")
                     }
                 }
                 item(key = "explanation") {
