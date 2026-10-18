@@ -164,13 +164,15 @@ class CommunicationMessageBuilderTest {
         assertArrayEquals(originalBytes, asset.readBytes())
     }
 
-    @Test fun communicationHasNoNetworkSpeechOrDatabaseEntryPoints() {
+    @Test fun communicationHasNoNetworkOrDatabaseAndSpeechIsConfinedToItsAndroidAdapter() {
         val base = File(root, "app/src/main/java/com/neuronovaapps/rutinago")
         val sources = listOf("domain/communication", "data/communication", "ui/screens/communication")
             .flatMap { File(base, it).walkTopDown().filter { file -> file.extension == "kt" }.toList() }
-        val forbidden = Regex("\\b(OkHttpClient|ArasaacClient|ArasaacHttpRepository|TextToSpeech|Room|Supabase)\\b|import (java\\.net|okhttp3|android\\.speech|androidx\\.room)")
+        val forbidden = Regex("\\b(OkHttpClient|ArasaacClient|ArasaacHttpRepository|Room|Supabase)\\b|import (java\\.net|okhttp3|androidx\\.room)")
         sources.forEach { source ->
             assertFalse("Communication boundary violation: ${source.name}", forbidden.containsMatchIn(source.readText()))
+            if (source.name != "AndroidCommunicationSpeechEngine.kt") assertFalse("Speech outside adapter: ${source.name}",
+                Regex("\\bTextToSpeech\\b|import android\\.speech").containsMatchIn(source.readText()))
         }
     }
 }

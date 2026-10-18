@@ -27,6 +27,8 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentation
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationHomeVocabularyRepository
 import com.neuronovaapps.rutinago.data.communication.LocalCommunicationCatalogRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechPreferencesRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechRate
 
 enum class ThemeMode(val storageValue: String) {
     DAY("day"), NIGHT("night"), SYSTEM("system");
@@ -79,7 +81,7 @@ data class UserPreferences(
 // Profiles are small app preferences here; routines and activities deliberately stay out of DataStore.
 private val Context.userPreferencesDataStore by preferencesDataStore(name = "appearance_preferences")
 
-class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository, CommunicationHomeVocabularyRepository {
+class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository, CommunicationHomeVocabularyRepository, CommunicationSpeechPreferencesRepository {
     private val appContext = context.applicationContext
     private val communicationCatalog by lazy {
         LocalCommunicationCatalogRepository {
@@ -110,6 +112,8 @@ class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRep
     }
 
     override fun setupForProfile(profileId: String) = communicationSetups.setupForProfile(profileId)
+    override fun speechRateForProfile(profileId: String) = communicationSetups.speechRateForProfile(profileId)
+    override suspend fun setSpeechRate(profileId: String, rate: CommunicationSpeechRate) = communicationSetups.setSpeechRate(profileId, rate)
     override fun vocabularyForProfile(profileId: String) = communicationSetups.vocabularyForProfile(profileId)
     override fun homeVocabularyForProfile(profileId: String) = communicationSetups.homeVocabularyForProfile(profileId)
     override suspend fun setHomeWord(profileId: String, vocabularyId: String, inHome: Boolean) =

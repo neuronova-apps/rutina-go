@@ -45,6 +45,8 @@ fun CommunicationHomeScreen(
     navigation: CommunicationNavigationState? = null,
     onNavigate: ((CommunicationNavigationState) -> Unit)? = null,
     vocabularyContent: (@Composable (CommunicationCatalogRepository) -> Unit)? = null,
+    speechContent: (@Composable (List<CommunicationMessageItem>) -> Unit)? = null,
+    speechSettings: (@Composable () -> Unit)? = null,
     onBackToModules: () -> Unit,
 ) {
     val assets = LocalContext.current.applicationContext.assets
@@ -132,7 +134,7 @@ fun CommunicationHomeScreen(
                                     categories = currentNavigation.exploring,
                                     onVocabulary = { select(CommunicationDestination.MY_VOCABULARY) },
                                     onOrganizeHome = if (onSetHomeWord != null) ::organizeHome else null,
-                                    onExplore = ::explore)
+                                    onExplore = ::explore, speechContent = speechContent)
                             }
                         }
                         CommunicationDestination.MY_VOCABULARY -> {
@@ -145,7 +147,7 @@ fun CommunicationHomeScreen(
                             }
                         }
                         CommunicationDestination.SETTINGS -> CommunicationSettingsScreen(
-                            activeProfileName, profileSetup, onPersonalize, presentationControls, ::exit)
+                            activeProfileName, profileSetup, onPersonalize, presentationControls, ::exit, speechSettings)
                     }
                 }
             }
@@ -167,6 +169,7 @@ private fun CommunicationWordGrid(
     onVocabulary: () -> Unit,
     onOrganizeHome: (() -> Unit)?,
     onExplore: () -> Unit,
+    speechContent: (@Composable (List<CommunicationMessageItem>) -> Unit)?,
 ) {
     val layout = presentationLayout(presentationMode)
     val textFactor = MaterialTheme.typography.bodyLarge.fontSize.value / 17f * LocalDensity.current.fontScale
@@ -200,7 +203,7 @@ private fun CommunicationWordGrid(
                 item(key = "message", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationMessageBar(state.messageItems, state.clearedItems.isNotEmpty(),
                         { onState(builder.removeLast(state)) }, { onState(builder.clear(state)) },
-                        { onState(builder.undoClear(state)) })
+                        { onState(builder.undoClear(state)) }, speechControls = speechContent?.let { content -> { content(state.messageItems) } })
                 }
                 item(key = "core-title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("Palabras de Inicio") }
             } else {

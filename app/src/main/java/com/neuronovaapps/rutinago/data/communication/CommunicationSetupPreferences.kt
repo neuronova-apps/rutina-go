@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechRate
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechPreferencesRepository
 
 /** One record per stable profile ID. No name, age in years, or clinical data is stored. */
 class CommunicationSetupPreferences(private val store: DataStore<Preferences>) {
@@ -49,7 +51,20 @@ class CommunicationSetupPreferences(private val store: DataStore<Preferences>) {
             it.remove(presentationKey(profileId))
             it.remove(vocabularyKey(profileId))
             it.remove(homeVocabularyKey(profileId))
+            it.remove(speechRateKey(profileId))
         }
+    }
+
+    private fun speechRateKey(profileId: String) = stringPreferencesKey("voice_rate_v1:$profileId")
+    fun observeSpeechRate(profileId: String): Flow<CommunicationSpeechRate> {
+        require(profileId.isNotBlank())
+        return store.data.map { stored -> CommunicationSpeechRate.entries.firstOrNull {
+            it.name == stored[speechRateKey(profileId)]
+        } ?: CommunicationSpeechRate.NORMAL }.distinctUntilChanged()
+    }
+    suspend fun saveSpeechRate(profileId: String, rate: CommunicationSpeechRate) {
+        require(profileId.isNotBlank())
+        store.edit { it[speechRateKey(profileId)] = rate.name }
     }
 
     fun observeVocabulary(profileId: String): Flow<Set<String>?> {
@@ -163,7 +178,12 @@ class CommunicationProfileSetupManager(
     private val store: CommunicationSetupPreferences,
     private val profiles: CommunicationProfileRegistry,
     private val catalog: (() -> CommunicationCatalogRepository)? = null,
-) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository, CommunicationHomeVocabularyRepository {
+) : CommunicationProfileSetupRepository, CommunicationPresentationRepository, CommunicationPersonalVocabularyRepository, CommunicationHomeVocabularyRepository, CommunicationSpeechPreferencesRepository {
+    override fun speechRateForProfile(profileId: String) = store.observeSpeechRate(profileId)
+    override suspend fun setSpeechRate(profileId: String, rate: CommunicationSpeechRate) = mutationMutex.withLock {
+        require(profiles.exists(profileId)) { "Unknown profile" }
+        store.saveSpeechRate(profileId, rate)
+    }
     override fun homeVocabularyForProfile(profileId: String) = store.observeHomeVocabulary(profileId)
 
     override suspend fun setHomeWord(profileId: String, vocabularyId: String, inHome: Boolean) = mutationMutex.withLock {

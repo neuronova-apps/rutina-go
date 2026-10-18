@@ -54,6 +54,7 @@ fun CommunicationMessageBar(
     onClear: () -> Unit,
     onUndoClear: () -> Unit,
     modifier: Modifier = Modifier,
+    speechControls: (@Composable () -> Unit)? = null,
 ) {
     val highContrast = LocalHighContrast.current
     val messageScroll = rememberScrollState()
@@ -100,6 +101,7 @@ fun CommunicationMessageBar(
                     }
                 }
             }
+            speechControls?.invoke()
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 MessageAction("Borrar último", "communication-remove-last", items.isNotEmpty(), onRemoveLast)

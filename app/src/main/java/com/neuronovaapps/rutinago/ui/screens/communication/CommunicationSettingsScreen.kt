@@ -17,10 +17,12 @@ internal fun CommunicationSettingsScreen(
     onPersonalize: (() -> Unit)?,
     presentationControls: (@Composable () -> Unit)?,
     onBackToModules: () -> Unit,
+    speechSettings: (@Composable () -> Unit)? = null,
 ) {
     ScreenColumn(Modifier.safeDrawingPadding().testTag("communication-settings")) {
         SectionHeading("Configuración de ComunicaGo")
         Text("Perfil activo: $profileName")
+        speechSettings?.invoke()
         SectionHeading("Personalización del perfil")
         if (setup != null) {
             Text("Rango de edad: ${setup.ageRange.setupLabel}")

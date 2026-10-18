@@ -32,6 +32,9 @@ import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentation
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPresentationPolicy
 import com.neuronovaapps.rutinago.domain.communication.CommunicationPersonalVocabularyRepository
 import com.neuronovaapps.rutinago.domain.communication.CommunicationHomeVocabularyRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechPreferencesRepository
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechRate
+import com.neuronovaapps.rutinago.domain.communication.CommunicationSpeechEngine
 import com.neuronovaapps.rutinago.ui.screens.communication.components.CommunicationPresentationSelector
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
 import kotlinx.coroutines.CancellationException
@@ -53,6 +56,8 @@ fun CommunicationProfileEntryScreen(
     presentationRepository: CommunicationPresentationRepository? = null,
     vocabularyRepository: CommunicationPersonalVocabularyRepository? = null,
     homeVocabularyRepository: CommunicationHomeVocabularyRepository? = null,
+    speechPreferencesRepository: CommunicationSpeechPreferencesRepository? = null,
+    speechEngineFactory: (() -> CommunicationSpeechEngine)? = null,
     onBackToModules: () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
@@ -62,7 +67,8 @@ fun CommunicationProfileEntryScreen(
     val vocabulary = vocabularyRepository ?: defaultRepository
     val homeVocabulary = homeVocabularyRepository ?: defaultRepository
     key(profileId) {
-        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, vocabulary, homeVocabulary, onBackToModules)
+        CommunicationProfileEntryContent(profileId, activeProfileName, repository, presentation, vocabulary, homeVocabulary,
+            speechPreferencesRepository ?: defaultRepository, speechEngineFactory, onBackToModules)
     }
 }
 
@@ -74,6 +80,8 @@ private fun CommunicationProfileEntryContent(
     presentationRepository: CommunicationPresentationRepository,
     vocabularyRepository: CommunicationPersonalVocabularyRepository,
     homeVocabularyRepository: CommunicationHomeVocabularyRepository,
+    speechRepository: CommunicationSpeechPreferencesRepository,
+    speechEngineFactory: (() -> CommunicationSpeechEngine)?,
     onBackToModules: () -> Unit,
 ) {
     var retry by remember { mutableIntStateOf(0) }
@@ -89,6 +97,17 @@ private fun CommunicationProfileEntryContent(
     // A visible first-visit explanation survives recomposition, but not another module visit.
     var introductionVisible by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()
+    val speech = rememberCommunicationSpeechController(profileId, speechEngineFactory)
+    var speechRateSaving by remember { mutableStateOf(false) }
+    var speechRateError by remember { mutableStateOf<String?>(null) }
+    val speechRate by produceState<CommunicationSpeechRate?>(null, speechRepository, profileId, retry) {
+        try { speechRepository.speechRateForProfile(profileId).collect { value = it } }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) {
+            value = CommunicationSpeechRate.NORMAL
+            speechRateError = "No se pudo recuperar la velocidad. Se usará Normal temporalmente."
+        }
+    }
     val messageSession = rememberSaveableStateHolder()
     val loaded by produceState<SetupLoadState>(SetupLoadState.Loading, repository, presentationRepository, vocabularyRepository, homeVocabularyRepository, profileId, retry) {
         value = SetupLoadState.Loading
@@ -176,6 +195,24 @@ private fun CommunicationProfileEntryContent(
         } else {
             messageSession.SaveableStateProvider("builder") {
                 CommunicationHomeScreen(
+                    speechContent = { items ->
+                        speechRate?.let { CommunicationSpeechControls(speech, items, it) }
+                            ?: Text("Cargando preferencias de voz…")
+                    },
+                    speechSettings = {
+                        speechRate?.let { currentRate -> CommunicationSpeechSettings(speech, currentRate, speechRateSaving, speechRateError) { rate ->
+                            if (!speechRateSaving) {
+                                speechRateSaving = true
+                                speechRateError = null
+                                scope.launch {
+                                    try { speechRepository.setSpeechRate(profileId, rate) }
+                                    catch (cancelled: CancellationException) { throw cancelled }
+                                    catch (_: Exception) { speechRateError = "No se pudo guardar la velocidad. Inténtalo de nuevo." }
+                                    finally { speechRateSaving = false }
+                                }
+                            }
+                        } } ?: Text("Cargando preferencias de voz…")
+                    },
                     activeProfileName = activeProfileName,
                     onPersonalize = { navigation = navigation.personalize() },
                     navigation = navigation,
