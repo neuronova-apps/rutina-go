@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
+import com.neuronovaapps.rutinago.data.communication.CommunicationProfileRegistry
+import com.neuronovaapps.rutinago.data.communication.CommunicationProfileSetupManager
+import com.neuronovaapps.rutinago.data.communication.CommunicationSetupStorage
+import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetup
+import com.neuronovaapps.rutinago.domain.communication.CommunicationProfileSetupRepository
 
 enum class ThemeMode(val storageValue: String) {
     DAY("day"), NIGHT("night"), SYSTEM("system");
@@ -68,8 +74,34 @@ data class UserPreferences(
 // Profiles are small app preferences here; routines and activities deliberately stay out of DataStore.
 private val Context.userPreferencesDataStore by preferencesDataStore(name = "appearance_preferences")
 
-class UserPreferencesRepository(context: Context) {
+class UserPreferencesRepository(context: Context) : CommunicationProfileSetupRepository {
     private val appContext = context.applicationContext
+    private val communicationSetups by lazy {
+        CommunicationProfileSetupManager(CommunicationSetupStorage.get(appContext),
+            object : CommunicationProfileRegistry {
+                override suspend fun exists(profileId: String): Boolean =
+                    decodeProfiles(appContext.userPreferencesDataStore.data.first()[PROFILES_KEY].orEmpty())
+                        .any { it.id == profileId }
+
+                override suspend fun delete(profileId: String) {
+                    edit { stored ->
+                        val remaining = decodeProfiles(stored[PROFILES_KEY].orEmpty()).filterNot { it.id == profileId }
+                        stored[PROFILES_KEY] = encodeProfiles(remaining)
+                        if (stored[ACTIVE_PROFILE_KEY] == profileId) {
+                            remaining.firstOrNull()?.let { stored[ACTIVE_PROFILE_KEY] = it.id }
+                                ?: stored.remove(ACTIVE_PROFILE_KEY)
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    override fun setupForProfile(profileId: String) = communicationSetups.setupForProfile(profileId)
+    override suspend fun saveSetup(setup: CommunicationProfileSetup) = communicationSetups.saveSetup(setup)
+
+    /** No deletion UI is introduced; every caller must use this cleanup-aware entry point. */
+    suspend fun deleteProfile(profileId: String) = communicationSetups.deleteProfile(profileId)
 
     val preferences: Flow<UserPreferences> = appContext.userPreferencesDataStore.data
         .catch { error ->

@@ -93,6 +93,7 @@ class CommunicationMessageBuilderUiTest {
         val profile = composeRule.onAllNodesWithText("Perfil activo:", substring = true)
             .fetchSemanticsNodes().single().config[androidx.compose.ui.semantics.SemanticsProperties.Text].single().text
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.completeCommunicationSetupIfNeeded()
         composeRule.awaitCommunicationCatalog()
         return profile
     }

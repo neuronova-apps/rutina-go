@@ -64,7 +64,7 @@ import com.neuronovaapps.rutinago.ui.screens.routines.RoutinesScreen
 import com.neuronovaapps.rutinago.ui.screens.settings.SettingsScreen
 import com.neuronovaapps.rutinago.ui.screens.welcome.WelcomeScreen
 import com.neuronovaapps.rutinago.ui.screens.modules.ModuleSelectorScreen
-import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationHomeScreen
+import com.neuronovaapps.rutinago.ui.screens.communication.CommunicationProfileEntryScreen
 import com.neuronovaapps.rutinago.ui.theme.LocalHighContrast
 import com.neuronovaapps.rutinago.ui.components.EmptyState
 import com.neuronovaapps.rutinago.ui.components.ScreenColumn
@@ -226,7 +226,8 @@ fun RutinaGoApp(
 
     if (selectedModule == "communication") {
         communicationSession.SaveableStateProvider("communication:${preferences.activeProfile?.id}") {
-            CommunicationHomeScreen(
+            CommunicationProfileEntryScreen(
+                profileId = requireNotNull(preferences.activeProfile?.id),
                 activeProfileName = activeProfileName,
                 onBackToModules = { selectedModule = null },
             )

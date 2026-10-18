@@ -52,6 +52,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun CommunicationHomeScreen(
     activeProfileName: String,
+    onPersonalize: (() -> Unit)? = null,
     onBackToModules: () -> Unit,
 ) {
     val assets = LocalContext.current.applicationContext.assets
@@ -80,7 +81,7 @@ fun CommunicationHomeScreen(
             }
         }
     } else {
-        CommunicationBuilderScreen(activeProfileName, repository, onBackToModules)
+        CommunicationBuilderScreen(activeProfileName, repository, onPersonalize, onBackToModules)
     }
 }
 
@@ -88,6 +89,7 @@ fun CommunicationHomeScreen(
 private fun CommunicationBuilderScreen(
     activeProfileName: String,
     repository: CommunicationCatalogRepository,
+    onPersonalize: (() -> Unit)?,
     onBackToModules: () -> Unit,
 ) {
     val builder = remember(repository) { CommunicationMessageBuilder(repository) }
@@ -129,6 +131,13 @@ private fun CommunicationBuilderScreen(
                 }
                 item(key = "title", span = { GridItemSpan(maxLineSpan) }) { SectionHeading("ComunicaGo") }
                 item(key = "profile", span = { GridItemSpan(maxLineSpan) }) { Text("Perfil activo: $activeProfileName") }
+                if (onPersonalize != null) {
+                    item(key = "personalize", span = { GridItemSpan(maxLineSpan) }) {
+                        OutlinedButton(onClick = onPersonalize,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("communication-personalize"),
+                            shape = MaterialTheme.shapes.medium) { Text("Personalizar ComunicaGo", textAlign = TextAlign.Center) }
+                    }
+                }
                 item(key = "message", span = { GridItemSpan(maxLineSpan) }) {
                     CommunicationMessageBar(
                         items = state.messageItems,

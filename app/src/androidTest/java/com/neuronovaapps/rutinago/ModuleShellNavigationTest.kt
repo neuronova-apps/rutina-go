@@ -27,6 +27,19 @@ internal fun ComposeContentTestRule.awaitCommunicationCatalog() {
     }
 }
 
+/** Legacy navigation cases explicitly decline optional answers during test preparation. */
+internal fun ComposeContentTestRule.completeCommunicationSetupIfNeeded() {
+    waitUntil(timeoutMillis = 10_000) {
+        onAllNodesWithTag("communication-home").fetchSemanticsNodes().isNotEmpty() ||
+            onAllNodesWithTag("communication-profile-setup").fetchSemanticsNodes().isNotEmpty()
+    }
+    if (onAllNodesWithTag("communication-profile-setup").fetchSemanticsNodes().isNotEmpty()) {
+        onNodeWithTag("communication-age-NOT_SPECIFIED").performScrollTo().performClick()
+        onNodeWithTag("communication-oral-NOT_SPECIFIED").performScrollTo().performClick()
+        onNodeWithTag("communication-setup-save").performScrollTo().performClick()
+    }
+}
+
 class ModuleShellNavigationTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
@@ -38,6 +51,7 @@ class ModuleShellNavigationTest {
             .fetchSemanticsNodes().single().config[androidx.compose.ui.semantics.SemanticsProperties.Text]
             .single().text
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.completeCommunicationSetupIfNeeded()
         composeRule.awaitCommunicationCatalog()
         composeRule.onNodeWithTag("communication-home").assertIsDisplayed()
         composeRule.onNodeWithText("ComunicaGo").assertIsDisplayed()
@@ -60,6 +74,7 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithText("Volver al selector").performClick()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.completeCommunicationSetupIfNeeded()
         composeRule.awaitCommunicationCatalog()
         pressSystemBack()
         composeRule.onNodeWithTag("module-selector").assertIsDisplayed()
@@ -103,6 +118,7 @@ class ModuleShellNavigationTest {
         composeRule.onNodeWithTag("destination-SETTINGS").performClick()
         composeRule.onNodeWithText("Cambiar módulo").performScrollTo().performClick()
         composeRule.onNodeWithTag("module-communication").performClick()
+        composeRule.completeCommunicationSetupIfNeeded()
         composeRule.awaitCommunicationCatalog()
         composeRule.activityRule.scenario.recreate()
         composeRule.awaitCommunicationCatalog()
